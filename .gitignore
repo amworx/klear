@@ -1,0 +1,34 @@
+# ---- Secrets & machine-local files (NEVER commit) ----
+# Project memory holds credentials + secret strings (see memory/credentials.md).
+memory/
+
+# Android SDK path is machine-specific.
+**/local.properties
+**/keystore.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.key
+.env
+.env.*
+
+# ---- OS / editor junk ----
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+.idea/
+*.iml
+.vscode/
+.vs/
+
+# ---- Build output (Flutter src/.gitignore also covers src-level) ----
+build/
+out/
+dist/
+*.apk
+*.aab
+*.ipa
+app.*.symbols
+app.*.map.json
