@@ -125,6 +125,28 @@ class _ServiceCard extends StatelessWidget {
                             ),
                       ),
                     ],
+                    if (service.durationMin != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            size: 14,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            localizations.approxMinutes(
+                              '${service.durationMin}',
+                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: scheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -270,4 +270,117 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noAccount => 'ليس لديك حساب؟ أنشئ حساباً';
+
+  @override
+  String approxMinutes(String minutes) {
+    return '≈ $minutes دقيقة';
+  }
+
+  @override
+  String get bookingCar => 'السيارة';
+
+  @override
+  String get bookingNotes => 'ملاحظات (اختياري)';
+
+  @override
+  String get bookingNotesHint => 'أي شيء يجب أن يعرفه فريق الغسيل';
+
+  @override
+  String get bookingFailed => 'تعذّر حفظ الحجز. حاول مرة أخرى';
+
+  @override
+  String get submitting => 'جارٍ الإرسال…';
+
+  @override
+  String get saving => 'جارٍ الحفظ…';
+
+  @override
+  String get saveFailed => 'تعذّر الحفظ. حاول مرة أخرى';
+
+  @override
+  String get priceEstimate => 'تقدير التكلفة';
+
+  @override
+  String get priceBase => 'السعر الأساسي';
+
+  @override
+  String get sizeAdjustment => 'تعديل حسب الحجم';
+
+  @override
+  String get totalEstimate => 'التكلفة التقديرية';
+
+  @override
+  String get selectCar => 'اختر سيارتك';
+
+  @override
+  String get myCars => 'سياراتي';
+
+  @override
+  String get myCarsSubtitle => 'سجّل سياراتك ليتعرف عليها الفريق';
+
+  @override
+  String get carsEmptyTitle => 'لا توجد سيارات بعد';
+
+  @override
+  String get carsEmptySubtitle =>
+      'أضف سيارتك لنمنحك سعراً دقيقاً ويتعرف عليها فريق الغسيل';
+
+  @override
+  String get noCarsAddPrompt =>
+      'لا تملك سيارات بعد. أضف سيارتك الأولى للمتابعة';
+
+  @override
+  String get addCar => 'إضافة سيارة';
+
+  @override
+  String get editCar => 'تعديل السيارة';
+
+  @override
+  String get deleteCar => 'حذف';
+
+  @override
+  String get deleteCarConfirmTitle => 'حذف هذه السيارة؟';
+
+  @override
+  String get deleteCarConfirmMessage =>
+      'ستُحذف هذه السيارة، ويمكنك إضافتها مجدداً في أي وقت';
+
+  @override
+  String get carMake => 'الماركة';
+
+  @override
+  String get carMakeHint => 'مثال: تويوتا';
+
+  @override
+  String get carMakeRequired => 'الرجاء إدخال الماركة';
+
+  @override
+  String get carModel => 'الطراز';
+
+  @override
+  String get carModelHint => 'مثال: كورولا';
+
+  @override
+  String get carModelRequired => 'الرجاء إدخال الطراز';
+
+  @override
+  String get carPlate => 'رقم اللوحة';
+
+  @override
+  String get carPlateHint => 'مثال: 12345 أ';
+
+  @override
+  String get carPlateRequired => 'الرجاء إدخال رقم اللوحة';
+
+  @override
+  String get carSize => 'حجم السيارة';
+
+  @override
+  String get sizeSmall => 'صغيرة';
+
+  @override
+  String get sizeMedium => 'متوسطة';
+
+  @override
+  String get sizeLarge => 'كبيرة';
 }

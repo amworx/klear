@@ -156,6 +156,17 @@ class _ProfileView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          // My Cars — register vehicles for the wash team + sizing.
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.directions_car_outlined),
+              title: Text(l10n.myCars),
+              subtitle: Text(l10n.myCarsSubtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(KlearRoutes.myCars),
+            ),
+          ),
+          const SizedBox(height: 16),
           // Edit profile button.
           OutlinedButton.icon(
             onPressed: () => context.go(KlearRoutes.profileSetup),

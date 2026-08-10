@@ -1,3 +1,4 @@
+import '../../cars/domain/klear_car.dart';
 import '../../services/domain/klear_service.dart';
 
 /// Booking status enum mirrors the database `booking_status` type.
@@ -20,6 +21,7 @@ class KlearBooking {
     required this.dateTime,
     required this.status,
     required this.createdAt,
+    this.carId,
     this.notes,
     this.totalPrice,
   });
@@ -32,6 +34,7 @@ class KlearBooking {
   final DateTime dateTime;
   final BookingStatus status;
   final DateTime createdAt;
+  final String? carId;
   final String? notes;
   final double? totalPrice;
 
@@ -55,27 +58,29 @@ class KlearBooking {
   factory KlearBooking.fromMap(Map<String, dynamic> map, KlearService service) {
     return KlearBooking(
       id: map['id']?.toString() ?? '',
-      userId: map['user_id']?.toString() ?? '',
+      userId: map['customer_id']?.toString() ?? map['user_id']?.toString() ?? '',
       serviceId: map['service_id']?.toString() ?? '',
       service: service,
       address: (map['address'] as String?) ?? '',
       dateTime: DateTime.tryParse(map['scheduled_at']?.toString() ?? '') ?? DateTime.now(),
       status: _statusFromString(map['status']?.toString()),
       createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ?? DateTime.now(),
-      notes: map['notes'] as String?,
+      carId: map['car_id']?.toString(),
+      notes: (map['note'] as String?) ?? (map['notes'] as String?),
       totalPrice: (map['total_price'] as num?)?.toDouble(),
     );
   }
 
   Map<String, dynamic> toMap() => {
         'id': id,
-        'user_id': userId,
+        'customer_id': userId,
         'service_id': serviceId,
+        'car_id': carId,
         'address': address,
         'scheduled_at': dateTime.toIso8601String(),
         'status': status.name,
         'created_at': createdAt.toIso8601String(),
-        'notes': notes,
+        'note': notes,
         'total_price': totalPrice,
       };
 
@@ -102,31 +107,43 @@ class KlearBooking {
 class BookingDraft {
   const BookingDraft({
     this.service,
+    this.car,
     this.address,
     this.dateTime,
     this.notes,
   });
 
   final KlearService? service;
+  final KlearCar? car;
   final String? address;
   final DateTime? dateTime;
   final String? notes;
 
   /// Whether the draft is complete (ready to submit).
   bool get isComplete =>
-      service != null && address != null && address!.isNotEmpty && dateTime != null;
+      service != null &&
+      car != null &&
+      address != null &&
+      address!.isNotEmpty &&
+      dateTime != null;
 
-  /// Estimated total price (same as service base price for now).
-  double get estimatedTotal => service?.basePrice ?? 0;
+  /// Estimated total price = service base price × car-size factor.
+  double get estimatedTotal =>
+      (service?.basePrice ?? 0) * (car?.size.priceFactor ?? 1.0);
+
+  /// Estimated duration of the wash (service duration, if known).
+  int? get estimatedDurationMin => service?.durationMin;
 
   BookingDraft copyWith({
     KlearService? service,
+    KlearCar? car,
     String? address,
     DateTime? dateTime,
     String? notes,
   }) {
     return BookingDraft(
       service: service ?? this.service,
+      car: car ?? this.car,
       address: address ?? this.address,
       dateTime: dateTime ?? this.dateTime,
       notes: notes ?? this.notes,

@@ -13,10 +13,13 @@ import '../features/auth/email_signin_page.dart';
 import '../features/auth/otp_verify_page.dart';
 import '../features/auth/profile_setup_page.dart';
 import '../features/auth/welcome_page.dart';
+import '../features/bookings/presentation/car_selection_page.dart';
 import '../features/bookings/presentation/confirmation_page.dart';
 import '../features/bookings/presentation/datetime_page.dart';
 import '../features/bookings/presentation/location_page.dart';
 import '../features/bookings/presentation/service_selection_page.dart';
+import '../features/cars/presentation/car_form_page.dart';
+import '../features/cars/presentation/cars_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/orders/presentation/orders_page.dart';
 import '../features/services/presentation/services_page.dart';
@@ -130,6 +133,11 @@ class _KlearAppContent extends ConsumerWidget {
                         _fadeSlidePage(const ServiceSelectionPage()),
                   ),
                   GoRoute(
+                    path: 'book/car',
+                    pageBuilder: (context, state) =>
+                        _fadeSlidePage(const CarSelectionPage()),
+                  ),
+                  GoRoute(
                     path: 'book/location',
                     pageBuilder: (context, state) =>
                         _fadeSlidePage(const LocationPage()),
@@ -169,6 +177,25 @@ class _KlearAppContent extends ConsumerWidget {
               GoRoute(
                 path: '/account',
                 pageBuilder: (context, state) => _fadeSlidePage(const AccountPage()),
+                routes: [
+                  GoRoute(
+                    path: 'cars',
+                    pageBuilder: (context, state) =>
+                        _fadeSlidePage(const CarsPage()),
+                  ),
+                  GoRoute(
+                    path: 'cars/add',
+                    pageBuilder: (context, state) =>
+                        _fadeSlidePage(const CarFormPage()),
+                  ),
+                  GoRoute(
+                    path: 'cars/edit',
+                    pageBuilder: (context, state) =>
+                        _fadeSlidePage(CarFormPage(
+                      car: state.extra as dynamic,
+                    )),
+                  ),
+                ],
               ),
             ],
           ),

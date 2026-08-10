@@ -613,6 +613,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No account yet? Create one'**
   String get noAccount;
+
+  /// No description provided for @approxMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'≈ {minutes} min'**
+  String approxMinutes(String minutes);
+
+  /// No description provided for @bookingCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get bookingCar;
+
+  /// No description provided for @bookingNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get bookingNotes;
+
+  /// No description provided for @bookingNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything the wash team should know'**
+  String get bookingNotesHint;
+
+  /// No description provided for @bookingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your booking. Please try again.'**
+  String get bookingFailed;
+
+  /// No description provided for @submitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting…'**
+  String get submitting;
+
+  /// No description provided for @saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get saving;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Please try again.'**
+  String get saveFailed;
+
+  /// No description provided for @priceEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost estimate'**
+  String get priceEstimate;
+
+  /// No description provided for @priceBase.
+  ///
+  /// In en, this message translates to:
+  /// **'Base price'**
+  String get priceBase;
+
+  /// No description provided for @sizeAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Size adjustment'**
+  String get sizeAdjustment;
+
+  /// No description provided for @totalEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated total'**
+  String get totalEstimate;
+
+  /// No description provided for @selectCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your car'**
+  String get selectCar;
+
+  /// No description provided for @myCars.
+  ///
+  /// In en, this message translates to:
+  /// **'My cars'**
+  String get myCars;
+
+  /// No description provided for @myCarsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Register your vehicles so the team can identify them'**
+  String get myCarsSubtitle;
+
+  /// No description provided for @carsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No cars yet'**
+  String get carsEmptyTitle;
+
+  /// No description provided for @carsEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your car so we can give an exact price and the wash team can identify it.'**
+  String get carsEmptySubtitle;
+
+  /// No description provided for @noCarsAddPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any cars yet. Add your first one to continue the booking.'**
+  String get noCarsAddPrompt;
+
+  /// No description provided for @addCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Add car'**
+  String get addCar;
+
+  /// No description provided for @editCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit car'**
+  String get editCar;
+
+  /// No description provided for @deleteCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteCar;
+
+  /// No description provided for @deleteCarConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this car?'**
+  String get deleteCarConfirmTitle;
+
+  /// No description provided for @deleteCarConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This car will be removed. You can add it again anytime.'**
+  String get deleteCarConfirmMessage;
+
+  /// No description provided for @carMake.
+  ///
+  /// In en, this message translates to:
+  /// **'Make (brand)'**
+  String get carMake;
+
+  /// No description provided for @carMakeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Toyota'**
+  String get carMakeHint;
+
+  /// No description provided for @carMakeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the car make'**
+  String get carMakeRequired;
+
+  /// No description provided for @carModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get carModel;
+
+  /// No description provided for @carModelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Corolla'**
+  String get carModelHint;
+
+  /// No description provided for @carModelRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the car model'**
+  String get carModelRequired;
+
+  /// No description provided for @carPlate.
+  ///
+  /// In en, this message translates to:
+  /// **'Plate number'**
+  String get carPlate;
+
+  /// No description provided for @carPlateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 1234A'**
+  String get carPlateHint;
+
+  /// No description provided for @carPlateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the plate number'**
+  String get carPlateRequired;
+
+  /// No description provided for @carSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Car size'**
+  String get carSize;
+
+  /// No description provided for @sizeSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get sizeSmall;
+
+  /// No description provided for @sizeMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get sizeMedium;
+
+  /// No description provided for @sizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get sizeLarge;
 }
 
 class _AppLocalizationsDelegate

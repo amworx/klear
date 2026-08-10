@@ -69,7 +69,8 @@ class ServiceSelectionPage extends ConsumerWidget {
                       ),
                       title: Text(service.nameFor(langCode)),
                       subtitle: Text(
-                        '${service.basePrice.toStringAsFixed(0)} ${service.currency}',
+                        '${service.basePrice.toStringAsFixed(0)} ${service.currency}'
+                        '${service.durationMin != null ? " · ${l10n.approxMinutes('${service.durationMin}')}" : ''}',
                       ),
                       trailing: isSelected
                           ? Icon(Icons.check_circle, color: scheme.primary)
@@ -90,7 +91,7 @@ class ServiceSelectionPage extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: FilledButton(
             onPressed: draft.service != null
-                ? () => context.go(KlearRoutes.bookLocation)
+                ? () => context.go(KlearRoutes.bookSelectCar)
                 : null,
             child: Text(l10n.continueLabel),
           ),

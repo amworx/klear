@@ -276,4 +276,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noAccount => 'No account yet? Create one';
+
+  @override
+  String approxMinutes(String minutes) {
+    return '≈ $minutes min';
+  }
+
+  @override
+  String get bookingCar => 'Car';
+
+  @override
+  String get bookingNotes => 'Notes (optional)';
+
+  @override
+  String get bookingNotesHint => 'Anything the wash team should know';
+
+  @override
+  String get bookingFailed => 'Could not save your booking. Please try again.';
+
+  @override
+  String get submitting => 'Submitting…';
+
+  @override
+  String get saving => 'Saving…';
+
+  @override
+  String get saveFailed => 'Could not save. Please try again.';
+
+  @override
+  String get priceEstimate => 'Cost estimate';
+
+  @override
+  String get priceBase => 'Base price';
+
+  @override
+  String get sizeAdjustment => 'Size adjustment';
+
+  @override
+  String get totalEstimate => 'Estimated total';
+
+  @override
+  String get selectCar => 'Select your car';
+
+  @override
+  String get myCars => 'My cars';
+
+  @override
+  String get myCarsSubtitle =>
+      'Register your vehicles so the team can identify them';
+
+  @override
+  String get carsEmptyTitle => 'No cars yet';
+
+  @override
+  String get carsEmptySubtitle =>
+      'Add your car so we can give an exact price and the wash team can identify it.';
+
+  @override
+  String get noCarsAddPrompt =>
+      'You don\'t have any cars yet. Add your first one to continue the booking.';
+
+  @override
+  String get addCar => 'Add car';
+
+  @override
+  String get editCar => 'Edit car';
+
+  @override
+  String get deleteCar => 'Delete';
+
+  @override
+  String get deleteCarConfirmTitle => 'Delete this car?';
+
+  @override
+  String get deleteCarConfirmMessage =>
+      'This car will be removed. You can add it again anytime.';
+
+  @override
+  String get carMake => 'Make (brand)';
+
+  @override
+  String get carMakeHint => 'e.g. Toyota';
+
+  @override
+  String get carMakeRequired => 'Please enter the car make';
+
+  @override
+  String get carModel => 'Model';
+
+  @override
+  String get carModelHint => 'e.g. Corolla';
+
+  @override
+  String get carModelRequired => 'Please enter the car model';
+
+  @override
+  String get carPlate => 'Plate number';
+
+  @override
+  String get carPlateHint => 'e.g. 1234A';
+
+  @override
+  String get carPlateRequired => 'Please enter the plate number';
+
+  @override
+  String get carSize => 'Car size';
+
+  @override
+  String get sizeSmall => 'Small';
+
+  @override
+  String get sizeMedium => 'Medium';
+
+  @override
+  String get sizeLarge => 'Large';
 }

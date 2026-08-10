@@ -4,8 +4,10 @@
 /// reactive to Riverpod auth state. This file only exposes the path
 /// constants used across the app.
 ///
-/// Note: child routes of '/' (home branch) should NOT start with '/'.
-/// Only top-level routes (outside the shell) start with '/'.
+/// Note: go_router resolves locations WITHOUT a leading '/' relative to the
+/// current location. Separate-bookkeeping: constants used with `go`/`push`
+/// from a non-root screen MUST include the leading '/' (full path), e.g.
+/// `/book/car`. Only true top-level detours (welcome/auth) are also absolute.
 class KlearRoutes {
   const KlearRoutes._();
   // Top-level routes (outside the bottom-nav shell).
@@ -19,11 +21,19 @@ class KlearRoutes {
   static const String services = '/services';
   static const String orders = '/orders';
   static const String account = '/account';
-  // Booking flow (child routes of home).
-  static const String bookSelectService = 'book/service';
-  static const String bookLocation = 'book/location';
-  static const String bookDateTime = 'book/datetime';
-  static const String bookConfirm = 'book/confirm';
+  // Booking flow (child routes of the home branch). MUST be absolute paths:
+  // go_router resolves a relative location ('book/car') against the CURRENT
+  // location, so from /book/service it produces /book/book/car and throws
+  // "no routes for location". Absolute paths match the full child route.
+  static const String bookSelectService = '/book/service';
+  static const String bookSelectCar = '/book/car';
+  static const String bookLocation = '/book/location';
+  static const String bookDateTime = '/book/datetime';
+  static const String bookConfirm = '/book/confirm';
+  // My Cars (child routes of the account branch).
+  static const String myCars = '/account/cars';
+  static const String carAdd = '/account/cars/add';
+  static const String carEdit = '/account/cars/edit';
 }
 
 /// Bottom-nav branch index keys.
