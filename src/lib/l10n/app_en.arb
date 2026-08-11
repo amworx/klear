@@ -126,5 +126,27 @@
   "carSize": "Car size",
   "sizeSmall": "Small",
   "sizeMedium": "Medium",
-  "sizeLarge": "Large"
+  "sizeLarge": "Large",
+  "bookingStepOf": "Step {current} of {total}",
+  "@bookingStepOf": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "bookingDetailsTitle": "When & where",
+  "useSavedAddress": "Use saved address",
+  "customDateTime": "Pick another time",
+  "quickSlotToday": "Today",
+  "quickSlotTomorrow": "Tomorrow",
+  "quickSlotMorning": "Morning",
+  "quickSlotAfternoon": "Afternoon",
+  "quickSlotEvening": "Evening",
+  "priceBeforeCarSize": "Before car size adjustment",
+  "bookService": "Book",
+  "statusPending": "Pending",
+  "statusConfirmed": "Confirmed",
+  "statusInProgress": "In progress",
+  "statusCompleted": "Completed",
+  "statusCancelled": "Cancelled"
 }

@@ -13,10 +13,8 @@ import '../features/auth/email_signin_page.dart';
 import '../features/auth/otp_verify_page.dart';
 import '../features/auth/profile_setup_page.dart';
 import '../features/auth/welcome_page.dart';
-import '../features/bookings/presentation/car_selection_page.dart';
+import '../features/bookings/presentation/booking_details_page.dart';
 import '../features/bookings/presentation/confirmation_page.dart';
-import '../features/bookings/presentation/datetime_page.dart';
-import '../features/bookings/presentation/location_page.dart';
 import '../features/bookings/presentation/service_selection_page.dart';
 import '../features/cars/presentation/car_form_page.dart';
 import '../features/cars/presentation/cars_page.dart';
@@ -133,19 +131,9 @@ class _KlearAppContent extends ConsumerWidget {
                         _fadeSlidePage(const ServiceSelectionPage()),
                   ),
                   GoRoute(
-                    path: 'book/car',
+                    path: 'book/details',
                     pageBuilder: (context, state) =>
-                        _fadeSlidePage(const CarSelectionPage()),
-                  ),
-                  GoRoute(
-                    path: 'book/location',
-                    pageBuilder: (context, state) =>
-                        _fadeSlidePage(const LocationPage()),
-                  ),
-                  GoRoute(
-                    path: 'book/datetime',
-                    pageBuilder: (context, state) =>
-                        _fadeSlidePage(const DateTimePage()),
+                        _fadeSlidePage(const BookingDetailsPage()),
                   ),
                   GoRoute(
                     path: 'book/confirm',

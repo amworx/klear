@@ -829,6 +829,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Large'**
   String get sizeLarge;
+
+  /// No description provided for @bookingStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String bookingStepOf(String current, String total);
+
+  /// No description provided for @bookingDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When & where'**
+  String get bookingDetailsTitle;
+
+  /// No description provided for @useSavedAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Use saved address'**
+  String get useSavedAddress;
+
+  /// No description provided for @customDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick another time'**
+  String get customDateTime;
+
+  /// No description provided for @quickSlotToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get quickSlotToday;
+
+  /// No description provided for @quickSlotTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get quickSlotTomorrow;
+
+  /// No description provided for @quickSlotMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get quickSlotMorning;
+
+  /// No description provided for @quickSlotAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get quickSlotAfternoon;
+
+  /// No description provided for @quickSlotEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get quickSlotEvening;
+
+  /// No description provided for @priceBeforeCarSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Before car size adjustment'**
+  String get priceBeforeCarSize;
+
+  /// No description provided for @bookService.
+  ///
+  /// In en, this message translates to:
+  /// **'Book'**
+  String get bookService;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get statusConfirmed;
+
+  /// No description provided for @statusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get statusInProgress;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
 }
 
 class _AppLocalizationsDelegate

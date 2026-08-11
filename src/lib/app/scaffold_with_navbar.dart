@@ -25,9 +25,14 @@ class ScaffoldWithNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final inBookingFlow =
+        GoRouterState.of(context).uri.path.startsWith('/book');
+
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: inBookingFlow
+          ? null
+          : NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _goBranch,
         destinations: [

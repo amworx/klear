@@ -9,10 +9,16 @@ import '../../../services/domain/klear_service.dart';
 /// handling loading / error / empty states gracefully.
 ///
 /// Cards fade in with a soft stagger; loading shows skeleton placeholders.
+/// When [onBookService] is set, tapping a card starts booking with that service.
 class ServicesSection extends ConsumerWidget {
-  const ServicesSection({super.key, required this.servicesAsync});
+  const ServicesSection({
+    super.key,
+    required this.servicesAsync,
+    this.onBookService,
+  });
 
   final AsyncValue<List<KlearService>> servicesAsync;
+  final void Function(KlearService service)? onBookService;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -61,7 +67,13 @@ class ServicesSection extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            for (final service in services) _ServiceCard(service: service),
+            for (final service in services)
+              _ServiceCard(
+                service: service,
+                onBook: onBookService == null
+                    ? null
+                    : () => onBookService!(service),
+              ),
           ],
         );
       },
@@ -70,9 +82,10 @@ class ServicesSection extends ConsumerWidget {
 }
 
 class _ServiceCard extends StatelessWidget {
-  const _ServiceCard({required this.service});
+  const _ServiceCard({required this.service, this.onBook});
 
   final KlearService service;
+  final VoidCallback? onBook;
 
   @override
   Widget build(BuildContext context) {
@@ -86,87 +99,107 @@ class _ServiceCard extends StatelessWidget {
     return AnimatedPress(
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Icon tile.
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: scheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onBook,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Icon tile.
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: scheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.local_car_wash,
+                    color: scheme.onSecondaryContainer,
+                    size: 26,
+                  ),
                 ),
-                child: Icon(
-                  Icons.local_car_wash,
-                  color: scheme.onSecondaryContainer,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Name + optional description + price.
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      service.nameFor(langCode),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    if (description != null && description.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                const SizedBox(width: 16),
+                // Name + optional description + price.
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        service.nameFor(langCode),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      if (description != null && description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                      if (service.durationMin != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.schedule,
+                              size: 14,
                               color: scheme.onSurfaceVariant,
                             ),
-                      ),
-                    ],
-                    if (service.durationMin != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            size: 14,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            localizations.approxMinutes(
-                              '${service.durationMin}',
+                            const SizedBox(width: 4),
+                            Text(
+                              localizations.approxMinutes(
+                                '${service.durationMin}',
+                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: scheme.onSurfaceVariant),
                             ),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: scheme.onSurfaceVariant),
-                          ),
-                        ],
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${service.basePrice.toStringAsFixed(0)} ${service.currency}',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: scheme.onPrimaryContainer,
+                            ),
+                      ),
+                    ),
+                    if (onBook != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        localizations.bookService,
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ],
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              // Price pill.
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${service.basePrice.toStringAsFixed(0)} ${service.currency}',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: scheme.onPrimaryContainer,
-                      ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

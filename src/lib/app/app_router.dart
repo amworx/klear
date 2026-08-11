@@ -26,9 +26,7 @@ class KlearRoutes {
   // location, so from /book/service it produces /book/book/car and throws
   // "no routes for location". Absolute paths match the full child route.
   static const String bookSelectService = '/book/service';
-  static const String bookSelectCar = '/book/car';
-  static const String bookLocation = '/book/location';
-  static const String bookDateTime = '/book/datetime';
+  static const String bookDetails = '/book/details';
   static const String bookConfirm = '/book/confirm';
   // My Cars (child routes of the account branch).
   static const String myCars = '/account/cars';

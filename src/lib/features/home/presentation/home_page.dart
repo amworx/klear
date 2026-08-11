@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/app_router.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
+import '../../bookings/presentation/booking_providers.dart';
 import '../../services/presentation/services_providers.dart';
 import 'widgets/services_section.dart';
 
@@ -68,8 +70,14 @@ class HomePage extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Services catalog.
-                  ServicesSection(servicesAsync: servicesAsync),
+                  // Services catalog — tap a card to book directly.
+                  ServicesSection(
+                    servicesAsync: servicesAsync,
+                    onBookService: (service) {
+                      ref.read(bookingDraftProvider.notifier).setService(service);
+                      context.go(KlearRoutes.bookDetails);
+                    },
+                  ),
                 ],
               ),
             ),

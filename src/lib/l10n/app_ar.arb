@@ -126,5 +126,27 @@
   "carSize": "حجم السيارة",
   "sizeSmall": "صغيرة",
   "sizeMedium": "متوسطة",
-  "sizeLarge": "كبيرة"
+  "sizeLarge": "كبيرة",
+  "bookingStepOf": "الخطوة {current} من {total}",
+  "@bookingStepOf": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "bookingDetailsTitle": "متى وأين",
+  "useSavedAddress": "استخدم العنوان المحفوظ",
+  "customDateTime": "وقت آخر",
+  "quickSlotToday": "اليوم",
+  "quickSlotTomorrow": "غداً",
+  "quickSlotMorning": "صباحاً",
+  "quickSlotAfternoon": "ظهراً",
+  "quickSlotEvening": "مساءً",
+  "priceBeforeCarSize": "قبل تعديل حجم السيارة",
+  "bookService": "احجز",
+  "statusPending": "قيد الانتظار",
+  "statusConfirmed": "مؤكد",
+  "statusInProgress": "جاري التنفيذ",
+  "statusCompleted": "مكتمل",
+  "statusCancelled": "ملغى"
 }

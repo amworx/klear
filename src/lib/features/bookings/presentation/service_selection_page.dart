@@ -6,7 +6,8 @@ import '../../../app/app_router.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../services/presentation/services_providers.dart';
-import '../presentation/booking_providers.dart';
+import 'booking_providers.dart';
+import 'widgets/booking_step_scaffold.dart';
 
 /// Step 1: user picks a service from the catalog.
 class ServiceSelectionPage extends ConsumerWidget {
@@ -19,17 +20,19 @@ class ServiceSelectionPage extends ConsumerWidget {
     final draft = ref.watch(bookingDraftProvider);
     final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.selectService)),
+    return BookingStepScaffold(
+      currentStep: 1,
+      title: l10n.selectService,
       body: servicesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text(l10n.errorLoadingServices)),
+        error: (error, stack) =>
+            Center(child: Text(l10n.errorLoadingServices)),
         data: (services) {
           if (services.isEmpty) {
             return Center(child: Text(l10n.noServices));
           }
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             itemCount: services.length,
             itemBuilder: (context, index) {
               final service = services[index];
@@ -76,7 +79,9 @@ class ServiceSelectionPage extends ConsumerWidget {
                           ? Icon(Icons.check_circle, color: scheme.primary)
                           : const Icon(Icons.chevron_right),
                       onTap: () {
-                        ref.read(bookingDraftProvider.notifier).setService(service);
+                        ref
+                            .read(bookingDraftProvider.notifier)
+                            .setService(service);
                       },
                     ),
                   ),
@@ -86,12 +91,12 @@ class ServiceSelectionPage extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: SafeArea(
+      bottomBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FilledButton(
             onPressed: draft.service != null
-                ? () => context.go(KlearRoutes.bookSelectCar)
+                ? () => context.go(KlearRoutes.bookDetails)
                 : null,
             child: Text(l10n.continueLabel),
           ),

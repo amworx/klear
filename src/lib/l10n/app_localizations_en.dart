@@ -390,4 +390,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sizeLarge => 'Large';
+
+  @override
+  String bookingStepOf(String current, String total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get bookingDetailsTitle => 'When & where';
+
+  @override
+  String get useSavedAddress => 'Use saved address';
+
+  @override
+  String get customDateTime => 'Pick another time';
+
+  @override
+  String get quickSlotToday => 'Today';
+
+  @override
+  String get quickSlotTomorrow => 'Tomorrow';
+
+  @override
+  String get quickSlotMorning => 'Morning';
+
+  @override
+  String get quickSlotAfternoon => 'Afternoon';
+
+  @override
+  String get quickSlotEvening => 'Evening';
+
+  @override
+  String get priceBeforeCarSize => 'Before car size adjustment';
+
+  @override
+  String get bookService => 'Book';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusConfirmed => 'Confirmed';
+
+  @override
+  String get statusInProgress => 'In progress';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get statusCancelled => 'Cancelled';
 }

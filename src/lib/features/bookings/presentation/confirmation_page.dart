@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app/app_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
 import '../../cars/domain/klear_car.dart';
+import '../../orders/presentation/orders_providers.dart';
 import '../presentation/booking_providers.dart';
+import 'widgets/booking_step_scaffold.dart';
 
 /// Step 4: user reviews all details, sees the cost breakdown and confirms.
 /// Persists the booking to Supabase on confirm.
@@ -60,6 +64,7 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
 
       if (!mounted) return;
       ref.read(bookingDraftProvider.notifier).clear();
+      ref.invalidate(myBookingsProvider);
       setState(() => _submitting = false);
       _showConfirmationDialog(context, AppLocalizations.of(context));
     } catch (e) {
@@ -82,10 +87,12 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
     );
     final sizeLabel = _sizeLabel(draft.car?.size, langCode, l10n);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.confirmBooking)),
+    return BookingStepScaffold(
+      currentStep: 3,
+      title: l10n.confirmBooking,
+      showPriceFooter: false,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 176),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -187,7 +194,7 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
+      bottomBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FilledButton.icon(
@@ -241,8 +248,7 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              // Pop all booking pages back to the home shell.
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              context.go(KlearRoutes.home);
             },
             child: Text(l10n.done),
           ),

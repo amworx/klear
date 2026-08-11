@@ -383,4 +383,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sizeLarge => 'كبيرة';
+
+  @override
+  String bookingStepOf(String current, String total) {
+    return 'الخطوة $current من $total';
+  }
+
+  @override
+  String get bookingDetailsTitle => 'متى وأين';
+
+  @override
+  String get useSavedAddress => 'استخدم العنوان المحفوظ';
+
+  @override
+  String get customDateTime => 'وقت آخر';
+
+  @override
+  String get quickSlotToday => 'اليوم';
+
+  @override
+  String get quickSlotTomorrow => 'غداً';
+
+  @override
+  String get quickSlotMorning => 'صباحاً';
+
+  @override
+  String get quickSlotAfternoon => 'ظهراً';
+
+  @override
+  String get quickSlotEvening => 'مساءً';
+
+  @override
+  String get priceBeforeCarSize => 'قبل تعديل حجم السيارة';
+
+  @override
+  String get bookService => 'احجز';
+
+  @override
+  String get statusPending => 'قيد الانتظار';
+
+  @override
+  String get statusConfirmed => 'مؤكد';
+
+  @override
+  String get statusInProgress => 'جاري التنفيذ';
+
+  @override
+  String get statusCompleted => 'مكتمل';
+
+  @override
+  String get statusCancelled => 'ملغى';
 }
