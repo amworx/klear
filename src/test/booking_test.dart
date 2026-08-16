@@ -2,6 +2,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:klear/features/bookings/data/bookings_remote_datasource.dart';
+import 'package:klear/features/bookings/data/bookings_repository.dart';
 import 'package:klear/features/bookings/domain/klear_booking.dart';
 import 'package:klear/features/bookings/presentation/booking_providers.dart';
 import 'package:klear/features/cars/domain/klear_car.dart';
@@ -131,4 +133,64 @@ void main() {
       BookingPaymentMethod.payOnArrival,
     );
   });
+
+  test('statusLabel maps every status in en and ar', () {
+    KlearBooking bookingWith(BookingStatus status) => KlearBooking(
+          id: 'b1',
+          userId: 'u1',
+          serviceId: 's1',
+          service: _service,
+          address: 'A',
+          dateTime: DateTime(2026, 1, 1),
+          status: status,
+          createdAt: DateTime(2026, 1, 1),
+        );
+
+    expect(bookingWith(BookingStatus.pending).statusLabel('en'), 'Pending');
+    expect(bookingWith(BookingStatus.confirmed).statusLabel('en'), 'Confirmed');
+    expect(bookingWith(BookingStatus.inProgress).statusLabel('en'), 'In Progress');
+    expect(bookingWith(BookingStatus.completed).statusLabel('en'), 'Completed');
+    expect(bookingWith(BookingStatus.cancelled).statusLabel('en'), 'Cancelled');
+
+    expect(bookingWith(BookingStatus.pending).statusLabel('ar'), 'قيد الانتظار');
+    expect(bookingWith(BookingStatus.confirmed).statusLabel('ar'), 'مؤكد');
+    expect(bookingWith(BookingStatus.inProgress).statusLabel('ar'), 'جاري التنفيذ');
+    expect(bookingWith(BookingStatus.completed).statusLabel('ar'), 'مكتمل');
+    expect(bookingWith(BookingStatus.cancelled).statusLabel('ar'), 'ملغى');
+  });
+
+  test('cancelBooking delegates to the datasource (status update path)',
+      () async {
+    final fake = _FakeBookingsDataSource();
+    final repo = BookingsRepository(dataSource: fake);
+
+    await repo.cancelBooking('b-123');
+
+    expect(fake.cancelledIds, ['b-123']);
+  });
+}
+
+class _FakeBookingsDataSource implements BookingsRemoteDataSource {
+  final cancelledIds = <String>[];
+
+  @override
+  Future<void> cancelBooking(String bookingId) async {
+    cancelledIds.add(bookingId);
+  }
+
+  @override
+  Future<KlearBooking> createBooking({
+    required Map<String, dynamic> payload,
+    required KlearService service,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<KlearBooking>> fetchMyBookings({
+    required String userId,
+    required Map<String, KlearService> servicesById,
+  }) async {
+    return const [];
+  }
 }

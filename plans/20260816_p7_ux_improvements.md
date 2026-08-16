@@ -123,3 +123,15 @@ Delivered + live-verified:
 - Gates: analyze clean, 17/17 tests. DB: new booking d3f699b5 pending.
 - Kept 3 steps (decision): no Extras placeholder step (amends the 4-step sketch
   in the original body above).
+
+### Post-audit fixes (2026-08-16, EVT-20260816-0039)
+
+User flagged the session todo list as all-unchecked. Audited item-by-item: all
+delivered (live-verified); the list was just never ticked. Closed 3 residual
+gaps so the plan text is fully true:
+- Tests: added statusLabel en/ar mapping (all 5 statuses) + cancelBooking
+  delegation unit test (fake datasource) -> 19/19.
+- OrderDetailPage: added price breakdown card (Base / Size x factor / Total)
+  when car is known (was: total only).
+- Review & Pay confirm button now reads "Confirm booking" (was: bare Confirm).
+Re-verified live on the rebuilt web (main.dart.js.v20260816c.js).

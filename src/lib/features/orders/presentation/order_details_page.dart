@@ -65,6 +65,21 @@ class OrderDetailPage extends ConsumerWidget {
                         fontWeight: FontWeight.w700,
                       ),
                 ),
+              if (booking.totalPrice != null && car != null) ...[
+                const SizedBox(height: 12),
+                _Breakdown(
+                  basePrice: booking.service.basePrice,
+                  sizeLabel: switch (car.size) {
+                    KlearCarSize.small => l10n.sizeSmall,
+                    KlearCarSize.medium => l10n.sizeMedium,
+                    KlearCarSize.large => l10n.sizeLarge,
+                  },
+                  factor: car.size.priceFactor,
+                  total: booking.totalPrice!,
+                  currency: booking.service.currency,
+                  l10n: l10n,
+                ),
+              ],
               const SizedBox(height: 16),
               _Tile(
                 icon: Icons.directions_car_outlined,
@@ -169,6 +184,77 @@ class OrderDetailPage extends ConsumerWidget {
         SnackBar(content: Text(l10n.cancelFailed)),
       );
     }
+  }
+}
+
+/// Transparent price breakdown for a stored booking (base / size / total).
+class _Breakdown extends StatelessWidget {
+  const _Breakdown({
+    required this.basePrice,
+    required this.sizeLabel,
+    required this.factor,
+    required this.total,
+    required this.currency,
+    required this.l10n,
+  });
+
+  final double basePrice;
+  final String sizeLabel;
+  final double factor;
+  final double total;
+  final String currency;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final factorLabel = factor == factor.roundToDouble()
+        ? factor.toStringAsFixed(0)
+        : factor.toStringAsFixed(2);
+
+    Widget row(String label, String value, {bool emphasized = false}) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+            ),
+            Text(
+              value,
+              style: emphasized
+                  ? Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w700,
+                      )
+                  : Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            row(l10n.priceBase, '${basePrice.toStringAsFixed(0)} $currency'),
+            row(l10n.sizeAdjustment, '$sizeLabel · ×$factorLabel'),
+            const Divider(height: 20),
+            row(
+              l10n.totalEstimate,
+              '${total.toStringAsFixed(0)} $currency',
+              emphasized: true,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

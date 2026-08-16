@@ -245,7 +245,7 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.check_circle),
-            label: Text(_submitting ? l10n.submitting : l10n.confirm),
+            label: Text(_submitting ? l10n.submitting : l10n.confirmBooking),
           ),
         ),
       ),
