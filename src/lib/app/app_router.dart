@@ -20,6 +20,8 @@ class KlearRoutes {
   static const String home = '/';
   static const String services = '/services';
   static const String orders = '/orders';
+  /// Booking detail (inside the orders branch). Uses a path param for the id.
+  static const String ordersDetail = '/orders/:id';
   static const String account = '/account';
   // Booking flow (child routes of the home branch). MUST be absolute paths:
   // go_router resolves a relative location ('book/car') against the CURRENT

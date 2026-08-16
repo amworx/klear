@@ -48,4 +48,15 @@ class BookingsRemoteDataSource {
         })
         .toList();
   }
+
+  /// Cancels a booking (status -> 'cancelled'). RLS restricts the update to
+  /// the booking's owner.
+  Future<void> cancelBooking(String bookingId) async {
+    if (!SupabaseClientManager.isReady) return;
+
+    await SupabaseClientManager.instance.client
+        .from('bookings')
+        .update({'status': 'cancelled'})
+        .eq('id', bookingId);
+  }
 }

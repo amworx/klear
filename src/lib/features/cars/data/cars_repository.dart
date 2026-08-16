@@ -17,4 +17,7 @@ class CarsRepository {
   Future<KlearCar> updateCar(KlearCar car) => _dataSource.updateCar(car);
 
   Future<void> removeCar(String carId) => _dataSource.deleteCar(carId);
+
+  Future<void> setDefaultCar(String userId, String carId) =>
+      _dataSource.setDefaultCar(userId, carId);
 }

@@ -102,6 +102,14 @@ class KlearBooking {
   }
 }
 
+/// How the customer will pay for the wash.
+enum BookingPaymentMethod {
+  /// Cash to the captain when the wash is done (MVP default).
+  payOnArrival,
+  /// Reserved for a future online payment gateway.
+  online,
+}
+
 /// Immutable booking draft used during the multi-step booking flow.
 /// Holds partial data until the user confirms.
 class BookingDraft {
@@ -111,6 +119,7 @@ class BookingDraft {
     this.address,
     this.dateTime,
     this.notes,
+    this.paymentMethod = BookingPaymentMethod.payOnArrival,
   });
 
   final KlearService? service;
@@ -118,8 +127,11 @@ class BookingDraft {
   final String? address;
   final DateTime? dateTime;
   final String? notes;
+  final BookingPaymentMethod paymentMethod;
 
   /// Whether the draft is complete (ready to submit).
+  /// [paymentMethod] always has a default value, so completion depends on the
+  /// booking essentials: service, car, address and date/time.
   bool get isComplete =>
       service != null &&
       car != null &&
@@ -140,6 +152,7 @@ class BookingDraft {
     String? address,
     DateTime? dateTime,
     String? notes,
+    BookingPaymentMethod? paymentMethod,
   }) {
     return BookingDraft(
       service: service ?? this.service,
@@ -147,6 +160,7 @@ class BookingDraft {
       address: address ?? this.address,
       dateTime: dateTime ?? this.dateTime,
       notes: notes ?? this.notes,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
     );
   }
 }

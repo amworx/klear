@@ -49,6 +49,9 @@ class OrdersPage extends ConsumerWidget {
                     booking: booking,
                     langCode: langCode,
                     l10n: l10n,
+                    onTap: () => context.go(
+                      KlearRoutes.ordersDetail.replaceFirst(':id', booking.id),
+                    ),
                   ),
                 );
               },
@@ -111,11 +114,13 @@ class _OrderCard extends StatelessWidget {
     required this.booking,
     required this.langCode,
     required this.l10n,
+    required this.onTap,
   });
 
   final KlearBooking booking;
   final String langCode;
   final AppLocalizations l10n;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -126,64 +131,68 @@ class _OrderCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    booking.service.nameFor(langCode),
-                    style: Theme.of(context).textTheme.titleMedium,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      booking.service.nameFor(langCode),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
-                ),
-                _StatusChip(status: booking.status, l10n: l10n),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.schedule, size: 16, color: scheme.onSurfaceVariant),
-                const SizedBox(width: 6),
-                Text(
-                  dateFormat.format(booking.dateTime),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.location_on_outlined,
-                    size: 16, color: scheme.onSurfaceVariant),
-                const SizedBox(width: 6),
-                Expanded(
+                  _StatusChip(status: booking.status, l10n: l10n),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.schedule, size: 16, color: scheme.onSurfaceVariant),
+                  const SizedBox(width: 6),
+                  Text(
+                    dateFormat.format(booking.dateTime),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.location_on_outlined,
+                      size: 16, color: scheme.onSurfaceVariant),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      booking.address,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+              if (booking.totalPrice != null) ...[
+                const SizedBox(height: 12),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
                   child: Text(
-                    booking.address,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
+                    '${booking.totalPrice!.toStringAsFixed(0)} ${booking.service.currency}',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w700,
                         ),
                   ),
                 ),
               ],
-            ),
-            if (booking.totalPrice != null) ...[
-              const SizedBox(height: 12),
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: Text(
-                  '${booking.totalPrice!.toStringAsFixed(0)} ${booking.service.currency}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: scheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-              ),
             ],
-          ],
+          ),
         ),
       ),
     );

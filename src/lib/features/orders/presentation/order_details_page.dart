@@ -1,0 +1,271 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../../../app/app_router.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../bookings/domain/klear_booking.dart';
+import '../../bookings/presentation/booking_providers.dart';
+import '../../cars/domain/klear_car.dart';
+import '../../cars/presentation/cars_providers.dart';
+import '../presentation/orders_providers.dart';
+
+/// Full details for a single booking, with cancel for pending orders.
+class OrderDetailPage extends ConsumerWidget {
+  const OrderDetailPage({super.key, required this.bookingId});
+
+  final String bookingId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
+    final scheme = Theme.of(context).colorScheme;
+    final bookingsAsync = ref.watch(myBookingsProvider);
+    final carsAsync = ref.watch(carsProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.orderDetailsTitle)),
+      body: bookingsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => Center(child: Text(l10n.errorLoadingServices)),
+        data: (bookings) {
+          final booking = _findBooking(bookings, bookingId);
+          if (booking == null) {
+            return Center(child: Text(l10n.notSelected));
+          }
+          final car = _findCar(carsAsync.valueOrNull ?? const [], booking.carId);
+          final dateFormat = DateFormat(
+            langCode == 'ar' ? 'yyyy/MM/dd HH:mm' : 'MMM dd, yyyy h:mm a',
+          );
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            children: [
+              // Status + total header.
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      booking.service.nameFor(langCode),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  _StatusChip(status: booking.status, l10n: l10n),
+                ],
+              ),
+              const SizedBox(height: 4),
+              if (booking.totalPrice != null)
+                Text(
+                  '${booking.totalPrice!.toStringAsFixed(0)} '
+                  '${booking.service.currency}',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              const SizedBox(height: 16),
+              _Tile(
+                icon: Icons.directions_car_outlined,
+                label: l10n.bookingCar,
+                value: car != null
+                    ? '${car.displayName} · ${car.plateNumber}'
+                    : '—',
+                trailing: car != null
+                    ? Text(
+                        switch (car.size) {
+                          KlearCarSize.small => l10n.sizeSmall,
+                          KlearCarSize.medium => l10n.sizeMedium,
+                          KlearCarSize.large => l10n.sizeLarge,
+                        },
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                      )
+                    : null,
+              ),
+              _Tile(
+                icon: Icons.location_on_outlined,
+                label: l10n.addressLabel,
+                value: booking.address,
+              ),
+              _Tile(
+                icon: Icons.schedule_outlined,
+                label: l10n.dateTimeLabel,
+                value: dateFormat.format(booking.dateTime),
+              ),
+              if (booking.notes != null && booking.notes!.isNotEmpty)
+                _Tile(
+                  icon: Icons.notes_outlined,
+                  label: l10n.bookingNotes,
+                  value: booking.notes!,
+                ),
+              const SizedBox(height: 24),
+              if (booking.status == BookingStatus.pending)
+                FilledButton.tonalIcon(
+                  onPressed: () => _confirmCancel(context, ref, l10n, booking),
+                  icon: const Icon(Icons.cancel_outlined),
+                  label: Text(l10n.cancelOrderAction),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  KlearBooking? _findBooking(List<KlearBooking> bookings, String id) {
+    for (final booking in bookings) {
+      if (booking.id == id) return booking;
+    }
+    return null;
+  }
+
+  KlearCar? _findCar(List<KlearCar> cars, String? carId) {
+    if (carId == null) return null;
+    for (final car in cars) {
+      if (car.id == carId) return car;
+    }
+    return null;
+  }
+
+  Future<void> _confirmCancel(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    KlearBooking booking,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.cancelOrderTitle),
+        content: Text(l10n.cancelOrderMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancelBooking),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.cancelOrderAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await ref.read(bookingRepositoryProvider).cancelBooking(booking.id);
+      ref.invalidate(myBookingsProvider);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.orderCancelled)),
+      );
+      context.go(KlearRoutes.orders);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.cancelFailed)),
+      );
+    }
+  }
+}
+
+class _Tile extends StatelessWidget {
+  const _Tile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(value, style: Theme.of(context).textTheme.bodyLarge),
+                if (trailing != null) ...[const SizedBox(height: 2), trailing!],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.status, required this.l10n});
+
+  final BookingStatus status;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final (label, bg, fg) = switch (status) {
+      BookingStatus.pending => (
+          l10n.statusPending,
+          scheme.surfaceContainerHighest,
+          scheme.onSurfaceVariant,
+        ),
+      BookingStatus.confirmed => (
+          l10n.statusConfirmed,
+          scheme.primaryContainer,
+          scheme.onPrimaryContainer,
+        ),
+      BookingStatus.inProgress => (
+          l10n.statusInProgress,
+          scheme.tertiaryContainer,
+          scheme.onTertiaryContainer,
+        ),
+      BookingStatus.completed => (
+          l10n.statusCompleted,
+          scheme.tertiaryContainer,
+          scheme.onTertiaryContainer,
+        ),
+      BookingStatus.cancelled => (
+          l10n.statusCancelled,
+          scheme.errorContainer,
+          scheme.onErrorContainer,
+        ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: fg,
+              fontWeight: FontWeight.w600,
+            ),
+      ),
+    );
+  }
+}

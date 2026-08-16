@@ -925,6 +925,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancelled'**
   String get statusCancelled;
+
+  /// No description provided for @reviewAndPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & Pay'**
+  String get reviewAndPay;
+
+  /// No description provided for @paymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get paymentMethod;
+
+  /// No description provided for @payOnArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay on arrival'**
+  String get payOnArrival;
+
+  /// No description provided for @payOnArrivalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay the captain in cash when the wash is done'**
+  String get payOnArrivalSubtitle;
+
+  /// No description provided for @onlinePaymentSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Online payment — coming soon'**
+  String get onlinePaymentSoon;
+
+  /// No description provided for @setDefaultCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default'**
+  String get setDefaultCar;
+
+  /// No description provided for @defaultCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get defaultCar;
+
+  /// No description provided for @upcomingWash.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming wash'**
+  String get upcomingWash;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get viewDetails;
+
+  /// No description provided for @orderDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking details'**
+  String get orderDetailsTitle;
+
+  /// No description provided for @cancelOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this booking?'**
+  String get cancelOrderTitle;
+
+  /// No description provided for @cancelOrderMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You can cancel while the booking is still pending.'**
+  String get cancelOrderMessage;
+
+  /// No description provided for @cancelOrderAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel booking'**
+  String get cancelOrderAction;
+
+  /// No description provided for @orderCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking cancelled'**
+  String get orderCancelled;
+
+  /// No description provided for @cancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not cancel the booking. Please try again.'**
+  String get cancelFailed;
+
+  /// No description provided for @locationLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting your location…'**
+  String get locationLoading;
+
+  /// No description provided for @locationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get your location. Please try again.'**
+  String get locationFailed;
+
+  /// No description provided for @basePriceNoCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Base price — select a car for a precise total'**
+  String get basePriceNoCar;
 }
 
 class _AppLocalizationsDelegate

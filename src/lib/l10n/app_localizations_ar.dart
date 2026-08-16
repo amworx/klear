@@ -433,4 +433,59 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statusCancelled => 'ملغى';
+
+  @override
+  String get reviewAndPay => 'مراجعة والدفع';
+
+  @override
+  String get paymentMethod => 'طريقة الدفع';
+
+  @override
+  String get payOnArrival => 'الدفع عند الوصول';
+
+  @override
+  String get payOnArrivalSubtitle => 'ادفع للكابتن نقداً عند انتهاء الغسيل';
+
+  @override
+  String get onlinePaymentSoon => 'الدفع الإلكتروني — قريباً';
+
+  @override
+  String get setDefaultCar => 'تعيين كافتراضي';
+
+  @override
+  String get defaultCar => 'الافتراضية';
+
+  @override
+  String get upcomingWash => 'غسلة قادمة';
+
+  @override
+  String get viewDetails => 'عرض التفاصيل';
+
+  @override
+  String get orderDetailsTitle => 'تفاصيل الحجز';
+
+  @override
+  String get cancelOrderTitle => 'إلغاء هذا الحجز؟';
+
+  @override
+  String get cancelOrderMessage => 'يمكنك الإلغاء ما دام الحجز قيد الانتظار';
+
+  @override
+  String get cancelOrderAction => 'إلغاء الحجز';
+
+  @override
+  String get orderCancelled => 'تم إلغاء الحجز';
+
+  @override
+  String get cancelFailed => 'تعذّر إلغاء الحجز. حاول مرة أخرى';
+
+  @override
+  String get locationLoading => 'جارٍ تحديد موقعك…';
+
+  @override
+  String get locationFailed => 'تعذّر تحديد موقعك. حاول مرة أخرى';
+
+  @override
+  String get basePriceNoCar =>
+      'السعر الأساسي — اختر سيارة للحصول على إجمالي دقيق';
 }

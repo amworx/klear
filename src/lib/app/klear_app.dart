@@ -19,6 +19,7 @@ import '../features/bookings/presentation/service_selection_page.dart';
 import '../features/cars/presentation/car_form_page.dart';
 import '../features/cars/presentation/cars_page.dart';
 import '../features/home/presentation/home_page.dart';
+import '../features/orders/presentation/order_details_page.dart';
 import '../features/orders/presentation/orders_page.dart';
 import '../features/services/presentation/services_page.dart';
 import 'scaffold_with_navbar.dart';
@@ -157,6 +158,16 @@ class _KlearAppContent extends ConsumerWidget {
               GoRoute(
                 path: '/orders',
                 pageBuilder: (context, state) => _fadeSlidePage(const OrdersPage()),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    pageBuilder: (context, state) => _fadeSlidePage(
+                      OrderDetailPage(
+                        bookingId: state.pathParameters['id'] ?? '',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

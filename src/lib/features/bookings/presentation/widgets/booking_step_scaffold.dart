@@ -144,7 +144,7 @@ class BookingPriceFooter extends StatelessWidget {
                     ),
                     if (!hasCar)
                       Text(
-                        l10n.priceBeforeCarSize,
+                        l10n.basePriceNoCar,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),

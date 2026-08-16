@@ -45,6 +45,7 @@ class KlearCar {
     required this.model,
     required this.plateNumber,
     required this.size,
+    this.isDefault = false,
     this.createdAt,
   });
 
@@ -54,6 +55,10 @@ class KlearCar {
   final String model;
   final String plateNumber;
   final KlearCarSize size;
+
+  /// Whether this car is the user's default (pre-selected when booking).
+  /// At most one car per user can be default (DB partial unique index).
+  final bool isDefault;
   final DateTime? createdAt;
 
   /// Short display label e.g. "Toyota Corolla".
@@ -67,6 +72,7 @@ class KlearCar {
         model: (map['model'] as String?) ?? '',
         plateNumber: (map['plate_number'] as String?) ?? '',
         size: KlearCarSize.fromDb(map['size']?.toString()),
+        isDefault: map['is_default'] == true,
         createdAt: DateTime.tryParse(map['created_at']?.toString() ?? ''),
       );
 
@@ -77,6 +83,7 @@ class KlearCar {
         'model': model,
         'plate_number': plateNumber,
         'size': size.dbValue,
+        'is_default': isDefault,
         'created_at': createdAt?.toIso8601String(),
       };
 
@@ -89,5 +96,28 @@ class KlearCar {
         'model': model,
         'plate_number': plateNumber,
         'size': size.dbValue,
+        'is_default': isDefault,
       };
+
+  /// Copy with a new [isDefault] value (used by the set-default action).
+  KlearCar withDefault(bool value) => KlearCar(
+        id: id,
+        userId: userId,
+        make: make,
+        model: model,
+        plateNumber: plateNumber,
+        size: size,
+        isDefault: value,
+        createdAt: createdAt,
+      );
+}
+
+/// Picks the car the booking flow should pre-select: the user's default car
+/// when one exists, otherwise the first car in the list (null when empty).
+KlearCar? preferredCar(List<KlearCar> cars) {
+  if (cars.isEmpty) return null;
+  for (final car in cars) {
+    if (car.isDefault) return car;
+  }
+  return cars.first;
 }

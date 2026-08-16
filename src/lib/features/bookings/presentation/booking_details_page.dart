@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../cars/presentation/cars_providers.dart';
+import '../domain/klear_booking.dart';
 import 'booking_providers.dart';
 import 'widgets/booking_step_scaffold.dart';
 
@@ -25,6 +26,7 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
   final _addressController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   DateTime? _selectedDateTime;
+  bool _locating = false;
 
   @override
   void initState() {
@@ -82,6 +84,7 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
 
   Future<void> _useCurrentLocation() async {
     final l10n = AppLocalizations.of(context);
+    setState(() => _locating = true);
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -114,8 +117,10 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.locationPermissionDenied)),
+        SnackBar(content: Text(l10n.locationFailed)),
       );
+    } finally {
+      if (mounted) setState(() => _locating = false);
     }
   }
 
@@ -226,6 +231,16 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, _) => Text(l10n.errorLoadingServices),
               data: (cars) {
+                // Pre-select the user's default car (or the first one) once
+                // so the user doesn't have to re-pick it every time.
+                if (draft.car == null && cars.isNotEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    ref
+                        .read(bookingDraftProvider.notifier)
+                        .setCar(preferredCar(cars));
+                  });
+                }
                 if (cars.isEmpty) {
                   return Card(
                     child: Padding(
@@ -314,9 +329,17 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
-                onPressed: _useCurrentLocation,
-                icon: const Icon(Icons.my_location, size: 18),
-                label: Text(l10n.useCurrentLocation),
+                onPressed: _locating ? null : _useCurrentLocation,
+                icon: _locating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.my_location, size: 18),
+                label: Text(
+                  _locating ? l10n.locationLoading : l10n.useCurrentLocation,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -358,6 +381,10 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
                     ),
               ),
             ],
+            if (draft.car != null) ...[
+              const SizedBox(height: 24),
+              _BreakdownCard(draft: draft, l10n: l10n, langCode: langCode),
+            ],
           ],
         ),
       ),
@@ -389,6 +416,94 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(width: 8),
         Text(title, style: Theme.of(context).textTheme.titleMedium),
       ],
+    );
+  }
+}
+
+/// Transparent cost breakdown shown live on the details step: base price,
+/// size adjustment (× factor) and the estimated total.
+class _BreakdownCard extends StatelessWidget {
+  const _BreakdownCard({
+    required this.draft,
+    required this.l10n,
+    required this.langCode,
+  });
+
+  final BookingDraft draft;
+  final AppLocalizations l10n;
+  final String langCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = draft.car!.size;
+    final sizeLabel = switch (size) {
+      KlearCarSize.small => l10n.sizeSmall,
+      KlearCarSize.medium => l10n.sizeMedium,
+      KlearCarSize.large => l10n.sizeLarge,
+    };
+    final factor = size.priceFactor;
+    final factorLabel = factor == factor.roundToDouble()
+        ? factor.toStringAsFixed(0)
+        : factor.toStringAsFixed(2);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(l10n.priceEstimate,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            _row(
+              context,
+              l10n.priceBase,
+              '${draft.service?.basePrice.toStringAsFixed(0) ?? '0'} '
+              '${draft.service?.currency ?? 'SYP'}',
+            ),
+            _row(
+              context,
+              l10n.sizeAdjustment,
+              '$sizeLabel · ×$factorLabel',
+            ),
+            const Divider(height: 24),
+            _row(
+              context,
+              l10n.totalEstimate,
+              '${draft.estimatedTotal.toStringAsFixed(0)} '
+              '${draft.service?.currency ?? 'SYP'}',
+              emphasized: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _row(BuildContext context, String label, String value,
+      {bool emphasized = false}) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+          ),
+          Text(
+            value,
+            style: emphasized
+                ? Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w700,
+                    )
+                : Theme.of(context).textTheme.bodyLarge,
+          ),
+        ],
+      ),
     );
   }
 }

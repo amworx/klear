@@ -440,4 +440,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusCancelled => 'Cancelled';
+
+  @override
+  String get reviewAndPay => 'Review & Pay';
+
+  @override
+  String get paymentMethod => 'Payment method';
+
+  @override
+  String get payOnArrival => 'Pay on arrival';
+
+  @override
+  String get payOnArrivalSubtitle =>
+      'Pay the captain in cash when the wash is done';
+
+  @override
+  String get onlinePaymentSoon => 'Online payment — coming soon';
+
+  @override
+  String get setDefaultCar => 'Set as default';
+
+  @override
+  String get defaultCar => 'Default';
+
+  @override
+  String get upcomingWash => 'Upcoming wash';
+
+  @override
+  String get viewDetails => 'View details';
+
+  @override
+  String get orderDetailsTitle => 'Booking details';
+
+  @override
+  String get cancelOrderTitle => 'Cancel this booking?';
+
+  @override
+  String get cancelOrderMessage =>
+      'You can cancel while the booking is still pending.';
+
+  @override
+  String get cancelOrderAction => 'Cancel booking';
+
+  @override
+  String get orderCancelled => 'Booking cancelled';
+
+  @override
+  String get cancelFailed => 'Could not cancel the booking. Please try again.';
+
+  @override
+  String get locationLoading => 'Getting your location…';
+
+  @override
+  String get locationFailed => 'Could not get your location. Please try again.';
+
+  @override
+  String get basePriceNoCar => 'Base price — select a car for a precise total';
 }

@@ -116,6 +116,10 @@ class CarsPage extends ConsumerWidget {
                                           car.size, langCode, l10n),
                                     ),
                                     const SizedBox(width: 8),
+                                    if (car.isDefault) ...[
+                                      _DefaultChip(label: l10n.defaultCar),
+                                      const SizedBox(width: 8),
+                                    ],
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 8,
@@ -143,6 +147,20 @@ class CarsPage extends ConsumerWidget {
                                   ],
                                 ),
                               ],
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: l10n.setDefaultCar,
+                            onPressed: car.isDefault
+                                ? null
+                                : () => setDefaultCar(ref, car.userId, car.id),
+                            icon: Icon(
+                              car.isDefault
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: car.isDefault
+                                  ? Colors.amber
+                                  : scheme.onSurfaceVariant,
                             ),
                           ),
                           IconButton(
@@ -230,6 +248,37 @@ class _SizeChip extends StatelessWidget {
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
               color: scheme.onTertiaryContainer,
             ),
+      ),
+    );
+  }
+}
+
+class _DefaultChip extends StatelessWidget {
+  const _DefaultChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star, size: 12, color: Colors.amber.shade800),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Colors.amber.shade900,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
       ),
     );
   }

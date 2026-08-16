@@ -25,4 +25,8 @@ class BookingsRepository {
       servicesById: servicesById,
     );
   }
+
+  Future<void> cancelBooking(String bookingId) {
+    return _dataSource.cancelBooking(bookingId);
+  }
 }

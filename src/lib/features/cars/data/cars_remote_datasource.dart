@@ -56,4 +56,20 @@ class CarsRemoteDataSource {
         .delete()
         .eq('id', carId);
   }
+
+  /// Makes [carId] the user's single default car (clears any previous one).
+  Future<void> setDefaultCar(String userId, String carId) async {
+    if (!SupabaseClientManager.isReady) return;
+
+    final client = SupabaseClientManager.instance.client;
+    await client
+        .from('cars')
+        .update({'is_default': false})
+        .eq('user_id', userId);
+    await client
+        .from('cars')
+        .update({'is_default': true})
+        .eq('id', carId)
+        .eq('user_id', userId);
+  }
 }

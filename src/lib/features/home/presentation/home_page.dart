@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../app/app_router.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
+import '../../bookings/domain/klear_booking.dart';
 import '../../bookings/presentation/booking_providers.dart';
+import '../../orders/presentation/orders_providers.dart';
 import '../../services/presentation/services_providers.dart';
 import 'widgets/services_section.dart';
 
@@ -20,6 +23,15 @@ class HomePage extends ConsumerWidget {
     final servicesAsync = ref.watch(servicesProvider);
     final auth = ref.watch(authProvider);
     final scheme = Theme.of(context).colorScheme;
+    final upcoming = ref
+        .watch(myBookingsProvider)
+        .valueOrNull
+        ?.where((b) =>
+            b.dateTime.isAfter(DateTime.now()) &&
+            (b.status == BookingStatus.pending ||
+                b.status == BookingStatus.confirmed))
+        .toList()
+        ?..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
     return Scaffold(
       body: SafeArea(
@@ -70,6 +82,13 @@ class HomePage extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  // Upcoming wash — retention card after a booking.
+                  if (upcoming != null && upcoming.isNotEmpty)
+                    Entrance(
+                      delay: const Duration(milliseconds: 300),
+                      child: _UpcomingWashCard(booking: upcoming.first),
+                    ),
+                  const SizedBox(height: 24),
                   // Services catalog — tap a card to book directly.
                   ServicesSection(
                     servicesAsync: servicesAsync,
@@ -114,6 +133,89 @@ class _BrandMark extends StatelessWidget {
           ],
         ),
         child: const Icon(Icons.water_drop, size: 52, color: Colors.white),
+      ),
+    );
+  }
+}
+
+/// Shows the nearest upcoming booking so the user knows their wash is on
+/// the way; tapping opens the booking details.
+class _UpcomingWashCard extends StatelessWidget {
+  const _UpcomingWashCard({required this.booking});
+
+  final KlearBooking booking;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final langCode = Localizations.localeOf(context).languageCode;
+    final dateFormat = DateFormat(
+      langCode == 'ar' ? 'yyyy/MM/dd HH:mm' : 'MMM dd, yyyy h:mm a',
+    );
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      color: scheme.primaryContainer,
+      child: InkWell(
+        onTap: () => context.go(
+          KlearRoutes.ordersDetail.replaceFirst(':id', booking.id),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: scheme.onPrimaryContainer,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.local_car_wash,
+                  color: scheme.primaryContainer,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.upcomingWash,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: scheme.onPrimaryContainer,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      booking.service.nameFor(langCode),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      dateFormat.format(booking.dateTime),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: scheme.onPrimaryContainer,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                l10n.viewDetails,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

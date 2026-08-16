@@ -41,3 +41,9 @@ Future<void> deleteCar(WidgetRef ref, String carId) async {
   await ref.read(carsRepositoryProvider).removeCar(carId);
   ref.invalidate(carsProvider);
 }
+
+/// Set a car as the user's default and refresh the list.
+Future<void> setDefaultCar(WidgetRef ref, String userId, String carId) async {
+  await ref.read(carsRepositoryProvider).setDefaultCar(userId, carId);
+  ref.invalidate(carsProvider);
+}

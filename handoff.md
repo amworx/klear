@@ -207,3 +207,24 @@ C:\flutter\bin\flutter.bat build web --release ^
 - Latest: `1e9185d` P6 milestone. `memory/` is excluded via `.gitignore` —
   always re-check with `git ls-files | Select-String "credentials|memory"`.
 - Only commit/push when the user asks.
+---
+
+## P7 UPDATE (2026-08-16) - UX improvements shipped
+
+Latest commit: **P7** (see git log; working tree clean after this session).
+- Booking flow now 3 steps: Service -> Details -> **Review & Pay** (payment
+  method: pay-on-arrival MVP, online disabled "coming soon").
+- Step 2: default-car pre-select + live cost breakdown card; Step 1 footer
+  explains base price vs per-car total.
+- **My Orders**: cards tappable -> OrderDetailPage (/orders/:id) with status
+  chip, car+size, address, time, notes, total; **Cancel** (pending only) ->
+  soft status 'cancelled' with confirm dialog + snackbar.
+- **Home**: "Upcoming wash" card for the nearest future pending/confirmed
+  booking (auto-hides when none remain).
+- **My Cars**: star = set as default (cars.is_default + partial unique index
+  cars_one_default_per_user); Default chip shown. Migration in
+  supabase/migrations/20260816_000005_car_default.sql (already applied live).
+- Gates: lutter analyze clean, lutter test 17/17.
+- Web E2E verified live on 127.0.0.1:8090 (build main.dart.js.v20260816b.js).
+- P8+ backlog unchanged: extras, ratings, real online payment, captain
+  tracking, wallet/subscriptions, README, CI.

@@ -35,6 +35,10 @@ class BookingDraftNotifier extends StateNotifier<BookingDraft> {
     state = state.copyWith(notes: notes);
   }
 
+  void setPaymentMethod(BookingPaymentMethod method) {
+    state = state.copyWith(paymentMethod: method);
+  }
+
   void clear() {
     state = const BookingDraft();
   }

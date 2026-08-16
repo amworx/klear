@@ -37,6 +37,48 @@ void main() {
       final car = KlearCar.fromMap({'size': 'unknown'});
       expect(car.size, KlearCarSize.medium);
     });
+
+    test('roundtrips the is_default flag', () {
+      final car = KlearCar.fromMap({'size': 'large', 'is_default': true});
+      expect(car.isDefault, true);
+      expect(car.toPayload()['is_default'], true);
+
+      final nonDefault = KlearCar.fromMap({'size': 'small'});
+      expect(nonDefault.isDefault, false);
+      expect(nonDefault.toPayload()['is_default'], false);
+    });
+  });
+
+  group('preferredCar', () {
+    const toyota = KlearCar(
+      id: 'c1',
+      userId: 'u1',
+      make: 'Toyota',
+      model: 'Yaris',
+      plateNumber: '1234A',
+      size: KlearCarSize.small,
+    );
+    const bmw = KlearCar(
+      id: 'c2',
+      userId: 'u1',
+      make: 'BMW',
+      model: 'X5',
+      plateNumber: '5678B',
+      size: KlearCarSize.large,
+      isDefault: true,
+    );
+
+    test('returns the marked default when one exists', () {
+      expect(preferredCar([toyota, bmw])?.id, 'c2');
+    });
+
+    test('falls back to the first car when nothing is default', () {
+      expect(preferredCar([toyota])?.id, 'c1');
+    });
+
+    test('returns null for an empty list', () {
+      expect(preferredCar(const []), isNull);
+    });
   });
 
   group('KlearCarSize pricing factors', () {

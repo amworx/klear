@@ -89,7 +89,7 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
 
     return BookingStepScaffold(
       currentStep: 3,
-      title: l10n.confirmBooking,
+      title: l10n.reviewAndPay,
       showPriceFooter: false,
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -183,6 +183,45 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                       emphasized: true,
                     ),
                   ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Payment method — customer commitment step (MVP: cash only).
+            Text(
+              l10n.paymentMethod,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: scheme.primary, width: 2),
+              ),
+              color: scheme.primaryContainer,
+              child: ListTile(
+                leading: Icon(
+                  Icons.payments_outlined,
+                  color: scheme.onPrimaryContainer,
+                ),
+                title: Text(
+                  l10n.payOnArrival,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                subtitle: Text(l10n.payOnArrivalSubtitle),
+                trailing: Icon(Icons.check_circle, color: scheme.primary),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                enabled: false,
+                leading: const Icon(Icons.credit_card_off_outlined),
+                title: Text(l10n.onlinePaymentSoon),
+                subtitle: Text(l10n.comingSoon),
+                trailing: Icon(
+                  Icons.lock_outline,
+                  color: scheme.onSurfaceVariant,
                 ),
               ),
             ),

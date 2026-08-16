@@ -2,6 +2,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:klear/features/bookings/domain/klear_booking.dart';
 import 'package:klear/features/bookings/presentation/booking_providers.dart';
 import 'package:klear/features/cars/domain/klear_car.dart';
 import 'package:klear/features/services/domain/klear_service.dart';
@@ -105,5 +106,29 @@ void main() {
     expect(draft.car?.id, 'c2');
     expect(draft.car?.plateNumber, '5678B');
     expect(draft.car?.size, KlearCarSize.large);
+  });
+
+  testWidgets('Draft defaults to pay-on-arrival and can change method',
+      (tester) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(bookingDraftProvider.notifier);
+    expect(
+      container.read(bookingDraftProvider).paymentMethod,
+      BookingPaymentMethod.payOnArrival,
+    );
+
+    notifier.setPaymentMethod(BookingPaymentMethod.online);
+    expect(
+      container.read(bookingDraftProvider).paymentMethod,
+      BookingPaymentMethod.online,
+    );
+
+    notifier.clear();
+    expect(
+      container.read(bookingDraftProvider).paymentMethod,
+      BookingPaymentMethod.payOnArrival,
+    );
   });
 }
