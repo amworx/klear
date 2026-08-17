@@ -253,3 +253,40 @@ Latest commit: **fece180** (P8; pushed to origin/main).
   web_live_e2e_auth_session).
 - P9+ backlog: extras, ratings, real online payment, captain tracking,
   wallet/subscriptions, README, CI.
+
+## P9 UPDATE (2026-08-17) - Orders tabs, edit booking, flexible time windows shipped
+
+Latest commit: **d1f4468** (P9; pushed to origin/main; includes 0dec094 l10n/migration commit).
+- **Orders filter tabs**: /orders has Current / Finished / Cancelled tabs with per-tab
+  empty states (orders_filter_test.dart; OrdersFilter + ordersFilteredProvider).
+- **Edit booking flow**: order details "????? ?????" prefills the whole draft
+  (service/car/address/dateTime/window/lat/lng/notes, editingBookingId) and the
+  confirm step PATCHes via BookingsRemoteDataSource.updateBooking (button label
+  "??? ?????????", dialog "?? ????? ?????"). Same-row Edit + Cancel buttons on
+  details when pending (user-directed).
+- **Flexible booking time (user-directed)**: step 2 replaces the exact-time picker
+  with day chips (?????/????/???? ????? ??? — date-only picker) + 3 categories:
+  all-day "?? ?? ??? 8?–6?", specific 4-hour windows (8–12/10–14/14–18),
+  urgent "?? ?? ??? ????? (+25%)" (disabled unless today). Urgent adds +25% on
+  the size-adjusted price; live in the footer + breakdown on step 2 and on confirm.
+  Persisted as bookings.time_type ('all_day'/'window'/'urgent') + scheduled_end;
+  migration supabase/migrations/20260817_000007_flexible_time.sql (applied live,
+  legacy rows backfilled scheduled_end=scheduled_at). Labels shared via
+  booking_time_labels.dart (BookingTimeLabels.fullLabel) on home/orders/detail.
+- **Critical fixes found in live E2E**: (1) Dart enum .name ('allDay') violates the
+  DB check ('all_day') -> TimeWindowType.dbValue mapping; (2) estimatedTotal that
+  bakes in the surcharge double-counts when EDITING an urgent booking ->
+  estimatedTotal (base) vs estimatedTotalWithSurcharge (final, persisted).
+- Gates: analyze clean, flutter test 39/39. Web E2E live-verified (all-day 08:00–18:00
+  37500, urgent now–23:59 46875 +25%, window 10:00–14:00 37500; edit prefill restores
+  urgent without double-count; cancel -> Cancelled tab; pick-another-day date-only
+  picker; same-row buttons). APK debug built + installed on Redmi Note 8 (aabbe8f4),
+  launched cleanly.
+- Web build served at localhost:8090, cache-busted to main.dart.js.v20260817f.js +
+  flutter_bootstrap.v20260817f.js (RE-BUST after every flutter build web).
+- Note: 3 E2E bookings remain under throwaway user klear-p9-e2e@amworx.dev
+  (57cdd905-16b3-4bfb-bba2-4e231a39b729): 2 pending (all-day 8b5e1635, window
+  45f45a4f) + 1 cancelled (urgent 4480a261). Clean up with the E2E user later.
+- P10+ backlog: extras, ratings, real online payment, captain tracking,
+  wallet/subscriptions, README, CI. Also consider surfacing the urgent +25%
+  surcharge on the order details price breakdown (currently only on booking steps).
