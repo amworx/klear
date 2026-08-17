@@ -228,3 +228,28 @@ Latest commit: **P7** (see git log; working tree clean after this session).
 - Web E2E verified live on 127.0.0.1:8090 (build main.dart.js.v20260816b.js).
 - P8+ backlog unchanged: extras, ratings, real online payment, captain
   tracking, wallet/subscriptions, README, CI.
+
+---
+
+## P8 UPDATE (2026-08-17) - Map picker + per-user address book shipped
+
+Latest commit: **fece180** (P8; pushed to origin/main).
+- **Map picker** (flutter_map + OSM tiles + Nominatim) with search + reverse
+  geocoding, "Use this location", and "Save to address book" (label: ????/???/????).
+- **Address book** (per-user, RLS): /account/addresses, add/delete/set-default,
+  selectable mode for booking (GoRoute extra:true). Migration
+  supabase/migrations/20260816_000006_user_addresses.sql (applied live).
+- **Integrations**: ProfileSetupPage + BookingDetailsPage "Choose on map",
+  "Use saved address", current-location now reverse-geocodes; BookingDraft
+  carries lat/lng into bookings (columns already existed); Account tile.
+- Gates: analyze clean, lutter test 27/27. Web E2E live-verified (4 paths:
+  profile map, address book, booking-via-saved-address, booking-via-map-picker;
+  lat/lng persisted in DB). Throwaway E2E user cleaned up.
+- **Android**: APK builds again via dependency_overrides: path_provider_android:
+  2.2.23 (2.3.x jni chain hardcodes compileSdk 35, not installable on this
+  network). Location permissions added to manifest. Installed + launched on
+  Redmi Note 8 (aabbe8f4): booking step 2 shows Choose-on-map, picker opens.
+- Web E2E session key: sb-siqyziuoxdjixkpvksqi-auth-token (see playbooks
+  web_live_e2e_auth_session).
+- P9+ backlog: extras, ratings, real online payment, captain tracking,
+  wallet/subscriptions, README, CI.
