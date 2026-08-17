@@ -992,6 +992,30 @@ abstract class AppLocalizations {
   /// **'Booking details'**
   String get orderDetailsTitle;
 
+  /// No description provided for @editOrderAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit booking'**
+  String get editOrderAction;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get saveChanges;
+
+  /// No description provided for @bookingUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking updated'**
+  String get bookingUpdated;
+
+  /// No description provided for @bookingUpdatedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your booking details have been updated.'**
+  String get bookingUpdatedMessage;
+
   /// No description provided for @cancelOrderTitle.
   ///
   /// In en, this message translates to:
@@ -1021,6 +1045,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not cancel the booking. Please try again.'**
   String get cancelFailed;
+
+  /// No description provided for @ordersTabCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get ordersTabCurrent;
+
+  /// No description provided for @ordersTabFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get ordersTabFinished;
+
+  /// No description provided for @ordersTabCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get ordersTabCancelled;
+
+  /// No description provided for @ordersEmptyCurrentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No current orders'**
+  String get ordersEmptyCurrentTitle;
+
+  /// No description provided for @ordersEmptyCurrentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your active bookings will appear here.'**
+  String get ordersEmptyCurrentSubtitle;
+
+  /// No description provided for @ordersEmptyFinishedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No finished orders'**
+  String get ordersEmptyFinishedTitle;
+
+  /// No description provided for @ordersEmptyFinishedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed washes will appear here.'**
+  String get ordersEmptyFinishedSubtitle;
+
+  /// No description provided for @ordersEmptyCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No cancelled orders'**
+  String get ordersEmptyCancelledTitle;
+
+  /// No description provided for @ordersEmptyCancelledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled bookings will appear here.'**
+  String get ordersEmptyCancelledSubtitle;
 
   /// No description provided for @locationLoading.
   ///
@@ -1189,6 +1267,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Address deleted'**
   String get addressDeleted;
+
+  /// No description provided for @pickAnotherDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick another day'**
+  String get pickAnotherDay;
+
+  /// No description provided for @timeAllDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If you\'ll be around all day'**
+  String get timeAllDayTitle;
+
+  /// No description provided for @timeAllDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Anytime 8am–6pm'**
+  String get timeAllDayLabel;
+
+  /// No description provided for @timeSpecificTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If you\'d prefer a more specific time'**
+  String get timeSpecificTitle;
+
+  /// No description provided for @timeSpecificLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a 4-hour window'**
+  String get timeSpecificLabel;
+
+  /// No description provided for @timeWindowMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'8am–12pm'**
+  String get timeWindowMorning;
+
+  /// No description provided for @timeWindowMidday.
+  ///
+  /// In en, this message translates to:
+  /// **'10am–2pm'**
+  String get timeWindowMidday;
+
+  /// No description provided for @timeWindowAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'2pm–6pm'**
+  String get timeWindowAfternoon;
+
+  /// No description provided for @timeUrgentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Or if you need a wash urgently!'**
+  String get timeUrgentTitle;
+
+  /// No description provided for @timeUrgentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Anytime today (+25%)'**
+  String get timeUrgentLabel;
+
+  /// No description provided for @urgentSurcharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent surcharge'**
+  String get urgentSurcharge;
 }
 
 class _AppLocalizationsDelegate

@@ -469,6 +469,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get orderDetailsTitle => 'تفاصيل الحجز';
 
   @override
+  String get editOrderAction => 'تعديل الحجز';
+
+  @override
+  String get saveChanges => 'حفظ التعديلات';
+
+  @override
+  String get bookingUpdated => 'تم تحديث الحجز';
+
+  @override
+  String get bookingUpdatedMessage => 'تم تحديث تفاصيل حجزك.';
+
+  @override
   String get cancelOrderTitle => 'إلغاء هذا الحجز؟';
 
   @override
@@ -482,6 +494,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cancelFailed => 'تعذّر إلغاء الحجز. حاول مرة أخرى';
+
+  @override
+  String get ordersTabCurrent => 'الحالية';
+
+  @override
+  String get ordersTabFinished => 'المنتهية';
+
+  @override
+  String get ordersTabCancelled => 'الملغاة';
+
+  @override
+  String get ordersEmptyCurrentTitle => 'لا توجد طلبات حالية';
+
+  @override
+  String get ordersEmptyCurrentSubtitle => 'ستظهر حجوزاتك النشطة هنا.';
+
+  @override
+  String get ordersEmptyFinishedTitle => 'لا توجد طلبات منتهية';
+
+  @override
+  String get ordersEmptyFinishedSubtitle => 'ستظهر الغسلات المكتملة هنا.';
+
+  @override
+  String get ordersEmptyCancelledTitle => 'لا توجد طلبات ملغاة';
+
+  @override
+  String get ordersEmptyCancelledSubtitle => 'ستظهر الحجوزات الملغاة هنا.';
 
   @override
   String get locationLoading => 'جارٍ تحديد موقعك…';
@@ -567,4 +606,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get addressDeleted => 'تم حذف العنوان';
+
+  @override
+  String get pickAnotherDay => 'اختر يوماً آخر';
+
+  @override
+  String get timeAllDayTitle => 'إذا كنت ستتواجد طوال اليوم';
+
+  @override
+  String get timeAllDayLabel => 'في أي وقت 8ص–6م';
+
+  @override
+  String get timeSpecificTitle => 'إذا كنت تفضل وقتاً أكثر تحديداً';
+
+  @override
+  String get timeSpecificLabel => 'اختر نافذة 4 ساعات';
+
+  @override
+  String get timeWindowMorning => '8ص–12م';
+
+  @override
+  String get timeWindowMidday => '10ص–2م';
+
+  @override
+  String get timeWindowAfternoon => '2م–6م';
+
+  @override
+  String get timeUrgentTitle => 'أو إذا كنت بحاجة لغسيل عاجل!';
+
+  @override
+  String get timeUrgentLabel => 'في أي وقت اليوم (+25%)';
+
+  @override
+  String get urgentSurcharge => 'رسوم الطلب العاجل';
 }

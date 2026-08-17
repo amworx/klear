@@ -477,6 +477,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderDetailsTitle => 'Booking details';
 
   @override
+  String get editOrderAction => 'Edit booking';
+
+  @override
+  String get saveChanges => 'Save changes';
+
+  @override
+  String get bookingUpdated => 'Booking updated';
+
+  @override
+  String get bookingUpdatedMessage => 'Your booking details have been updated.';
+
+  @override
   String get cancelOrderTitle => 'Cancel this booking?';
 
   @override
@@ -491,6 +503,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelFailed => 'Could not cancel the booking. Please try again.';
+
+  @override
+  String get ordersTabCurrent => 'Current';
+
+  @override
+  String get ordersTabFinished => 'Finished';
+
+  @override
+  String get ordersTabCancelled => 'Cancelled';
+
+  @override
+  String get ordersEmptyCurrentTitle => 'No current orders';
+
+  @override
+  String get ordersEmptyCurrentSubtitle =>
+      'Your active bookings will appear here.';
+
+  @override
+  String get ordersEmptyFinishedTitle => 'No finished orders';
+
+  @override
+  String get ordersEmptyFinishedSubtitle =>
+      'Completed washes will appear here.';
+
+  @override
+  String get ordersEmptyCancelledTitle => 'No cancelled orders';
+
+  @override
+  String get ordersEmptyCancelledSubtitle =>
+      'Cancelled bookings will appear here.';
 
   @override
   String get locationLoading => 'Getting your location…';
@@ -576,4 +618,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addressDeleted => 'Address deleted';
+
+  @override
+  String get pickAnotherDay => 'Pick another day';
+
+  @override
+  String get timeAllDayTitle => 'If you\'ll be around all day';
+
+  @override
+  String get timeAllDayLabel => 'Anytime 8am–6pm';
+
+  @override
+  String get timeSpecificTitle => 'If you\'d prefer a more specific time';
+
+  @override
+  String get timeSpecificLabel => 'Pick a 4-hour window';
+
+  @override
+  String get timeWindowMorning => '8am–12pm';
+
+  @override
+  String get timeWindowMidday => '10am–2pm';
+
+  @override
+  String get timeWindowAfternoon => '2pm–6pm';
+
+  @override
+  String get timeUrgentTitle => 'Or if you need a wash urgently!';
+
+  @override
+  String get timeUrgentLabel => 'Anytime today (+25%)';
+
+  @override
+  String get urgentSurcharge => 'Urgent surcharge';
 }
