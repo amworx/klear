@@ -27,6 +27,10 @@ class BookingDraftNotifier extends StateNotifier<BookingDraft> {
     state = state.copyWith(address: address);
   }
 
+  void setLatLng(double? lat, double? lng) {
+    state = state.copyWith(lat: lat, lng: lng);
+  }
+
   void setDateTime(DateTime? dateTime) {
     state = state.copyWith(dateTime: dateTime);
   }

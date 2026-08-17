@@ -192,6 +192,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get otpSentSubtitle => 'We sent a 6-digit code to your email';
 
   @override
+  String get otpWillSendSubtitle =>
+      'We\'ll email you a one-time code to sign in';
+
+  @override
   String get otpCode => 'Code';
 
   @override
@@ -496,4 +500,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get basePriceNoCar => 'Base price — select a car for a precise total';
+
+  @override
+  String get chooseOnMap => 'Choose on map';
+
+  @override
+  String get cancelLabel => 'Cancel';
+
+  @override
+  String get saveLabel => 'Save';
+
+  @override
+  String get mapPickerTitle => 'Choose location';
+
+  @override
+  String get mapSearchHint => 'Search for a place…';
+
+  @override
+  String get mapAddressLoading => 'Getting address…';
+
+  @override
+  String get mapUseThisLocation => 'Use this location';
+
+  @override
+  String get mapSaveToBook => 'Save to address book';
+
+  @override
+  String get mapSavedToBook => 'Saved to your address book';
+
+  @override
+  String get mapSaveLabelTitle => 'Save location';
+
+  @override
+  String get mapLabelHint => 'Label (Home, Work…)';
+
+  @override
+  String get addressLabelRequired => 'Please enter a label';
+
+  @override
+  String get addressLabelHome => 'Home';
+
+  @override
+  String get addressLabelWork => 'Work';
+
+  @override
+  String get addressLabelOther => 'Other';
+
+  @override
+  String get addressBookTitle => 'Address book';
+
+  @override
+  String get addressBookSelectTitle => 'Choose an address';
+
+  @override
+  String get addressAddNew => 'Add address';
+
+  @override
+  String get addressBookEmpty => 'No saved addresses yet';
+
+  @override
+  String get addressBookEmptyHint =>
+      'Save your regular locations to book faster';
+
+  @override
+  String get addressDefault => 'Default';
+
+  @override
+  String get addressSetDefault => 'Set as default';
+
+  @override
+  String get addressDelete => 'Delete';
+
+  @override
+  String get addressDeleteConfirm => 'Delete this address?';
+
+  @override
+  String get addressDeleted => 'Address deleted';
 }

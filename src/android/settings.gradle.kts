@@ -12,6 +12,11 @@ pluginManagement {
 
     repositories {
         google()
+        // Fallbacks: dl.google.com/dl/android/maven2 returns 404 for every
+        // artifact on this network (filtered egress). Aliyun/Huawei mirror
+        // Google Maven and are reachable; gradle falls through on the 404s.
+        maven("https://maven.aliyun.com/repository/google")
+        maven("https://repo.huaweicloud.com/repository/maven")
         mavenCentral()
         gradlePluginPortal()
     }

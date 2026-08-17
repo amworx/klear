@@ -96,7 +96,7 @@ class _EmailSignInPageState extends ConsumerState<EmailSignInPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                l10n.otpSentSubtitle,
+                l10n.otpWillSendSubtitle,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),

@@ -159,6 +159,23 @@ void main() {
     expect(bookingWith(BookingStatus.cancelled).statusLabel('ar'), 'ملغى');
   });
 
+  test('Draft carries precise coordinates picked on the map', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(bookingDraftProvider.notifier);
+    expect(container.read(bookingDraftProvider).lat, isNull);
+    expect(container.read(bookingDraftProvider).lng, isNull);
+
+    notifier.setLatLng(33.5138, 36.2765);
+
+    final draft = container.read(bookingDraftProvider);
+    expect(draft.lat, 33.5138);
+    expect(draft.lng, 36.2765);
+    // Coordinates alone don't complete the draft — address is still needed.
+    expect(draft.isComplete, isFalse);
+  });
+
   test('cancelBooking delegates to the datasource (status update path)',
       () async {
     final fake = _FakeBookingsDataSource();

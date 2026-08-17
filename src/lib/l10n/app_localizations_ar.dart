@@ -187,6 +187,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get otpSentSubtitle => 'أرسلنا رمزاً من 6 أرقام إلى بريدك الإلكتروني';
 
   @override
+  String get otpWillSendSubtitle =>
+      'سنرسل لك رمزاً لمرة واحدة إلى بريدك الإلكتروني';
+
+  @override
   String get otpCode => 'الرمز';
 
   @override
@@ -488,4 +492,79 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get basePriceNoCar =>
       'السعر الأساسي — اختر سيارة للحصول على إجمالي دقيق';
+
+  @override
+  String get chooseOnMap => 'اختر من الخريطة';
+
+  @override
+  String get cancelLabel => 'إلغاء';
+
+  @override
+  String get saveLabel => 'حفظ';
+
+  @override
+  String get mapPickerTitle => 'اختر الموقع';
+
+  @override
+  String get mapSearchHint => 'ابحث عن مكان…';
+
+  @override
+  String get mapAddressLoading => 'جارٍ تحديد العنوان…';
+
+  @override
+  String get mapUseThisLocation => 'استخدم هذا الموقع';
+
+  @override
+  String get mapSaveToBook => 'حفظ في دفتر العناوين';
+
+  @override
+  String get mapSavedToBook => 'تم الحفظ في دفتر العناوين';
+
+  @override
+  String get mapSaveLabelTitle => 'حفظ الموقع';
+
+  @override
+  String get mapLabelHint => 'التسمية (منزل، عمل…)';
+
+  @override
+  String get addressLabelRequired => 'الرجاء إدخال تسمية';
+
+  @override
+  String get addressLabelHome => 'منزل';
+
+  @override
+  String get addressLabelWork => 'عمل';
+
+  @override
+  String get addressLabelOther => 'أخرى';
+
+  @override
+  String get addressBookTitle => 'دفتر العناوين';
+
+  @override
+  String get addressBookSelectTitle => 'اختر عنواناً';
+
+  @override
+  String get addressAddNew => 'إضافة عنوان';
+
+  @override
+  String get addressBookEmpty => 'لا توجد عناوين محفوظة بعد';
+
+  @override
+  String get addressBookEmptyHint => 'احفظ مواقعك المعتادة للحجز بشكل أسرع';
+
+  @override
+  String get addressDefault => 'الافتراضي';
+
+  @override
+  String get addressSetDefault => 'تعيين كافتراضي';
+
+  @override
+  String get addressDelete => 'حذف';
+
+  @override
+  String get addressDeleteConfirm => 'حذف هذا العنوان؟';
+
+  @override
+  String get addressDeleted => 'تم حذف العنوان';
 }

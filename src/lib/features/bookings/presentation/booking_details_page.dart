@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../app/app_router.dart';
+import '../../../core/geocoding/nominatim_service.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
+import '../../addresses/presentation/map_picker_page.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../cars/presentation/cars_providers.dart';
 import '../domain/klear_booking.dart';
@@ -75,11 +77,29 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     ref.invalidate(carsProvider);
   }
 
-  void _useSavedAddress() {
-    final address = ref.read(authProvider).profile?.address;
-    if (address == null || address.isEmpty) return;
-    setState(() => _addressController.text = address);
-    ref.read(bookingDraftProvider.notifier).setAddress(address);
+  /// Opens the full-screen map picker and fills the address (plus precise
+  /// coordinates) from the picked location.
+  Future<void> _chooseOnMap() async {
+    final picked =
+        await context.push<PickedLocation>(KlearRoutes.mapPicker);
+    if (picked == null || !mounted) return;
+    setState(() => _addressController.text = picked.address);
+    ref.read(bookingDraftProvider.notifier)
+      ..setAddress(picked.address)
+      ..setLatLng(picked.lat, picked.lng);
+  }
+
+  /// Opens the address book in selectable mode and fills the chosen address.
+  Future<void> _chooseSavedAddress() async {
+    final picked = await context.push<PickedLocation>(
+      KlearRoutes.addressBook,
+      extra: true,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _addressController.text = picked.address);
+    ref.read(bookingDraftProvider.notifier)
+      ..setAddress(picked.address)
+      ..setLatLng(picked.lat, picked.lng);
   }
 
   Future<void> _useCurrentLocation() async {
@@ -110,10 +130,24 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
 
       final position = await Geolocator.getCurrentPosition();
       if (!mounted) return;
-      final coords =
-          '${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}';
-      setState(() => _addressController.text = coords);
-      ref.read(bookingDraftProvider.notifier).setAddress(coords);
+      final lat = position.latitude;
+      final lng = position.longitude;
+
+      // Best effort: turn the coordinates into a human-readable address.
+      String address = '$lat, $lng';
+      try {
+        final reversed = await ref
+            .read(nominatimServiceProvider)
+            .reverse(lat, lng);
+        if (reversed != null && reversed.isNotEmpty) address = reversed;
+      } catch (_) {
+        // Keep the coordinate fallback.
+      }
+      if (!mounted) return;
+      setState(() => _addressController.text = address);
+      ref.read(bookingDraftProvider.notifier)
+        ..setAddress(address)
+        ..setLatLng(lat, lng);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -296,6 +330,15 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               title: l10n.enterAddress,
             ),
             const SizedBox(height: 8),
+            FilledButton.tonalIcon(
+              onPressed: _chooseOnMap,
+              icon: const Icon(Icons.map_outlined),
+              label: Text(l10n.chooseOnMap),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _addressController,
               decoration: InputDecoration(
@@ -320,8 +363,8 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton.icon(
-                  onPressed: _useSavedAddress,
-                  icon: const Icon(Icons.home_outlined, size: 18),
+                  onPressed: _chooseSavedAddress,
+                  icon: const Icon(Icons.menu_book_outlined, size: 18),
                   label: Text(l10n.useSavedAddress),
                 ),
               ),

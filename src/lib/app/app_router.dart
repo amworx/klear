@@ -34,6 +34,10 @@ class KlearRoutes {
   static const String myCars = '/account/cars';
   static const String carAdd = '/account/cars/add';
   static const String carEdit = '/account/cars/edit';
+  // Address book (child route of the account branch).
+  static const String addressBook = '/account/addresses';
+  // Map picker (full-screen detour; pushed with `context.push`).
+  static const String mapPicker = '/map-picker';
 }
 
 /// Bottom-nav branch index keys.

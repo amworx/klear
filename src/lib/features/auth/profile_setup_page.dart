@@ -4,8 +4,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../app/app_router.dart';
+import '../../core/geocoding/nominatim_service.dart';
 import '../account/domain/klear_user.dart';
 import '../account/presentation/auth_providers.dart';
+import '../addresses/presentation/map_picker_page.dart';
 
 /// Profile setup screen. New users fill in name + location before booking.
 class ProfileSetupPage extends ConsumerStatefulWidget {
@@ -90,9 +93,23 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
         ),
       );
 
+      // 4. Best effort: reverse-geocode into a readable address.
+      String address = '${position.latitude.toStringAsFixed(5)}, '
+          '${position.longitude.toStringAsFixed(5)}';
+      try {
+        final reversed = await ref
+            .read(nominatimServiceProvider)
+            .reverse(position.latitude, position.longitude);
+        if (reversed != null && reversed.isNotEmpty) address = reversed;
+      } catch (_) {
+        // Keep the coordinate fallback.
+      }
+      if (!mounted) return;
+
       setState(() {
         _lat = position.latitude;
         _lng = position.longitude;
+        _addressController.text = address;
         _locationLoading = false;
         _locationDenied = false;
       });
@@ -104,6 +121,18 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
         );
       }
     }
+  }
+
+  /// Opens the full-screen map picker and fills address + coordinates.
+  Future<void> _chooseOnMap() async {
+    final picked = await context.push<PickedLocation>(KlearRoutes.mapPicker);
+    if (picked == null || !mounted) return;
+    setState(() {
+      _lat = picked.lat;
+      _lng = picked.lng;
+      _addressController.text = picked.address;
+      _locationDenied = false;
+    });
   }
 
   Future<void> _save() async {
@@ -213,6 +242,16 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
+              // Location picker — map-first, with manual fallback below.
+              FilledButton.tonalIcon(
+                onPressed: _chooseOnMap,
+                icon: const Icon(Icons.map_outlined),
+                label: Text(l10n.chooseOnMap),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+              const SizedBox(height: 12),
               // Location tile
               Card(
                 color: _locationDenied

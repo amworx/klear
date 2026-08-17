@@ -36,11 +36,21 @@ dependencies:
   supabase_flutter: ^2.8.0
   geolocator: ^13.0.2
   shared_preferences: ^2.3.0
+  flutter_map: ^8.3.1
+  path_provider: 2.1.5
+  latlong2: ^0.10.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+# path_provider_android 2.3.x pulls the jni/jni_flutter native-assets chain,
+# which hardcodes compileSdk 35 (not installable on this filtered network).
+# Pin the last pre-jni implementation (2.2.x) to keep Android builds working.
+dependency_overrides:
+  path_provider_android: 2.2.23
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -117,6 +117,8 @@ class BookingDraft {
     this.service,
     this.car,
     this.address,
+    this.lat,
+    this.lng,
     this.dateTime,
     this.notes,
     this.paymentMethod = BookingPaymentMethod.payOnArrival,
@@ -125,6 +127,12 @@ class BookingDraft {
   final KlearService? service;
   final KlearCar? car;
   final String? address;
+
+  /// Optional precise coordinates picked on the map (bookings table has
+  /// lat/lng columns so the worker can locate the wash point exactly).
+  final double? lat;
+  final double? lng;
+
   final DateTime? dateTime;
   final String? notes;
   final BookingPaymentMethod paymentMethod;
@@ -150,6 +158,8 @@ class BookingDraft {
     KlearService? service,
     KlearCar? car,
     String? address,
+    double? lat,
+    double? lng,
     DateTime? dateTime,
     String? notes,
     BookingPaymentMethod? paymentMethod,
@@ -158,6 +168,8 @@ class BookingDraft {
       service: service ?? this.service,
       car: car ?? this.car,
       address: address ?? this.address,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
       dateTime: dateTime ?? this.dateTime,
       notes: notes ?? this.notes,
       paymentMethod: paymentMethod ?? this.paymentMethod,

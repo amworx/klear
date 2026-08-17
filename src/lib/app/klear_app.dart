@@ -9,6 +9,8 @@ import '../core/l10n/locale_controller.dart';
 import '../core/theme/app_theme.dart';
 import '../features/account/presentation/account_page.dart';
 import '../features/account/presentation/auth_providers.dart';
+import '../features/addresses/presentation/address_book_page.dart';
+import '../features/addresses/presentation/map_picker_page.dart';
 import '../features/auth/email_signin_page.dart';
 import '../features/auth/otp_verify_page.dart';
 import '../features/auth/profile_setup_page.dart';
@@ -70,10 +72,15 @@ class _KlearAppContent extends ConsumerWidget {
         final isAuthRoute = loc.startsWith('/welcome') ||
             loc.startsWith('/auth/');
         final isProfileSetup = loc == '/auth/profile';
-        if (!auth.isAuthenticated && !isAuthRoute) {
+        // Map picker is reachable before AND after profile setup.
+        final isMapPicker = loc == '/map-picker';
+        if (!auth.isAuthenticated && !isAuthRoute && !isMapPicker) {
           return '/welcome';
         }
-        if (auth.isAuthenticated && !auth.hasProfile && !isProfileSetup) {
+        if (auth.isAuthenticated &&
+            !auth.hasProfile &&
+            !isProfileSetup &&
+            !isMapPicker) {
           return '/auth/profile';
         }
         if (auth.isAuthenticated && auth.hasProfile && isAuthRoute) {
@@ -114,6 +121,18 @@ class _KlearAppContent extends ConsumerWidget {
         path: '/auth/profile',
         pageBuilder: (context, state) =>
             _fadeSlidePage(const ProfileSetupPage()),
+      ),
+      // Full-screen detours (outside the bottom-nav shell): map picker and
+      // the address book. Both are pushed with `context.push` from any branch.
+      GoRoute(
+        path: '/map-picker',
+        pageBuilder: (context, state) => _fadeSlidePage(const MapPickerPage()),
+      ),
+      GoRoute(
+        path: '/account/addresses',
+        pageBuilder: (context, state) => _fadeSlidePage(
+          AddressBookPage(selectable: state.extra == true),
+        ),
       ),
       // Main app with bottom nav.
       StatefulShellRoute.indexedStack(

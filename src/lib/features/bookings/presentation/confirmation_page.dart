@@ -51,6 +51,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
         'service_id': draft.service!.id,
         'car_id': draft.car!.id,
         'address': draft.address,
+        'lat': draft.lat,
+        'lng': draft.lng,
         'scheduled_at': draft.dateTime!.toIso8601String(),
         'total_price': draft.estimatedTotal,
         'note': _notesController.text.trim().isEmpty

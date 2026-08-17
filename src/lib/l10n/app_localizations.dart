@@ -452,6 +452,12 @@ abstract class AppLocalizations {
   /// **'We sent a 6-digit code to your email'**
   String get otpSentSubtitle;
 
+  /// No description provided for @otpWillSendSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll email you a one-time code to sign in'**
+  String get otpWillSendSubtitle;
+
   /// No description provided for @otpCode.
   ///
   /// In en, this message translates to:
@@ -1033,6 +1039,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Base price — select a car for a precise total'**
   String get basePriceNoCar;
+
+  /// No description provided for @chooseOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose on map'**
+  String get chooseOnMap;
+
+  /// No description provided for @cancelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelLabel;
+
+  /// No description provided for @saveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveLabel;
+
+  /// No description provided for @mapPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose location'**
+  String get mapPickerTitle;
+
+  /// No description provided for @mapSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a place…'**
+  String get mapSearchHint;
+
+  /// No description provided for @mapAddressLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting address…'**
+  String get mapAddressLoading;
+
+  /// No description provided for @mapUseThisLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this location'**
+  String get mapUseThisLocation;
+
+  /// No description provided for @mapSaveToBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to address book'**
+  String get mapSaveToBook;
+
+  /// No description provided for @mapSavedToBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to your address book'**
+  String get mapSavedToBook;
+
+  /// No description provided for @mapSaveLabelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save location'**
+  String get mapSaveLabelTitle;
+
+  /// No description provided for @mapLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Label (Home, Work…)'**
+  String get mapLabelHint;
+
+  /// No description provided for @addressLabelRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a label'**
+  String get addressLabelRequired;
+
+  /// No description provided for @addressLabelHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get addressLabelHome;
+
+  /// No description provided for @addressLabelWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get addressLabelWork;
+
+  /// No description provided for @addressLabelOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get addressLabelOther;
+
+  /// No description provided for @addressBookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Address book'**
+  String get addressBookTitle;
+
+  /// No description provided for @addressBookSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an address'**
+  String get addressBookSelectTitle;
+
+  /// No description provided for @addressAddNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Add address'**
+  String get addressAddNew;
+
+  /// No description provided for @addressBookEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved addresses yet'**
+  String get addressBookEmpty;
+
+  /// No description provided for @addressBookEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your regular locations to book faster'**
+  String get addressBookEmptyHint;
+
+  /// No description provided for @addressDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get addressDefault;
+
+  /// No description provided for @addressSetDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default'**
+  String get addressSetDefault;
+
+  /// No description provided for @addressDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get addressDelete;
+
+  /// No description provided for @addressDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this address?'**
+  String get addressDeleteConfirm;
+
+  /// No description provided for @addressDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Address deleted'**
+  String get addressDeleted;
 }
 
 class _AppLocalizationsDelegate

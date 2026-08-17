@@ -167,6 +167,17 @@ class _ProfileView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          // Address book — manage saved locations for faster booking.
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: Text(l10n.addressBookTitle),
+              subtitle: Text(l10n.addressBookEmptyHint),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(KlearRoutes.addressBook),
+            ),
+          ),
+          const SizedBox(height: 16),
           // Edit profile button.
           OutlinedButton.icon(
             onPressed: () => context.go(KlearRoutes.profileSetup),
