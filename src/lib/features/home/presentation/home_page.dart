@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../app/app_router.dart';
 import '../../../core/widgets/motion.dart';
@@ -9,6 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
 import '../../bookings/domain/klear_booking.dart';
 import '../../bookings/presentation/booking_providers.dart';
+import '../../bookings/presentation/booking_time_labels.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../../services/presentation/services_providers.dart';
 import 'widgets/services_section.dart';
@@ -27,7 +27,7 @@ class HomePage extends ConsumerWidget {
         .watch(myBookingsProvider)
         .valueOrNull
         ?.where((b) =>
-            b.dateTime.isAfter(DateTime.now()) &&
+            b.windowEnd.isAfter(DateTime.now()) &&
             (b.status == BookingStatus.pending ||
                 b.status == BookingStatus.confirmed))
         .toList()
@@ -76,7 +76,10 @@ class HomePage extends ConsumerWidget {
                   Entrance(
                     delay: const Duration(milliseconds: 240),
                     child: FilledButton.icon(
-                      onPressed: () => context.go('/book/service'),
+                      onPressed: () {
+                        ref.read(bookingDraftProvider.notifier).startNew();
+                        context.go('/book/service');
+                      },
                       icon: const Icon(Icons.arrow_forward_rounded),
                       label: Text(l10n.btnBookNow),
                     ),
@@ -93,6 +96,7 @@ class HomePage extends ConsumerWidget {
                   ServicesSection(
                     servicesAsync: servicesAsync,
                     onBookService: (service) {
+                      ref.read(bookingDraftProvider.notifier).startNew();
                       ref.read(bookingDraftProvider.notifier).setService(service);
                       context.go(KlearRoutes.bookDetails);
                     },
@@ -150,9 +154,6 @@ class _UpcomingWashCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final langCode = Localizations.localeOf(context).languageCode;
-    final dateFormat = DateFormat(
-      langCode == 'ar' ? 'yyyy/MM/dd HH:mm' : 'MMM dd, yyyy h:mm a',
-    );
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -198,7 +199,13 @@ class _UpcomingWashCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      dateFormat.format(booking.dateTime),
+                      BookingTimeLabels.fullLabel(
+                        start: booking.dateTime,
+                        end: booking.scheduledEnd,
+                        type: booking.timeType,
+                        l10n: l10n,
+                        langCode: langCode,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: scheme.onPrimaryContainer,
                           ),

@@ -96,6 +96,70 @@ void main() {
     expect(container.read(bookingDraftProvider).estimatedDurationMin, 20);
   });
 
+  test('Urgent windows add +25% to the estimated total', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(bookingDraftProvider.notifier);
+    notifier.setService(_service);
+    notifier.setCar(_largeCar);
+    // large factor 1.5 -> 150 base.
+    expect(container.read(bookingDraftProvider).estimatedTotal, 150);
+
+    notifier.setTimeWindow(
+      dateTime: DateTime(2026, 1, 1, 10, 0),
+      timeType: TimeWindowType.urgent,
+      scheduledEnd: DateTime(2026, 1, 1, 23, 59),
+    );
+    // Base stays size-adjusted (150); the surcharge is applied on demand.
+    expect(container.read(bookingDraftProvider).estimatedTotal, 150);
+    // 150 * 1.25 = 187.5
+    expect(
+      container.read(bookingDraftProvider).estimatedTotalWithSurcharge,
+      187.5,
+    );
+    expect(container.read(bookingDraftProvider).isUrgent, isTrue);
+  });
+
+  test('setTimeWindow stores start, end and flexibility type', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(bookingDraftProvider.notifier);
+    notifier.setTimeWindow(
+      dateTime: DateTime(2026, 1, 1, 8, 0),
+      timeType: TimeWindowType.window,
+      scheduledEnd: DateTime(2026, 1, 1, 12, 0),
+    );
+
+    final draft = container.read(bookingDraftProvider);
+    expect(draft.dateTime, DateTime(2026, 1, 1, 8, 0));
+    expect(draft.scheduledEnd, DateTime(2026, 1, 1, 12, 0));
+    expect(draft.timeType, TimeWindowType.window);
+    expect(draft.isUrgent, isFalse);
+  });
+
+  test('All-day windows are not urgent and keep their window end', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(bookingDraftProvider.notifier);
+    notifier.setService(_service);
+    notifier.setCar(_smallCar);
+    notifier.setTimeWindow(
+      dateTime: DateTime(2026, 1, 1, 8, 0),
+      timeType: TimeWindowType.allDay,
+      scheduledEnd: DateTime(2026, 1, 1, 18, 0),
+    );
+
+    final draft = container.read(bookingDraftProvider);
+    expect(draft.timeType, TimeWindowType.allDay);
+    expect(draft.isUrgent, isFalse);
+    expect(draft.scheduledEnd, DateTime(2026, 1, 1, 18, 0));
+    expect(draft.estimatedTotal, 100);
+    expect(draft.estimatedTotalWithSurcharge, 100);
+  });
+
   testWidgets('Draft carries the selected car for the confirm screen',
       (tester) async {
     final container = ProviderContainer();
@@ -185,14 +249,186 @@ void main() {
 
     expect(fake.cancelledIds, ['b-123']);
   });
+
+  test('updateBooking delegates to the datasource (edit path)', () async {
+    final fake = _FakeBookingsDataSource();
+    final repo = BookingsRepository(dataSource: fake);
+
+    final payload = <String, dynamic>{
+      'service_id': 's1',
+      'car_id': 'c1',
+      'address': 'New Address',
+      'scheduled_at': DateTime(2026, 2, 1, 12, 0).toIso8601String(),
+    };
+    await repo.updateBooking(
+      bookingId: 'b-123',
+      payload: payload,
+      service: _service,
+    );
+
+    expect(fake.updatedIds, ['b-123']);
+    expect(fake.lastUpdatePayload?['address'], 'New Address');
+  });
+
+  test('startEdit prefills the draft and marks it as an edit', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(bookingDraftProvider.notifier);
+    notifier.startEdit(
+      bookingId: 'b-1',
+      service: _service,
+      car: _largeCar,
+      address: 'Damascus, Mezzeh',
+      dateTime: DateTime(2026, 3, 1, 11, 0),
+      timeType: TimeWindowType.window,
+      scheduledEnd: DateTime(2026, 3, 1, 15, 0),
+      lat: 33.5,
+      lng: 36.3,
+      notes: 'Please use the main gate',
+    );
+
+    final draft = container.read(bookingDraftProvider);
+    expect(draft.isEditing, isTrue);
+    expect(draft.editingBookingId, 'b-1');
+    expect(draft.service?.id, 's1');
+    expect(draft.car?.id, 'c2');
+    expect(draft.address, 'Damascus, Mezzeh');
+    expect(draft.lat, 33.5);
+    expect(draft.lng, 36.3);
+    expect(draft.dateTime, DateTime(2026, 3, 1, 11, 0));
+    expect(draft.scheduledEnd, DateTime(2026, 3, 1, 15, 0));
+    expect(draft.timeType, TimeWindowType.window);
+    expect(draft.notes, 'Please use the main gate');
+    expect(draft.isComplete, isTrue);
+  });
+
+  test('startNew clears any leftover edit session', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(bookingDraftProvider.notifier);
+    notifier.startEdit(
+      bookingId: 'b-1',
+      service: _service,
+      car: _smallCar,
+      address: 'A',
+      dateTime: DateTime(2026, 3, 1, 11, 0),
+    );
+    expect(container.read(bookingDraftProvider).isEditing, isTrue);
+
+    notifier.startNew();
+    final draft = container.read(bookingDraftProvider);
+    expect(draft.isEditing, isFalse);
+    expect(draft.editingBookingId, isNull);
+    expect(draft.isComplete, isFalse);
+  });
+
+  test('Booking draft parses lat/lng coordinates from the row', () {
+    final booking = KlearBooking.fromMap(
+      {
+        'id': 'b1',
+        'customer_id': 'u1',
+        'service_id': 's1',
+        'address': 'Damascus',
+        'scheduled_at': '2026-01-01T10:00:00.000Z',
+        'status': 'pending',
+        'created_at': '2026-01-01T09:00:00.000Z',
+        'lat': 33.5138,
+        'lng': 36.2765,
+      },
+      _service,
+    );
+
+    expect(booking.lat, 33.5138);
+    expect(booking.lng, 36.2765);
+  });
+
+  test('Booking parses time_type and scheduled_end from the row', () {
+    final allDay = KlearBooking.fromMap(
+      {
+        'id': 'b1',
+        'customer_id': 'u1',
+        'service_id': 's1',
+        'address': 'Damascus',
+        'scheduled_at': '2026-01-01T08:00:00.000Z',
+        'scheduled_end': '2026-01-01T18:00:00.000Z',
+        'time_type': 'all_day',
+        'status': 'pending',
+        'created_at': '2026-01-01T09:00:00.000Z',
+      },
+      _service,
+    );
+    expect(allDay.timeType, TimeWindowType.allDay);
+    expect(allDay.scheduledEnd, DateTime.parse('2026-01-01T18:00:00.000Z'));
+    expect(allDay.isUrgent, isFalse);
+    expect(allDay.windowEnd, DateTime.parse('2026-01-01T18:00:00.000Z'));
+
+    final urgent = KlearBooking.fromMap(
+      {
+        'id': 'b2',
+        'customer_id': 'u1',
+        'service_id': 's1',
+        'address': 'Damascus',
+        'scheduled_at': '2026-01-01T10:00:00.000Z',
+        'scheduled_end': '2026-01-01T23:59:00.000Z',
+        'time_type': 'urgent',
+        'status': 'pending',
+        'created_at': '2026-01-01T09:00:00.000Z',
+      },
+      _service,
+    );
+    expect(urgent.timeType, TimeWindowType.urgent);
+    expect(urgent.isUrgent, isTrue);
+
+    // Legacy rows without time_type default to a point-in-time window.
+    final legacy = KlearBooking.fromMap(
+      {
+        'id': 'b3',
+        'customer_id': 'u1',
+        'service_id': 's1',
+        'address': 'Damascus',
+        'scheduled_at': '2026-01-01T10:00:00.000Z',
+        'status': 'pending',
+        'created_at': '2026-01-01T09:00:00.000Z',
+      },
+      _service,
+    );
+    expect(legacy.timeType, TimeWindowType.window);
+    expect(legacy.scheduledEnd, isNull);
+    expect(legacy.windowEnd, legacy.dateTime);
+  });
 }
 
 class _FakeBookingsDataSource implements BookingsRemoteDataSource {
   final cancelledIds = <String>[];
+  final updatedIds = <String>[];
+  Map<String, dynamic>? lastUpdatePayload;
 
   @override
   Future<void> cancelBooking(String bookingId) async {
     cancelledIds.add(bookingId);
+  }
+
+  @override
+  Future<KlearBooking> updateBooking({
+    required String bookingId,
+    required Map<String, dynamic> payload,
+    required KlearService service,
+  }) async {
+    updatedIds.add(bookingId);
+    lastUpdatePayload = payload;
+    return KlearBooking.fromMap(
+      {
+        ...payload,
+        'id': bookingId,
+        'customer_id': 'u1',
+        'scheduled_at': payload['scheduled_at'],
+        'status': 'pending',
+        'created_at': '2026-01-01T09:00:00.000Z',
+      },
+      service,
+    );
   }
 
   @override

@@ -37,6 +37,7 @@ class ServicesPage extends ConsumerWidget {
               ServicesSection(
                 servicesAsync: servicesAsync,
                 onBookService: (service) {
+                  ref.read(bookingDraftProvider.notifier).startNew();
                   ref.read(bookingDraftProvider.notifier).setService(service);
                   context.go(KlearRoutes.bookDetails);
                 },

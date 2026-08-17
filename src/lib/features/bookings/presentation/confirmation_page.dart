@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../app/app_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../orders/presentation/orders_providers.dart';
+import '../domain/klear_booking.dart';
 import '../presentation/booking_providers.dart';
+import 'booking_time_labels.dart';
 import 'widgets/booking_step_scaffold.dart';
 
 /// Step 4: user reviews all details, sees the cost breakdown and confirms.
@@ -46,34 +47,56 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
 
     setState(() => _submitting = true);
     try {
-      final payload = <String, dynamic>{
-        'customer_id': userId,
+      final editablePayload = <String, dynamic>{
         'service_id': draft.service!.id,
         'car_id': draft.car!.id,
         'address': draft.address,
         'lat': draft.lat,
         'lng': draft.lng,
         'scheduled_at': draft.dateTime!.toIso8601String(),
-        'total_price': draft.estimatedTotal,
+        'time_type': draft.timeType.dbValue,
+        'scheduled_end': draft.scheduledEnd?.toIso8601String(),
+        'total_price': draft.estimatedTotalWithSurcharge,
         'note': _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
       };
 
-      await ref
-          .read(bookingRepositoryProvider)
-          .createBooking(payload: payload, service: draft.service!);
+      if (draft.isEditing) {
+        await ref.read(bookingRepositoryProvider).updateBooking(
+              bookingId: draft.editingBookingId!,
+              payload: editablePayload,
+              service: draft.service!,
+            );
+      } else {
+        final createPayload = <String, dynamic>{
+          ...editablePayload,
+          'customer_id': userId,
+        };
+        await ref
+            .read(bookingRepositoryProvider)
+            .createBooking(payload: createPayload, service: draft.service!);
+      }
 
       if (!mounted) return;
+      final editingId = draft.editingBookingId;
       ref.read(bookingDraftProvider.notifier).clear();
       ref.invalidate(myBookingsProvider);
       setState(() => _submitting = false);
-      _showConfirmationDialog(context, AppLocalizations.of(context));
+      _showConfirmationDialog(
+        context,
+        AppLocalizations.of(context),
+        editingBookingId: editingId,
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).bookingFailed)),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).bookingFailed,
+          ),
+        ),
       );
     }
   }
@@ -84,9 +107,6 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
     final langCode = Localizations.localeOf(context).languageCode;
     final draft = ref.watch(bookingDraftProvider);
     final scheme = Theme.of(context).colorScheme;
-    final dateFormat = DateFormat(
-      langCode == 'ar' ? 'yyyy/MM/dd HH:mm' : 'MMM dd, yyyy h:mm a',
-    );
     final sizeLabel = _sizeLabel(draft.car?.size, langCode, l10n);
 
     return BookingStepScaffold(
@@ -132,7 +152,13 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
               icon: Icons.schedule_outlined,
               label: l10n.dateTimeLabel,
               value: draft.dateTime != null
-                  ? dateFormat.format(draft.dateTime!)
+                  ? BookingTimeLabels.fullLabel(
+                      start: draft.dateTime!,
+                      end: draft.scheduledEnd,
+                      type: draft.timeType,
+                      l10n: l10n,
+                      langCode: langCode,
+                    )
                   : '—',
             ),
             const SizedBox(height: 8),
@@ -176,11 +202,17 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                           : '$sizeLabel · ×'
                               '${_formatFactor(draft.car!.size.priceFactor)}',
                     ),
+                    if (draft.isUrgent)
+                      _PriceRow(
+                        label: l10n.urgentSurcharge,
+                        value:
+                            '+${(urgentSurchargePercent * 100).toStringAsFixed(0)}%',
+                      ),
                     const Divider(height: 24),
                     _PriceRow(
                       label: l10n.totalEstimate,
                       value:
-                          '${draft.estimatedTotal.toStringAsFixed(0)} '
+                          '${draft.estimatedTotalWithSurcharge.toStringAsFixed(0)} '
                           '${draft.service?.currency ?? 'SYP'}',
                       emphasized: true,
                     ),
@@ -247,7 +279,13 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.check_circle),
-            label: Text(_submitting ? l10n.submitting : l10n.confirmBooking),
+            label: Text(
+              _submitting
+                  ? l10n.submitting
+                  : draft.isEditing
+                      ? l10n.saveChanges
+                      : l10n.confirmBooking,
+            ),
           ),
         ),
       ),
@@ -273,7 +311,12 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
         : factor.toStringAsFixed(2);
   }
 
-  void _showConfirmationDialog(BuildContext context, AppLocalizations l10n) {
+  void _showConfirmationDialog(
+    BuildContext context,
+    AppLocalizations l10n, {
+    String? editingBookingId,
+  }) {
+    final isEditing = editingBookingId != null;
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -283,13 +326,24 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
           color: Theme.of(context).colorScheme.tertiary,
           size: 64,
         ),
-        title: Text(l10n.bookingConfirmed),
-        content: Text(l10n.bookingConfirmedMessage),
+        title: Text(isEditing ? l10n.bookingUpdated : l10n.bookingConfirmed),
+        content: Text(
+          isEditing ? l10n.bookingUpdatedMessage : l10n.bookingConfirmedMessage,
+        ),
         actions: [
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              context.go(KlearRoutes.home);
+              if (isEditing) {
+                context.go(
+                  KlearRoutes.ordersDetail.replaceFirst(
+                    ':id',
+                    editingBookingId,
+                  ),
+                );
+              } else {
+                context.go(KlearRoutes.home);
+              }
             },
             child: Text(l10n.done),
           ),

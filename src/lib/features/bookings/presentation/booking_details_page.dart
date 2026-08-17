@@ -14,6 +14,7 @@ import '../../cars/domain/klear_car.dart';
 import '../../cars/presentation/cars_providers.dart';
 import '../domain/klear_booking.dart';
 import 'booking_providers.dart';
+import 'booking_time_labels.dart';
 import 'widgets/booking_step_scaffold.dart';
 
 /// Step 2: car + address + schedule on one screen.
@@ -24,10 +25,47 @@ class BookingDetailsPage extends ConsumerStatefulWidget {
   ConsumerState<BookingDetailsPage> createState() => _BookingDetailsPageState();
 }
 
+/// The flexibility categories the user can pick for their wash time.
+enum _TimeChoice {
+  /// "Anytime 8am-6pm" — whole working day open.
+  allDay,
+
+  /// "8am-12pm"
+  windowMorning,
+
+  /// "10am-2pm"
+  windowMidday,
+
+  /// "2pm-6pm"
+  windowAfternoon,
+
+  /// "Anytime today (+25%)"
+  urgent,
+}
+
+/// A concrete start/end/type triple produced by a day + [_TimeChoice].
+class _TimeWindow {
+  const _TimeWindow({
+    required this.start,
+    required this.end,
+    required this.type,
+  });
+
+  final DateTime start;
+  final DateTime end;
+  final TimeWindowType type;
+}
+
 class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
   final _addressController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  DateTime? _selectedDateTime;
+
+  /// The day the wash window falls on (date-only; the time comes from the
+  /// chosen flexibility category). Defaults to today.
+  DateTime? _selectedDay;
+
+  /// The flexibility choice (all-day / specific window / urgent).
+  _TimeChoice? _selectedChoice;
   bool _locating = false;
 
   @override
@@ -43,7 +81,19 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
         ref.read(bookingDraftProvider.notifier).setAddress(profileAddress);
       }
     }
-    _selectedDateTime = draft.dateTime;
+    // Restore an existing time window (edit flow) into the selector, or
+    // default to today.
+    if (draft.dateTime != null) {
+      _selectedDay = DateTime(
+        draft.dateTime!.year,
+        draft.dateTime!.month,
+        draft.dateTime!.day,
+      );
+      _selectedChoice = _choiceFromDraft(draft);
+    } else {
+      final now = DateTime.now();
+      _selectedDay = DateTime(now.year, now.month, now.day);
+    }
   }
 
   @override
@@ -56,18 +106,23 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     final draft = ref.read(bookingDraftProvider);
     return draft.car != null &&
         _addressController.text.trim().isNotEmpty &&
-        _selectedDateTime != null;
+        _selectedChoice != null;
   }
 
   void _goNext() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    if (_selectedDateTime == null) return;
+    if (_selectedDay == null || _selectedChoice == null) return;
     final draft = ref.read(bookingDraftProvider);
     if (draft.car == null) return;
 
+    final window = _windowFor(_selectedDay!, _selectedChoice!);
     ref.read(bookingDraftProvider.notifier)
       ..setAddress(_addressController.text.trim())
-      ..setDateTime(_selectedDateTime);
+      ..setTimeWindow(
+        dateTime: window.start,
+        timeType: window.type,
+        scheduledEnd: window.end,
+      );
     context.go(KlearRoutes.bookConfirm);
   }
 
@@ -158,75 +213,135 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     }
   }
 
-  void _selectQuickSlot(DateTime slot) {
-    setState(() => _selectedDateTime = slot);
-    ref.read(bookingDraftProvider.notifier).setDateTime(slot);
+  void _selectDay(DateTime day) {
+    setState(() => _selectedDay = day);
   }
 
-  Future<void> _pickCustomDateTime() async {
-    final l10n = AppLocalizations.of(context);
-    final now = DateTime.now();
-    final initialDate = _selectedDateTime ?? now;
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 30)),
-    );
-    if (pickedDate == null || !mounted) return;
-
-    final initialTime = _selectedDateTime != null
-        ? TimeOfDay.fromDateTime(_selectedDateTime!)
-        : TimeOfDay.now();
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
-    if (pickedTime == null || !mounted) return;
-
-    final combined = DateTime(
-      pickedDate.year,
-      pickedDate.month,
-      pickedDate.day,
-      pickedTime.hour,
-      pickedTime.minute,
-    );
-    _selectQuickSlot(combined);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.dateTimeSaved)),
-    );
-  }
-
-  List<DateTime> _quickSlots() {
+  Future<void> _pickCustomDay() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-    return [
-      DateTime(today.year, today.month, today.day, 10, 0),
-      DateTime(today.year, today.month, today.day, 14, 0),
-      DateTime(today.year, today.month, today.day, 18, 0),
-      DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 10, 0),
-      DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 14, 0),
-    ].where((slot) => slot.isAfter(now)).toList();
+    final initial = _selectedDay ?? today;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial.isBefore(today) ? today : initial,
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 30)),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _selectedDay = picked);
   }
 
-  String _slotLabel(DateTime slot, AppLocalizations l10n) {
+  void _selectChoice(_TimeChoice choice) {
+    setState(() => _selectedChoice = choice);
+  }
+
+  /// Builds the concrete time window for a day + flexibility choice.
+  _TimeWindow _windowFor(DateTime day, _TimeChoice choice) {
+    switch (choice) {
+      case _TimeChoice.allDay:
+        return _TimeWindow(
+          start: DateTime(day.year, day.month, day.day, 8, 0),
+          end: DateTime(day.year, day.month, day.day, 18, 0),
+          type: TimeWindowType.allDay,
+        );
+      case _TimeChoice.windowMorning:
+        return _TimeWindow(
+          start: DateTime(day.year, day.month, day.day, 8, 0),
+          end: DateTime(day.year, day.month, day.day, 12, 0),
+          type: TimeWindowType.window,
+        );
+      case _TimeChoice.windowMidday:
+        return _TimeWindow(
+          start: DateTime(day.year, day.month, day.day, 10, 0),
+          end: DateTime(day.year, day.month, day.day, 14, 0),
+          type: TimeWindowType.window,
+        );
+      case _TimeChoice.windowAfternoon:
+        return _TimeWindow(
+          start: DateTime(day.year, day.month, day.day, 14, 0),
+          end: DateTime(day.year, day.month, day.day, 18, 0),
+          type: TimeWindowType.window,
+        );
+      case _TimeChoice.urgent:
+        final now = DateTime.now();
+        return _TimeWindow(
+          start: now,
+          end: DateTime(day.year, day.month, day.day, 23, 59),
+          type: TimeWindowType.urgent,
+        );
+    }
+  }
+
+  /// Rebuilds the selector state from a stored booking (edit flow).
+  _TimeChoice? _choiceFromDraft(BookingDraft draft) {
+    final start = draft.dateTime;
+    if (start == null) return null;
+    final end = draft.scheduledEnd;
+    final startH = start.hour;
+    final endH = end?.hour ?? startH;
+
+    switch (draft.timeType) {
+      case TimeWindowType.allDay:
+        return _TimeChoice.allDay;
+      case TimeWindowType.urgent:
+        return _TimeChoice.urgent;
+      case TimeWindowType.window:
+        if (startH == 8 && endH == 12) return _TimeChoice.windowMorning;
+        if (startH == 10 && endH == 14) return _TimeChoice.windowMidday;
+        if (startH == 14 && endH == 18) return _TimeChoice.windowAfternoon;
+        // Fall back to the closest window for unexpected legacy rows.
+        if (startH < 10) return _TimeChoice.windowMorning;
+        if (startH < 14) return _TimeChoice.windowMidday;
+        return _TimeChoice.windowAfternoon;
+    }
+  }
+
+  String _dayLabel(DateTime day, AppLocalizations l10n, String langCode) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final slotDay = DateTime(slot.year, slot.month, slot.day);
-    final dayLabel = slotDay == today
-        ? l10n.quickSlotToday
-        : slotDay == today.add(const Duration(days: 1))
-            ? l10n.quickSlotTomorrow
-            : DateFormat('MM/dd').format(slot);
-    final hour = slot.hour;
-    final period = hour < 12
-        ? l10n.quickSlotMorning
-        : hour < 17
-            ? l10n.quickSlotAfternoon
-            : l10n.quickSlotEvening;
-    return '$dayLabel · $period';
+    final dayDate = DateTime(day.year, day.month, day.day);
+    if (dayDate == today) return l10n.quickSlotToday;
+    if (dayDate == today.add(const Duration(days: 1))) {
+      return l10n.quickSlotTomorrow;
+    }
+    return DateFormat(langCode == 'ar' ? 'MM/dd' : 'MMM d').format(day);
+  }
+
+  bool _isSameDay(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return false;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  /// Whether the urgent option can be chosen (only valid for today).
+  bool _canChooseUrgent(DateTime day) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return _isSameDay(day, today);
+  }
+
+  List<DateTime> _dayOptions() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return [today, today.add(const Duration(days: 1))];
+  }
+
+  List<_TimeChoice> get _windowChoices => const [
+        _TimeChoice.windowMorning,
+        _TimeChoice.windowMidday,
+        _TimeChoice.windowAfternoon,
+      ];
+
+  String _windowLabel(_TimeChoice choice, AppLocalizations l10n) {
+    switch (choice) {
+      case _TimeChoice.windowMorning:
+        return l10n.timeWindowMorning;
+      case _TimeChoice.windowMidday:
+        return l10n.timeWindowMidday;
+      case _TimeChoice.windowAfternoon:
+        return l10n.timeWindowAfternoon;
+      default:
+        return '';
+    }
   }
 
   @override
@@ -239,7 +354,6 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     final savedAddress = ref.watch(authProvider).profile?.address;
     final hasSavedAddress =
         savedAddress != null && savedAddress.trim().isNotEmpty;
-    final quickSlots = _quickSlots();
 
     if (draft.service == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -251,6 +365,7 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     return BookingStepScaffold(
       currentStep: 2,
       title: l10n.bookingDetailsTitle,
+      priceFooterUrgent: _selectedChoice == _TimeChoice.urgent,
       body: Form(
         key: _formKey,
         child: ListView(
@@ -390,35 +505,88 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               icon: Icons.schedule_outlined,
               title: l10n.selectDateTime,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+            // Day selector: Today / Tomorrow / pick another day.
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final slot in quickSlots)
-                  FilterChip(
-                    label: Text(_slotLabel(slot, l10n)),
-                    selected: _selectedDateTime != null &&
-                        _selectedDateTime!.year == slot.year &&
-                        _selectedDateTime!.month == slot.month &&
-                        _selectedDateTime!.day == slot.day &&
-                        _selectedDateTime!.hour == slot.hour &&
-                        _selectedDateTime!.minute == slot.minute,
-                    onSelected: (_) => _selectQuickSlot(slot),
+                for (final day in _dayOptions())
+                  ChoiceChip(
+                    label: Text(_dayLabel(day, l10n, langCode)),
+                    selected: _isSameDay(_selectedDay, day),
+                    onSelected: (_) => _selectDay(day),
                   ),
                 ActionChip(
-                  avatar: Icon(Icons.edit_calendar, size: 18, color: scheme.primary),
-                  label: Text(l10n.customDateTime),
-                  onPressed: _pickCustomDateTime,
+                  avatar: Icon(
+                    Icons.edit_calendar,
+                    size: 18,
+                    color: scheme.primary,
+                  ),
+                  label: Text(l10n.pickAnotherDay),
+                  onPressed: _pickCustomDay,
                 ),
               ],
             ),
-            if (_selectedDateTime != null) ...[
+            const SizedBox(height: 16),
+            // Category 1 — all-day window.
+            _TimeOptionCard(
+              icon: Icons.wb_sunny_outlined,
+              title: l10n.timeAllDayTitle,
+              value: l10n.timeAllDayLabel,
+              selected: _selectedChoice == _TimeChoice.allDay,
+              onTap: () => _selectChoice(_TimeChoice.allDay),
+            ),
+            const SizedBox(height: 8),
+            // Category 2 — specific 4-hour windows.
+            _TimeOptionCard(
+              icon: Icons.timelapse_outlined,
+              title: l10n.timeSpecificTitle,
+              value: l10n.timeSpecificLabel,
+              selected: _selectedChoice != null &&
+                  _selectedChoice! != _TimeChoice.allDay &&
+                  _selectedChoice! != _TimeChoice.urgent,
+              onTap: () => _selectChoice(_TimeChoice.windowMorning),
+            ),
+            const SizedBox(height: 8),
+            if (_selectedChoice != null &&
+                _selectedChoice != _TimeChoice.allDay &&
+                _selectedChoice != _TimeChoice.urgent)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final choice in _windowChoices)
+                    ChoiceChip(
+                      label: Text(_windowLabel(choice, l10n)),
+                      selected: _selectedChoice == choice,
+                      onSelected: (_) => _selectChoice(choice),
+                    ),
+                ],
+              ),
+            if (_selectedChoice != null &&
+                _selectedChoice != _TimeChoice.allDay &&
+                _selectedChoice != _TimeChoice.urgent)
+              const SizedBox(height: 8),
+            // Category 3 — urgent (today only).
+            _TimeOptionCard(
+              icon: Icons.bolt_outlined,
+              title: l10n.timeUrgentTitle,
+              value: l10n.timeUrgentLabel,
+              selected: _selectedChoice == _TimeChoice.urgent,
+              enabled: _canChooseUrgent(_selectedDay ?? DateTime.now()),
+              onTap: () => _selectChoice(_TimeChoice.urgent),
+            ),
+            if (_selectedChoice != null) ...[
               const SizedBox(height: 12),
               Text(
-                DateFormat(
-                  langCode == 'ar' ? 'yyyy/MM/dd HH:mm' : 'MMM dd, yyyy h:mm a',
-                ).format(_selectedDateTime!),
+                BookingTimeLabels.fullLabel(
+                  start: _windowFor(_selectedDay!, _selectedChoice!).start,
+                  end: _windowFor(_selectedDay!, _selectedChoice!).end,
+                  type: _windowFor(_selectedDay!, _selectedChoice!).type,
+                  l10n: l10n,
+                  langCode: langCode,
+                ),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: scheme.primary,
                     ),
@@ -426,7 +594,12 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
             ],
             if (draft.car != null) ...[
               const SizedBox(height: 24),
-              _BreakdownCard(draft: draft, l10n: l10n, langCode: langCode),
+              _BreakdownCard(
+                draft: draft,
+                isUrgent: _selectedChoice == _TimeChoice.urgent,
+                l10n: l10n,
+                langCode: langCode,
+              ),
             ],
           ],
         ),
@@ -463,16 +636,106 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+/// Selectable card for one flexibility category (all-day / specific / urgent).
+class _TimeOptionCard extends StatelessWidget {
+  const _TimeOptionCard({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.selected,
+    required this.onTap,
+    this.enabled = true,
+  });
+
+  final IconData icon;
+  final String title;
+  final String value;
+  final bool selected;
+  final VoidCallback onTap;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: enabled
+          ? (selected ? scheme.primaryContainer : scheme.surfaceContainerLow)
+          : scheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: enabled
+                  ? (selected ? scheme.primary : scheme.outlineVariant)
+                  : scheme.outlineVariant,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: enabled
+                    ? (selected ? scheme.primary : scheme.onSurfaceVariant)
+                    : scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: enabled
+                                ? null
+                                : scheme.onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              if (enabled)
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                  color: selected ? scheme.primary : scheme.outline,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Transparent cost breakdown shown live on the details step: base price,
-/// size adjustment (× factor) and the estimated total.
+/// size adjustment (× factor) and the estimated total. `isUrgent` is the
+/// live selection (may differ from the committed draft while picking).
 class _BreakdownCard extends StatelessWidget {
   const _BreakdownCard({
     required this.draft,
+    required this.isUrgent,
     required this.l10n,
     required this.langCode,
   });
 
   final BookingDraft draft;
+  final bool isUrgent;
   final AppLocalizations l10n;
   final String langCode;
 
@@ -488,6 +751,8 @@ class _BreakdownCard extends StatelessWidget {
     final factorLabel = factor == factor.roundToDouble()
         ? factor.toStringAsFixed(0)
         : factor.toStringAsFixed(2);
+    final surcharge = isUrgent ? urgentSurchargePercent : 0.0;
+    final total = draft.estimatedTotal * (1 + surcharge);
 
     return Card(
       child: Padding(
@@ -508,11 +773,18 @@ class _BreakdownCard extends StatelessWidget {
               l10n.sizeAdjustment,
               '$sizeLabel · ×$factorLabel',
             ),
+            if (isUrgent) ...[
+              _row(
+                context,
+                l10n.urgentSurcharge,
+                '+${(urgentSurchargePercent * 100).toStringAsFixed(0)}%',
+              ),
+            ],
             const Divider(height: 24),
             _row(
               context,
               l10n.totalEstimate,
-              '${draft.estimatedTotal.toStringAsFixed(0)} '
+              '${total.toStringAsFixed(0)} '
               '${draft.service?.currency ?? 'SYP'}',
               emphasized: true,
             ),

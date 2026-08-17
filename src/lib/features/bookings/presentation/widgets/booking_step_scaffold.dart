@@ -18,6 +18,7 @@ class BookingStepScaffold extends ConsumerWidget {
     required this.body,
     this.bottomBar,
     this.showPriceFooter = true,
+    this.priceFooterUrgent = false,
     super.key,
   });
 
@@ -26,6 +27,10 @@ class BookingStepScaffold extends ConsumerWidget {
   final Widget body;
   final Widget? bottomBar;
   final bool showPriceFooter;
+
+  /// Live "urgent" selection on the details step — applies the +25% surcharge
+  /// to the sticky footer total before the draft is committed.
+  final bool priceFooterUrgent;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -80,7 +85,7 @@ class BookingStepScaffold extends ConsumerWidget {
           ),
           Expanded(child: body),
           if (showPriceFooter && draft.service != null)
-            BookingPriceFooter(draft: draft),
+            BookingPriceFooter(draft: draft, urgent: priceFooterUrgent),
         ],
       ),
       bottomNavigationBar: bottomBar,
@@ -103,16 +108,21 @@ class BookingStepScaffold extends ConsumerWidget {
 
 /// Sticky price summary shown during booking.
 class BookingPriceFooter extends StatelessWidget {
-  const BookingPriceFooter({required this.draft, super.key});
+  const BookingPriceFooter({required this.draft, this.urgent = false, super.key});
 
   final BookingDraft draft;
+
+  /// Live urgent selection — shows the +25% surcharge in the footer total.
+  final bool urgent;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final hasCar = draft.car != null;
-    final total = hasCar ? draft.estimatedTotal : draft.service!.basePrice;
+    final surcharge = urgent ? urgentSurchargePercent : 0.0;
+    final total = (hasCar ? draft.estimatedTotal : draft.service!.basePrice) *
+        (1 + surcharge);
     final currency = draft.service!.currency;
 
     return Material(

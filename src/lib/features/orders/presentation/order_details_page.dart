@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../app/app_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../bookings/domain/klear_booking.dart';
 import '../../bookings/presentation/booking_providers.dart';
+import '../../bookings/presentation/booking_time_labels.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../cars/presentation/cars_providers.dart';
 import '../presentation/orders_providers.dart';
@@ -36,9 +36,6 @@ class OrderDetailPage extends ConsumerWidget {
             return Center(child: Text(l10n.notSelected));
           }
           final car = _findCar(carsAsync.valueOrNull ?? const [], booking.carId);
-          final dateFormat = DateFormat(
-            langCode == 'ar' ? 'yyyy/MM/dd HH:mm' : 'MMM dd, yyyy h:mm a',
-          );
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -108,7 +105,13 @@ class OrderDetailPage extends ConsumerWidget {
               _Tile(
                 icon: Icons.schedule_outlined,
                 label: l10n.dateTimeLabel,
-                value: dateFormat.format(booking.dateTime),
+                value: BookingTimeLabels.fullLabel(
+                  start: booking.dateTime,
+                  end: booking.scheduledEnd,
+                  type: booking.timeType,
+                  l10n: l10n,
+                  langCode: langCode,
+                ),
               ),
               if (booking.notes != null && booking.notes!.isNotEmpty)
                 _Tile(
@@ -117,11 +120,30 @@ class OrderDetailPage extends ConsumerWidget {
                   value: booking.notes!,
                 ),
               const SizedBox(height: 24),
-              if (booking.status == BookingStatus.pending)
-                FilledButton.tonalIcon(
-                  onPressed: () => _confirmCancel(context, ref, l10n, booking),
-                  icon: const Icon(Icons.cancel_outlined),
-                  label: Text(l10n.cancelOrderAction),
+              if (_canEdit(booking.status) ||
+                  booking.status == BookingStatus.pending)
+                Row(
+                  children: [
+                    if (_canEdit(booking.status))
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () => _startEdit(context, ref, booking, car),
+                          icon: const Icon(Icons.edit_outlined),
+                          label: Text(l10n.editOrderAction),
+                        ),
+                      ),
+                    if (booking.status == BookingStatus.pending) ...[
+                      if (_canEdit(booking.status)) const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.tonalIcon(
+                          onPressed: () =>
+                              _confirmCancel(context, ref, l10n, booking),
+                          icon: const Icon(Icons.cancel_outlined),
+                          label: Text(l10n.cancelOrderAction),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
             ],
           );
@@ -143,6 +165,36 @@ class OrderDetailPage extends ConsumerWidget {
       if (car.id == carId) return car;
     }
     return null;
+  }
+
+  /// Bookings that haven't started can still be edited (change time, car,
+  /// address or service). Completed and cancelled ones are read-only.
+  bool _canEdit(BookingStatus status) {
+    return status == BookingStatus.pending ||
+        status == BookingStatus.confirmed;
+  }
+
+  /// Prefills the booking draft from the stored booking and opens the booking
+  /// flow (step 1) so the user can adjust service, car, address or time.
+  void _startEdit(
+    BuildContext context,
+    WidgetRef ref,
+    KlearBooking booking,
+    KlearCar? car,
+  ) {
+    ref.read(bookingDraftProvider.notifier).startEdit(
+          bookingId: booking.id,
+          service: booking.service,
+          car: car,
+          address: booking.address,
+          dateTime: booking.dateTime,
+          timeType: booking.timeType,
+          scheduledEnd: booking.scheduledEnd,
+          lat: booking.lat,
+          lng: booking.lng,
+          notes: booking.notes,
+        );
+    context.go(KlearRoutes.bookSelectService);
   }
 
   Future<void> _confirmCancel(

@@ -59,4 +59,26 @@ class BookingsRemoteDataSource {
         .update({'status': 'cancelled'})
         .eq('id', bookingId);
   }
+
+  /// Updates the editable fields of an existing booking (owner-only via RLS).
+  /// Status is deliberately not touched here — that moves through its own
+  /// lifecycle (cancel / provider actions).
+  Future<KlearBooking> updateBooking({
+    required String bookingId,
+    required Map<String, dynamic> payload,
+    required KlearService service,
+  }) async {
+    if (!SupabaseClientManager.isReady) {
+      throw StateError('Supabase is not configured');
+    }
+
+    final response = await SupabaseClientManager.instance.client
+        .from('bookings')
+        .update(payload)
+        .eq('id', bookingId)
+        .select()
+        .single();
+
+    return KlearBooking.fromMap(Map<String, dynamic>.from(response), service);
+  }
 }

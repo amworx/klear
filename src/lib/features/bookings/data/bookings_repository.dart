@@ -29,4 +29,16 @@ class BookingsRepository {
   Future<void> cancelBooking(String bookingId) {
     return _dataSource.cancelBooking(bookingId);
   }
+
+  Future<KlearBooking> updateBooking({
+    required String bookingId,
+    required Map<String, dynamic> payload,
+    required KlearService service,
+  }) {
+    return _dataSource.updateBooking(
+      bookingId: bookingId,
+      payload: payload,
+      service: service,
+    );
+  }
 }

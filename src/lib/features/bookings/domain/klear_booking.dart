@@ -10,6 +10,30 @@ enum BookingStatus {
   cancelled,
 }
 
+/// How flexible the scheduled time is. Mirrors the database `time_type`
+/// column on the `bookings` table.
+enum TimeWindowType {
+  /// "Anytime 8am-6pm" — the whole working day is open.
+  allDay,
+
+  /// A specific 4-hour window (e.g. 8am-12pm, 10am-2pm, 2pm-6pm).
+  window,
+
+  /// "Anytime today" — urgent, carries a +25% surcharge.
+  urgent;
+
+  /// Value stored in the `bookings.time_type` column (snake_case, matches the
+  /// DB check constraint `('all_day','window','urgent')`).
+  String get dbValue => switch (this) {
+        TimeWindowType.allDay => 'all_day',
+        TimeWindowType.window => 'window',
+        TimeWindowType.urgent => 'urgent',
+      };
+}
+
+/// Urgent bookings cost +25% on top of the size-adjusted price.
+const double urgentSurchargePercent = 0.25;
+
 /// Clean domain model for a user's booking.
 class KlearBooking {
   const KlearBooking({
@@ -24,6 +48,10 @@ class KlearBooking {
     this.carId,
     this.notes,
     this.totalPrice,
+    this.lat,
+    this.lng,
+    this.timeType = TimeWindowType.window,
+    this.scheduledEnd,
   });
 
   final String id;
@@ -37,6 +65,23 @@ class KlearBooking {
   final String? carId;
   final String? notes;
   final double? totalPrice;
+
+  /// Precise wash-point coordinates (from the map picker), when available.
+  final double? lat;
+  final double? lng;
+
+  /// The flexibility category of the scheduled time.
+  final TimeWindowType timeType;
+
+  /// End of the time window ([dateTime] is the start). Null for legacy
+  /// point-in-time bookings (window == start).
+  final DateTime? scheduledEnd;
+
+  /// End of the window, defaulting to the start for legacy rows.
+  DateTime get windowEnd => scheduledEnd ?? dateTime;
+
+  /// Whether this booking carries the urgent surcharge.
+  bool get isUrgent => timeType == TimeWindowType.urgent;
 
   /// Returns the localized status label.
   String statusLabel(String langCode) {
@@ -68,6 +113,10 @@ class KlearBooking {
       carId: map['car_id']?.toString(),
       notes: (map['note'] as String?) ?? (map['notes'] as String?),
       totalPrice: (map['total_price'] as num?)?.toDouble(),
+      lat: (map['lat'] as num?)?.toDouble(),
+      lng: (map['lng'] as num?)?.toDouble(),
+      timeType: _timeTypeFromString(map['time_type']?.toString()),
+      scheduledEnd: DateTime.tryParse(map['scheduled_end']?.toString() ?? ''),
     );
   }
 
@@ -77,7 +126,11 @@ class KlearBooking {
         'service_id': serviceId,
         'car_id': carId,
         'address': address,
+        'lat': lat,
+        'lng': lng,
         'scheduled_at': dateTime.toIso8601String(),
+        'time_type': timeType.dbValue,
+        'scheduled_end': scheduledEnd?.toIso8601String(),
         'status': status.name,
         'created_at': createdAt.toIso8601String(),
         'note': notes,
@@ -100,6 +153,18 @@ class KlearBooking {
         return BookingStatus.pending;
     }
   }
+
+  static TimeWindowType _timeTypeFromString(String? s) {
+    switch (s?.toLowerCase()) {
+      case 'all_day':
+        return TimeWindowType.allDay;
+      case 'urgent':
+        return TimeWindowType.urgent;
+      case 'window':
+      default:
+        return TimeWindowType.window;
+    }
+  }
 }
 
 /// How the customer will pay for the wash.
@@ -120,8 +185,11 @@ class BookingDraft {
     this.lat,
     this.lng,
     this.dateTime,
+    this.timeType = TimeWindowType.window,
+    this.scheduledEnd,
     this.notes,
     this.paymentMethod = BookingPaymentMethod.payOnArrival,
+    this.editingBookingId,
   });
 
   final KlearService? service;
@@ -133,9 +201,27 @@ class BookingDraft {
   final double? lat;
   final double? lng;
 
+  /// Start of the time window (the moment the user picked).
   final DateTime? dateTime;
+
+  /// Flexibility category of the scheduled time.
+  final TimeWindowType timeType;
+
+  /// End of the time window (null for legacy point-in-time drafts).
+  final DateTime? scheduledEnd;
+
   final String? notes;
   final BookingPaymentMethod paymentMethod;
+
+  /// When set, submitting this draft updates the existing booking instead of
+  /// creating a new one. Used by the "Edit booking" flow on order details.
+  final String? editingBookingId;
+
+  /// Whether this draft is an edit of an existing booking.
+  bool get isEditing => editingBookingId != null;
+
+  /// Whether this booking carries the urgent surcharge.
+  bool get isUrgent => timeType == TimeWindowType.urgent;
 
   /// Whether the draft is complete (ready to submit).
   /// [paymentMethod] always has a default value, so completion depends on the
@@ -147,9 +233,18 @@ class BookingDraft {
       address!.isNotEmpty &&
       dateTime != null;
 
-  /// Estimated total price = service base price × car-size factor.
-  double get estimatedTotal =>
-      (service?.basePrice ?? 0) * (car?.size.priceFactor ?? 1.0);
+  /// Estimated base price = service base price × car-size factor.
+  /// Does NOT include the urgent surcharge, so live UI can apply the +25%
+  /// without double-counting when editing an already-urgent booking.
+  double get estimatedTotal {
+    final base = (service?.basePrice ?? 0) * (car?.size.priceFactor ?? 1.0);
+    return base;
+  }
+
+  /// Final estimate including the urgent surcharge (+25%) when applicable.
+  /// This is the value shown on the confirm step and persisted as total_price.
+  double get estimatedTotalWithSurcharge =>
+      estimatedTotal * (isUrgent ? (1 + urgentSurchargePercent) : 1);
 
   /// Estimated duration of the wash (service duration, if known).
   int? get estimatedDurationMin => service?.durationMin;
@@ -161,8 +256,11 @@ class BookingDraft {
     double? lat,
     double? lng,
     DateTime? dateTime,
+    TimeWindowType? timeType,
+    DateTime? scheduledEnd,
     String? notes,
     BookingPaymentMethod? paymentMethod,
+    String? editingBookingId,
   }) {
     return BookingDraft(
       service: service ?? this.service,
@@ -171,8 +269,11 @@ class BookingDraft {
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
       dateTime: dateTime ?? this.dateTime,
+      timeType: timeType ?? this.timeType,
+      scheduledEnd: scheduledEnd ?? this.scheduledEnd,
       notes: notes ?? this.notes,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      editingBookingId: editingBookingId ?? this.editingBookingId,
     );
   }
 }
