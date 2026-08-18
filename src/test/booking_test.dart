@@ -88,11 +88,11 @@ void main() {
     notifier.setService(_service);
     notifier.setCar(_smallCar);
     // small factor 1.0
-    expect(container.read(bookingDraftProvider).estimatedTotal, 100);
+    expect(container.read(bookingDraftProvider).estimatedTotal(), 100);
 
     notifier.setCar(_largeCar);
     // large factor 1.5 -> 150
-    expect(container.read(bookingDraftProvider).estimatedTotal, 150);
+    expect(container.read(bookingDraftProvider).estimatedTotal(), 150);
     expect(container.read(bookingDraftProvider).estimatedDurationMin, 20);
   });
 
@@ -104,7 +104,7 @@ void main() {
     notifier.setService(_service);
     notifier.setCar(_largeCar);
     // large factor 1.5 -> 150 base.
-    expect(container.read(bookingDraftProvider).estimatedTotal, 150);
+    expect(container.read(bookingDraftProvider).estimatedTotal(), 150);
 
     notifier.setTimeWindow(
       dateTime: DateTime(2026, 1, 1, 10, 0),
@@ -112,10 +112,10 @@ void main() {
       scheduledEnd: DateTime(2026, 1, 1, 23, 59),
     );
     // Base stays size-adjusted (150); the surcharge is applied on demand.
-    expect(container.read(bookingDraftProvider).estimatedTotal, 150);
+    expect(container.read(bookingDraftProvider).estimatedTotal(), 150);
     // 150 * 1.25 = 187.5
     expect(
-      container.read(bookingDraftProvider).estimatedTotalWithSurcharge,
+      container.read(bookingDraftProvider).estimatedTotalWithSurcharge(),
       187.5,
     );
     expect(container.read(bookingDraftProvider).isUrgent, isTrue);
@@ -156,8 +156,8 @@ void main() {
     expect(draft.timeType, TimeWindowType.allDay);
     expect(draft.isUrgent, isFalse);
     expect(draft.scheduledEnd, DateTime(2026, 1, 1, 18, 0));
-    expect(draft.estimatedTotal, 100);
-    expect(draft.estimatedTotalWithSurcharge, 100);
+    expect(draft.estimatedTotal(), 100);
+    expect(draft.estimatedTotalWithSurcharge(), 100);
   });
 
   testWidgets('Draft carries the selected car for the confirm screen',

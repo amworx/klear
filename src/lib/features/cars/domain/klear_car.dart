@@ -8,8 +8,12 @@ enum KlearCarSize {
   /// Value stored in the `cars.size` column.
   String get dbValue => name;
 
-  /// Price multiplier applied to the service base price when estimating
-  /// the booking cost (small cars wash faster than large ones).
+  /// Default price multiplier applied to the service base price when
+  /// estimating the booking cost (small cars wash faster than large ones).
+  ///
+  /// This is the fallback used when no live app settings are available
+  /// (offline/tests). The authoritative, admin-editable factors live in the
+  /// `app_settings` table and are resolved via AppSettings.priceFactorFor.
   double get priceFactor {
     switch (this) {
       case KlearCarSize.small:

@@ -7,8 +7,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../orders/presentation/orders_providers.dart';
-import '../domain/klear_booking.dart';
-import '../presentation/booking_providers.dart';
+import '../../settings/presentation/settings_provider.dart';
+import 'booking_providers.dart';
 import 'booking_time_labels.dart';
 import 'widgets/booking_step_scaffold.dart';
 
@@ -45,6 +45,8 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
     final userId = ref.read(authProvider).user?.id;
     if (userId == null) return;
 
+    final settings = ref.read(appSettingsProvider);
+
     setState(() => _submitting = true);
     try {
       final editablePayload = <String, dynamic>{
@@ -56,7 +58,7 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
         'scheduled_at': draft.dateTime!.toIso8601String(),
         'time_type': draft.timeType.dbValue,
         'scheduled_end': draft.scheduledEnd?.toIso8601String(),
-        'total_price': draft.estimatedTotalWithSurcharge,
+        'total_price': draft.estimatedTotalWithSurcharge(settings),
         'note': _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
@@ -106,6 +108,7 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
     final l10n = AppLocalizations.of(context);
     final langCode = Localizations.localeOf(context).languageCode;
     final draft = ref.watch(bookingDraftProvider);
+    final settings = ref.watch(appSettingsProvider);
     final scheme = Theme.of(context).colorScheme;
     final sizeLabel = _sizeLabel(draft.car?.size, langCode, l10n);
 
@@ -200,19 +203,19 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                       value: draft.car == null
                           ? '—'
                           : '$sizeLabel · ×'
-                              '${_formatFactor(draft.car!.size.priceFactor)}',
+                              '${_formatFactor(settings.priceFactorFor(draft.car!.size))}',
                     ),
                     if (draft.isUrgent)
                       _PriceRow(
                         label: l10n.urgentSurcharge,
                         value:
-                            '+${(urgentSurchargePercent * 100).toStringAsFixed(0)}%',
+                            '+${(settings.urgentSurchargePercent * 100).toStringAsFixed(0)}%',
                       ),
                     const Divider(height: 24),
                     _PriceRow(
                       label: l10n.totalEstimate,
                       value:
-                          '${draft.estimatedTotalWithSurcharge.toStringAsFixed(0)} '
+                          '${draft.estimatedTotalWithSurcharge(settings).toStringAsFixed(0)} '
                           '${draft.service?.currency ?? 'SYP'}',
                       emphasized: true,
                     ),

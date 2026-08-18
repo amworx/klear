@@ -9,6 +9,7 @@ import '../../bookings/presentation/booking_providers.dart';
 import '../../bookings/presentation/booking_time_labels.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../cars/presentation/cars_providers.dart';
+import '../../settings/presentation/settings_provider.dart';
 import '../presentation/orders_providers.dart';
 
 /// Full details for a single booking, with cancel for pending orders.
@@ -24,6 +25,7 @@ class OrderDetailPage extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final bookingsAsync = ref.watch(myBookingsProvider);
     final carsAsync = ref.watch(carsProvider);
+    final settings = ref.watch(appSettingsProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.orderDetailsTitle)),
@@ -71,7 +73,7 @@ class OrderDetailPage extends ConsumerWidget {
                     KlearCarSize.medium => l10n.sizeMedium,
                     KlearCarSize.large => l10n.sizeLarge,
                   },
-                  factor: car.size.priceFactor,
+                  factor: settings.priceFactorFor(car.size),
                   total: booking.totalPrice!,
                   currency: booking.service.currency,
                   l10n: l10n,

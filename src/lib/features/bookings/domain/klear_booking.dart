@@ -1,5 +1,6 @@
 import '../../cars/domain/klear_car.dart';
 import '../../services/domain/klear_service.dart';
+import '../../settings/domain/app_settings.dart';
 
 /// Booking status enum mirrors the database `booking_status` type.
 enum BookingStatus {
@@ -30,9 +31,6 @@ enum TimeWindowType {
         TimeWindowType.urgent => 'urgent',
       };
 }
-
-/// Urgent bookings cost +25% on top of the size-adjusted price.
-const double urgentSurchargePercent = 0.25;
 
 /// Clean domain model for a user's booking.
 class KlearBooking {
@@ -233,18 +231,24 @@ class BookingDraft {
       address!.isNotEmpty &&
       dateTime != null;
 
-  /// Estimated base price = service base price × car-size factor.
-  /// Does NOT include the urgent surcharge, so live UI can apply the +25%
-  /// without double-counting when editing an already-urgent booking.
-  double get estimatedTotal {
-    final base = (service?.basePrice ?? 0) * (car?.size.priceFactor ?? 1.0);
+  /// Estimated base price = service base price × car-size factor (admin-
+  /// configurable via [AppSettings]). Does NOT include the urgent surcharge,
+  /// so live UI can apply the +25% without double-counting when editing an
+  /// already-urgent booking. Falls back to [AppSettings.defaults] when no
+  /// settings are supplied (tests / offline).
+  double estimatedTotal([AppSettings? settings]) {
+    final s = settings ?? AppSettings.defaults;
+    final base = (service?.basePrice ?? 0) *
+        s.priceFactorFor(car?.size ?? KlearCarSize.medium);
     return base;
   }
 
-  /// Final estimate including the urgent surcharge (+25%) when applicable.
+  /// Final estimate including the urgent surcharge when applicable.
   /// This is the value shown on the confirm step and persisted as total_price.
-  double get estimatedTotalWithSurcharge =>
-      estimatedTotal * (isUrgent ? (1 + urgentSurchargePercent) : 1);
+  double estimatedTotalWithSurcharge([AppSettings? settings]) {
+    final s = settings ?? AppSettings.defaults;
+    return estimatedTotal(s) * (isUrgent ? s.urgentMultiplier : 1);
+  }
 
   /// Estimated duration of the wash (service duration, if known).
   int? get estimatedDurationMin => service?.durationMin;

@@ -12,6 +12,8 @@ import '../../account/presentation/auth_providers.dart';
 import '../../addresses/presentation/map_picker_page.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../cars/presentation/cars_providers.dart';
+import '../../settings/domain/app_settings.dart';
+import '../../settings/presentation/settings_provider.dart';
 import '../domain/klear_booking.dart';
 import 'booking_providers.dart';
 import 'booking_time_labels.dart';
@@ -597,6 +599,7 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               _BreakdownCard(
                 draft: draft,
                 isUrgent: _selectedChoice == _TimeChoice.urgent,
+                settings: ref.watch(appSettingsProvider),
                 l10n: l10n,
                 langCode: langCode,
               ),
@@ -730,12 +733,14 @@ class _BreakdownCard extends StatelessWidget {
   const _BreakdownCard({
     required this.draft,
     required this.isUrgent,
+    required this.settings,
     required this.l10n,
     required this.langCode,
   });
 
   final BookingDraft draft;
   final bool isUrgent;
+  final AppSettings settings;
   final AppLocalizations l10n;
   final String langCode;
 
@@ -747,12 +752,12 @@ class _BreakdownCard extends StatelessWidget {
       KlearCarSize.medium => l10n.sizeMedium,
       KlearCarSize.large => l10n.sizeLarge,
     };
-    final factor = size.priceFactor;
+    final factor = settings.priceFactorFor(size);
     final factorLabel = factor == factor.roundToDouble()
         ? factor.toStringAsFixed(0)
         : factor.toStringAsFixed(2);
-    final surcharge = isUrgent ? urgentSurchargePercent : 0.0;
-    final total = draft.estimatedTotal * (1 + surcharge);
+    final surcharge = isUrgent ? settings.urgentSurchargePercent : 0.0;
+    final total = draft.estimatedTotal(settings) * (1 + surcharge);
 
     return Card(
       child: Padding(
@@ -777,7 +782,7 @@ class _BreakdownCard extends StatelessWidget {
               _row(
                 context,
                 l10n.urgentSurcharge,
-                '+${(urgentSurchargePercent * 100).toStringAsFixed(0)}%',
+                '+${(settings.urgentSurchargePercent * 100).toStringAsFixed(0)}%',
               ),
             ],
             const Divider(height: 24),

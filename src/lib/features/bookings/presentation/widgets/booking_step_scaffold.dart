@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/app_router.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../features/settings/domain/app_settings.dart';
+import '../../../../features/settings/presentation/settings_provider.dart';
 import '../../domain/klear_booking.dart';
 import '../booking_providers.dart';
 
@@ -37,6 +39,7 @@ class BookingStepScaffold extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final draft = ref.watch(bookingDraftProvider);
+    final settings = ref.watch(appSettingsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -85,7 +88,11 @@ class BookingStepScaffold extends ConsumerWidget {
           ),
           Expanded(child: body),
           if (showPriceFooter && draft.service != null)
-            BookingPriceFooter(draft: draft, urgent: priceFooterUrgent),
+            BookingPriceFooter(
+              draft: draft,
+              urgent: priceFooterUrgent,
+              settings: settings,
+            ),
         ],
       ),
       bottomNavigationBar: bottomBar,
@@ -108,20 +115,30 @@ class BookingStepScaffold extends ConsumerWidget {
 
 /// Sticky price summary shown during booking.
 class BookingPriceFooter extends StatelessWidget {
-  const BookingPriceFooter({required this.draft, this.urgent = false, super.key});
+  const BookingPriceFooter({
+    required this.draft,
+    this.urgent = false,
+    this.settings,
+    super.key,
+  });
 
   final BookingDraft draft;
 
   /// Live urgent selection — shows the +25% surcharge in the footer total.
   final bool urgent;
 
+  /// Live app settings (admin-configurable pricing). Falls back to defaults
+  /// when null (offline/tests).
+  final AppSettings? settings;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
+    final s = settings ?? AppSettings.defaults;
     final hasCar = draft.car != null;
-    final surcharge = urgent ? urgentSurchargePercent : 0.0;
-    final total = (hasCar ? draft.estimatedTotal : draft.service!.basePrice) *
+    final surcharge = urgent ? s.urgentSurchargePercent : 0.0;
+    final total = (hasCar ? draft.estimatedTotal(s) : draft.service!.basePrice) *
         (1 + surcharge);
     final currency = draft.service!.currency;
 
