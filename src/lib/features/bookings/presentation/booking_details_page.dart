@@ -80,7 +80,13 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
       final profileAddress = ref.read(authProvider).profile?.address;
       if (profileAddress != null && profileAddress.isNotEmpty) {
         _addressController.text = profileAddress;
-        ref.read(bookingDraftProvider.notifier).setAddress(profileAddress);
+        // Defer the provider write: Riverpod forbids modifying providers
+        // during initState (the widget tree is still building). The draft is
+        // only updated after the first frame, exactly like the car pre-select.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ref.read(bookingDraftProvider.notifier).setAddress(profileAddress);
+        });
       }
     }
     // Restore an existing time window (edit flow) into the selector, or
