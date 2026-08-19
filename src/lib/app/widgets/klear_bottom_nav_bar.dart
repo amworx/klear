@@ -26,9 +26,12 @@ class KlearNavDestination {
 ///
 /// Why a custom widget instead of Material's [NavigationBar]:
 /// - **RTL-safe by construction.** Each destination is an independent
-///   expanded slot; the pill centers itself with [Align] and [Row]s that
-///   respect text direction — no absolute pixel offsets, so the Arabic RTL
-///   mirror is automatic.
+///   expanded slot; the pill centers itself with [OverflowBox] and [Row]s
+///   that respect text direction — no absolute pixel offsets, so the Arabic
+///   RTL mirror is automatic.
+/// - **Wide labels never wrap.** The selected pill may extend slightly
+///   beyond its slot (authentic google_nav_bar look); labels are capped at
+///   one line + ellipsis, so they can never stack into "vertical text".
 /// - **Brand fit.** Uses the app's "Soft UI Sea" [ColorScheme] tokens
 ///   (`primaryContainer` / `onPrimaryContainer`) and the soft-shadow
 ///   language from `app_theme.dart`.
@@ -112,8 +115,19 @@ class _KlearNavItem extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
-        child: Align(
+        // OverflowBox (instead of Align) lets the selected pill grow beyond
+        // its slot when the label is wide (authentic google_nav_bar look:
+        // the pill extends into the neighbors, label stays centered).
+        // Centered → RTL-safe; capped so absurd labels can't take over the
+        // bar. The label itself is single-line + ellipsized as a hard
+        // guarantee that it never wraps (wrapped labels look like "vertical
+        // text" next to the icon).
+        child: OverflowBox(
           alignment: Alignment.center,
+          minWidth: 0,
+          minHeight: 0,
+          maxWidth: 190,
+          maxHeight: double.infinity,
           child: AnimatedContainer(
             duration: growDuration,
             curve: Curves.easeOutCubic,
@@ -154,11 +168,20 @@ class _KlearNavItem extends StatelessWidget {
                   ),
                   if (selected) ...[
                     const SizedBox(width: 6),
-                    Text(
-                      destination.label,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: scheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w700,
+                    // Flexible makes the text a flex child so it is bounded
+                    // by the pill width (non-flex children get unbounded
+                    // main-axis constraints and would never ellipsize).
+                    Flexible(
+                      child: Text(
+                        destination.label,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: scheme.onPrimaryContainer,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
