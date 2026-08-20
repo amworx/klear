@@ -13,6 +13,7 @@ class AuthState {
     this.profile,
     this.pendingEmail,
     this.isLoading = false,
+    this.isInitializing = false,
     this.error,
   });
 
@@ -27,6 +28,12 @@ class AuthState {
   final String? pendingEmail;
 
   final bool isLoading;
+
+  /// True while the persisted session is being recovered at startup (and the
+  /// profile is loading for a signed-in user). The router must stay on the
+  /// branded splash — never render welcome/profile-setup — until this is false.
+  final bool isInitializing;
+
   final String? error;
 
   bool get isAuthenticated => user != null;
@@ -37,6 +44,7 @@ class AuthState {
     KlearUser? profile,
     String? pendingEmail,
     bool? isLoading,
+    bool? isInitializing,
     String? error,
     bool clearUser = false,
     bool clearProfile = false,
@@ -48,6 +56,7 @@ class AuthState {
       pendingEmail:
           clearPendingEmail ? null : (pendingEmail ?? this.pendingEmail),
       isLoading: isLoading ?? this.isLoading,
+      isInitializing: isInitializing ?? this.isInitializing,
       error: error,
     );
   }
@@ -55,16 +64,19 @@ class AuthState {
 
 /// Notifier for the auth state.
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this._ref) : super(const AuthState()) {
+  AuthNotifier(this._ref) : super(const AuthState(isInitializing: true)) {
     _init();
   }
 
   final Ref _ref;
 
   void _init() {
-    // No backend configured (tests / offline mode): stay signed out so the
-    // router redirects everyone to the welcome screen.
-    if (!SupabaseClientManager.isReady) return;
+    // No backend configured (tests / offline mode): stay signed out and ready
+    // so the router redirects everyone to the welcome screen.
+    if (!SupabaseClientManager.isReady) {
+      state = const AuthState();
+      return;
+    }
 
     // Watch auth state changes.
     SupabaseClientManager.instance.client.auth.onAuthStateChange.listen((data) {
@@ -79,11 +91,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
     });
 
-    // Check current session.
+    // Check current session. `Supabase.initialize()` is awaited in main(), so
+    // the persisted session has already been recovered and `currentUser` is
+    // authoritative here. We stay `isInitializing` until the profile load
+    // finishes so the router never flashes the profile-setup form at startup.
     final currentUser = SupabaseClientManager.instance.client.auth.currentUser;
     if (currentUser != null) {
       state = state.copyWith(user: currentUser, isLoading: true);
       _loadProfile(currentUser.id);
+    } else {
+      // No session recovered — the welcome screen is the correct landing page.
+      state = const AuthState();
     }
   }
 
@@ -91,9 +109,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final repo = _ref.read(usersRepositoryProvider);
       final profile = await repo.getProfile(userId);
-      state = state.copyWith(profile: profile, isLoading: false);
+      state = state.copyWith(
+        profile: profile,
+        isLoading: false,
+        isInitializing: false,
+      );
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        isInitializing: false,
+        error: e.toString(),
+      );
     }
   }
 

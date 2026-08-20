@@ -10,6 +10,8 @@
 /// `/book/car`. Only true top-level detours (welcome/auth) are also absolute.
 class KlearRoutes {
   const KlearRoutes._();
+  // Startup splash (shown while the persisted session is recovered).
+  static const String splash = '/splash';
   // Top-level routes (outside the bottom-nav shell).
   static const String welcome = '/welcome';
   static const String signIn = '/auth/login';

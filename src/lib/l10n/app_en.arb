@@ -2,6 +2,7 @@
   "@@locale": "en",
   "appTitle": "Klear",
   "appTagline": "Spotless on the go",
+  "loading": "Loading",
   "homeWelcome": "Welcome to Klear",
   "homeSubtitle": "Book a car wash at your place, at your time.",
   "btnBookNow": "Book now",

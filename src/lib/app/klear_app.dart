@@ -25,6 +25,7 @@ import '../features/orders/presentation/order_details_page.dart';
 import '../features/orders/presentation/orders_page.dart';
 import '../features/services/presentation/services_page.dart';
 import 'scaffold_with_navbar.dart';
+import 'widgets/klear_splash_page.dart';
 
 /// Root widget for the Klear application.
 class KlearApp extends StatelessWidget {
@@ -69,6 +70,15 @@ class _KlearAppContent extends ConsumerWidget {
       redirect: (context, state) {
         final auth = ref.read(authProvider);
         final loc = state.matchedLocation;
+        // Startup gate: stay on the branded splash until the persisted session
+        // has been recovered and (for signed-in users) the profile has loaded.
+        // Without this the router flashes the welcome / profile-setup form
+        // while the async profile fetch is still in flight.
+        if (auth.isInitializing) return '/splash';
+        // Leave the splash as soon as initialization completes.
+        if (loc == '/splash') {
+          return (auth.isAuthenticated && auth.hasProfile) ? '/' : '/welcome';
+        }
         final isAuthRoute = loc.startsWith('/welcome') ||
             loc.startsWith('/auth/');
         final isProfileSetup = loc == '/auth/profile';
@@ -98,6 +108,12 @@ class _KlearAppContent extends ConsumerWidget {
 
   List<RouteBase> _buildRoutes() {
     return [
+      // Startup splash (shown while the persisted session is recovered).
+      GoRoute(
+        path: '/splash',
+        pageBuilder: (context, state) =>
+            _fadeSlidePage(const KlearSplashPage()),
+      ),
       // Auth routes live OUTSIDE the bottom-nav shell.
       GoRoute(
         path: '/welcome',
@@ -258,7 +274,8 @@ class _AuthListenable extends ChangeNotifier {
   _AuthListenable(this._ref) {
     _sub = _ref.listenManual<AuthState>(authProvider, (prev, next) {
       if (prev?.isAuthenticated != next.isAuthenticated ||
-          prev?.hasProfile != next.hasProfile) {
+          prev?.hasProfile != next.hasProfile ||
+          prev?.isInitializing != next.isInitializing) {
         notifyListeners();
       }
     });

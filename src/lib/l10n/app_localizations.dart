@@ -110,6 +110,12 @@ abstract class AppLocalizations {
   /// **'Spotless on the go'**
   String get appTagline;
 
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get loading;
+
   /// No description provided for @homeWelcome.
   ///
   /// In en, this message translates to:

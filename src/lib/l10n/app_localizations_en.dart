@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTagline => 'Spotless on the go';
 
   @override
+  String get loading => 'Loading';
+
+  @override
   String get homeWelcome => 'Welcome to Klear';
 
   @override

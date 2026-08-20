@@ -2,6 +2,7 @@
   "@@locale": "ar",
   "appTitle": "كليير",
   "appTagline": "سيارتك نظيفة أينما كنت",
+  "loading": "جارٍ التحميل",
   "homeWelcome": "أهلاً بك في كليير",
   "homeSubtitle": "احجز غسيل سيارتك في مكانك ووقتك المناسب",
   "btnBookNow": "احجز الآن",

@@ -15,6 +15,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appTagline => 'سيارتك نظيفة أينما كنت';
 
   @override
+  String get loading => 'جارٍ التحميل';
+
+  @override
   String get homeWelcome => 'أهلاً بك في كليير';
 
   @override
