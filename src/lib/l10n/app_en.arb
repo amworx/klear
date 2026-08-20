@@ -15,7 +15,7 @@
   "serviceFullDesc": "Comprehensive inside-and-out cleaning.",
   "navHome": "Home",
   "navServices": "Services",
-  "navOrders": "My Orders",
+  "navOrders": "Orders",
   "navAccount": "Account",
   "errorLoadingServices": "Could not load services. Please try again.",
   "noServices": "No services available yet.",

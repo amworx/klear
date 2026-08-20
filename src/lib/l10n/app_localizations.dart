@@ -191,7 +191,7 @@ abstract class AppLocalizations {
   /// No description provided for @navOrders.
   ///
   /// In en, this message translates to:
-  /// **'My Orders'**
+  /// **'Orders'**
   String get navOrders;
 
   /// No description provided for @navAccount.

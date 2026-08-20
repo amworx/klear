@@ -55,7 +55,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navServices => 'Services';
 
   @override
-  String get navOrders => 'My Orders';
+  String get navOrders => 'Orders';
 
   @override
   String get navAccount => 'Account';
