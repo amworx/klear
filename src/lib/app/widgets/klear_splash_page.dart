@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
+import 'klear_drop_loader.dart';
 
 /// Branded splash shown while the persisted session is recovered at startup.
 ///
 /// Uses the brand primary color as a full-bleed background so the transition
-/// from the native Android launch screen (same color + white water drop) is
-/// seamless. The router keeps the user here (via the `isInitializing` gate)
-/// until the auth state is fully resolved, so the welcome / profile-setup
-/// forms never flash on launch.
+/// from the native Android launch screen (same color + white circle brand
+/// mark) is seamless. The router keeps the user here (via the `isInitializing`
+/// gate) until the auth state is fully resolved, so the welcome /
+/// profile-setup forms never flash on launch.
 class KlearSplashPage extends StatelessWidget {
   const KlearSplashPage({super.key});
 
@@ -28,29 +29,10 @@ class KlearSplashPage extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Brand mark: white circle + water drop (mirrors the
-                  // native launch screen artwork).
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.18),
-                          blurRadius: 24,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.water_drop,
-                      size: 56,
-                      color: scheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
+                  // Brand mark + loader: the water drop fills up with an
+                  // oscillating wave surface and rising bubbles.
+                  const KlearDropLoader(size: 120),
+                  const SizedBox(height: 32),
                   Text(
                     l10n.appTitle,
                     style: Theme.of(context)
@@ -61,15 +43,6 @@ class KlearSplashPage extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
                         ),
-                  ),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: scheme.onPrimary,
-                    ),
                   ),
                 ],
               ),
