@@ -125,6 +125,13 @@ class _FillingDropPainter extends CustomPainter {
         _waterPath(w, h, surfaceY),
         Paint()..color = color,
       );
+      // Static specular glint (upper-left of the bulb) — appears as the
+      // water rises, matching the native brand mark.
+      canvas.drawCircle(
+        Offset(w * 0.40, h * 0.55),
+        w * 0.045,
+        Paint()..color = Colors.white.withValues(alpha: 0.85),
+      );
       if (!reduced) {
         _drawBubbles(canvas, w, h, surfaceY);
       }
