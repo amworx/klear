@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_router.dart';
+import '../../../core/update/update_banner.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
@@ -72,6 +73,8 @@ class HomePage extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
+                  const UpdateBanner(),
+                  const SizedBox(height: 8),
                   // Primary CTA: navigate to booking flow.
                   Entrance(
                     delay: const Duration(milliseconds: 240),

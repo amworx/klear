@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/app_router.dart';
 import '../../../app/widgets/language_tile.dart';
+import '../../../core/update/update_banner.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import 'auth_providers.dart';
@@ -77,6 +78,8 @@ class _GuestView extends StatelessWidget {
                 icon: const Icon(Icons.bug_report_outlined),
                 label: const Text('Diagnostics — View logs'),
               ),
+              const SizedBox(height: 12),
+              const UpdateTile(),
             ],
           ),
         ),
@@ -194,6 +197,8 @@ class _ProfileView extends StatelessWidget {
               onTap: () => context.push(KlearRoutes.logs),
             ),
           ),
+          const SizedBox(height: 16),
+          const UpdateTile(),
           const SizedBox(height: 16),
           // Edit profile button.
           OutlinedButton.icon(
