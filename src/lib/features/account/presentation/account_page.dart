@@ -71,6 +71,12 @@ class _GuestView extends StatelessWidget {
                 onPressed: () => context.go(KlearRoutes.signIn),
                 child: Text(l10n.signInTitle),
               ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => context.push(KlearRoutes.logs),
+                icon: const Icon(Icons.bug_report_outlined),
+                label: const Text('Diagnostics — View logs'),
+              ),
             ],
           ),
         ),
@@ -175,6 +181,17 @@ class _ProfileView extends StatelessWidget {
               subtitle: Text(l10n.addressBookEmptyHint),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(KlearRoutes.addressBook),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Diagnostics — in-app log viewer for errors & workflow.
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.bug_report_outlined),
+              title: const Text('Diagnostics'),
+              subtitle: const Text('View error & workflow logs'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(KlearRoutes.logs),
             ),
           ),
           const SizedBox(height: 16),

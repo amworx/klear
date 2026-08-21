@@ -15,6 +15,7 @@ import '../features/auth/email_signin_page.dart';
 import '../features/auth/otp_verify_page.dart';
 import '../features/auth/profile_setup_page.dart';
 import '../features/auth/welcome_page.dart';
+import '../features/diagnostics/presentation/logs_page.dart';
 import '../features/bookings/presentation/booking_details_page.dart';
 import '../features/bookings/presentation/confirmation_page.dart';
 import '../features/bookings/presentation/service_selection_page.dart';
@@ -82,15 +83,22 @@ class _KlearAppContent extends ConsumerWidget {
         final isAuthRoute = loc.startsWith('/welcome') ||
             loc.startsWith('/auth/');
         final isProfileSetup = loc == '/auth/profile';
-        // Map picker is reachable before AND after profile setup.
+        // Map picker and diagnostics are reachable before AND after profile setup
+        // and even when unauthenticated (so an error SnackBar's "View logs"
+        // works from the sign-in form and the welcome screen).
         final isMapPicker = loc == '/map-picker';
-        if (!auth.isAuthenticated && !isAuthRoute && !isMapPicker) {
+        final isDiagnostics = loc == '/diagnostics/logs';
+        if (!auth.isAuthenticated &&
+            !isAuthRoute &&
+            !isMapPicker &&
+            !isDiagnostics) {
           return '/welcome';
         }
         if (auth.isAuthenticated &&
             !auth.hasProfile &&
             !isProfileSetup &&
-            !isMapPicker) {
+            !isMapPicker &&
+            !isDiagnostics) {
           return '/auth/profile';
         }
         if (auth.isAuthenticated && auth.hasProfile && isAuthRoute) {
@@ -143,6 +151,10 @@ class _KlearAppContent extends ConsumerWidget {
       GoRoute(
         path: '/map-picker',
         pageBuilder: (context, state) => _fadeSlidePage(const MapPickerPage()),
+      ),
+      GoRoute(
+        path: '/diagnostics/logs',
+        pageBuilder: (context, state) => _fadeSlidePage(const LogsPage()),
       ),
       GoRoute(
         path: '/account/addresses',

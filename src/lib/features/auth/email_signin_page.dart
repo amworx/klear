@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_router.dart';
+import '../../../core/logger/app_logger.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../account/presentation/auth_providers.dart';
@@ -50,12 +51,19 @@ class _EmailSignInPageState extends ConsumerState<EmailSignInPage> {
           .read(authProvider.notifier)
           .signInWithEmail(email, shouldCreateUser: _isSignup);
       if (!mounted) return;
+      ref.read(appLoggerProvider).i('auth', 'OTP sent to $email (mode=${_isSignup ? 'signup' : 'login'})');
       context.push(KlearRoutes.otpVerify);
-    } catch (e) {
+    } catch (e, st) {
       if (!mounted) return;
+      ref.read(appLoggerProvider).e('auth', 'signInWithEmail failed for $email', e, st);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${AppLocalizations.of(context).errorLoadingServices}: $e'),
+          duration: const Duration(seconds: 6),
+          action: SnackBarAction(
+            label: 'View logs',
+            onPressed: () => context.push(KlearRoutes.logs),
+          ),
         ),
       );
     }

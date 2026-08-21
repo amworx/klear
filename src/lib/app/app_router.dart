@@ -40,6 +40,8 @@ class KlearRoutes {
   static const String addressBook = '/account/addresses';
   // Map picker (full-screen detour; pushed with `context.push`).
   static const String mapPicker = '/map-picker';
+  // Diagnostics — in-app log viewer (errors, warnings, workflow).
+  static const String logs = '/diagnostics/logs';
 }
 
 /// Bottom-nav branch index keys.

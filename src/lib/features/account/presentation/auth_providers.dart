@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/logger/app_logger.dart';
 import '../../../core/network/supabase_service.dart';
 import '../domain/klear_user.dart';
 import '../data/users_repository.dart';
@@ -109,12 +110,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final repo = _ref.read(usersRepositoryProvider);
       final profile = await repo.getProfile(userId);
+      AppLogger.instance.i('auth', 'profile loaded for $userId');
       state = state.copyWith(
         profile: profile,
         isLoading: false,
         isInitializing: false,
       );
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.instance.e('auth', 'loadProfile failed for $userId', e, st);
       state = state.copyWith(
         isLoading: false,
         isInitializing: false,
@@ -131,14 +134,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> signInWithEmail(String email,
       {bool shouldCreateUser = true}) async {
     state = state.copyWith(isLoading: true, error: null, pendingEmail: email);
+    AppLogger.instance.i('auth', 'signInWithEmail $email (create=$shouldCreateUser)');
     try {
       await SupabaseClientManager.instance.client.auth.signInWithOtp(
         email: email,
         emailRedirectTo: AppConfig.emailRedirectUrl,
         shouldCreateUser: shouldCreateUser,
       );
+      AppLogger.instance.i('auth', 'signInWithOtp succeeded for $email');
       state = state.copyWith(isLoading: false);
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.instance.e('auth', 'signInWithOtp failed for $email', e, st);
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
@@ -150,6 +156,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String token,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
+    AppLogger.instance.i('auth', 'verifyOTP for $email');
     try {
       final response = await SupabaseClientManager.instance.client.auth
           .verifyOTP(
@@ -158,6 +165,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         type: OtpType.email,
       );
       if (response.user != null) {
+        AppLogger.instance.i('auth', 'verifyOTP succeeded for $email');
         state = state.copyWith(
           user: response.user,
           isLoading: true,
@@ -165,9 +173,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         );
         await _loadProfile(response.user!.id);
       } else {
+        AppLogger.instance.w('auth', 'verifyOTP returned no user for $email');
         state = state.copyWith(isLoading: false);
       }
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.instance.e('auth', 'verifyOTP failed for $email', e, st);
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }

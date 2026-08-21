@@ -20,7 +20,14 @@ jobs:
         working-directory: src
 
       - name: Build Release APK
-        run: flutter build apk --release
+        # Backend config is injected at build time via --dart-define.
+        # Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in
+        # Repo Settings > Secrets and variables > Actions, otherwise the
+        # app builds without a backend and auth/services fail at runtime.
+        run: >
+          flutter build apk --release
+          --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         working-directory: src
 
       - name: Upload APK
