@@ -38,14 +38,40 @@ class KlearApp extends StatelessWidget {
   }
 }
 
-class _KlearAppContent extends ConsumerWidget {
+class _KlearAppContent extends ConsumerStatefulWidget {
   const _KlearAppContent();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_KlearAppContent> createState() => _KlearAppContentState();
+}
+
+class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
+  // The router is created ONCE and reused for the lifetime of the app.
+  //
+  // Creating it inside `build()` (as this class did previously) meant every
+  // rebuild of MaterialApp — notably a language switch, which changes
+  // `localeControllerProvider` — constructed a brand-new GoRouter whose
+  // initial location is `/`. Tapping العربية/English on the Account tab
+  // therefore bounced the user back to Home. Keeping one instance preserves
+  // navigation state across locale (and theme) changes.
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _router = _buildRouter(ref);
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Arabic by default; only changes when the user explicitly toggles it.
     final appLocale = ref.watch(localeControllerProvider);
-    final router = _buildRouter(ref);
     return MaterialApp.router(
       title: 'Klear',
       debugShowCheckedModeBanner: false,
@@ -60,7 +86,7 @@ class _KlearAppContent extends ConsumerWidget {
       ],
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      routerConfig: router,
+      routerConfig: _router,
     );
   }
 
@@ -81,7 +107,9 @@ class _KlearAppContent extends ConsumerWidget {
           return (auth.isAuthenticated && auth.hasProfile) ? '/' : '/welcome';
         }
         final isAuthRoute = loc.startsWith('/welcome') ||
-            loc.startsWith('/auth/');
+            loc.startsWith('/auth/') ||
+            loc.startsWith('/account') ||
+            loc.startsWith('/diagnostics');
         final isProfileSetup = loc == '/auth/profile';
         // Map picker and diagnostics are reachable before AND after profile setup
         // and even when unauthenticated (so an error SnackBar's "View logs"
@@ -94,14 +122,29 @@ class _KlearAppContent extends ConsumerWidget {
             !isDiagnostics) {
           return '/welcome';
         }
+        // Only redirect to profile-setup when we have actually checked the
+        // profile and know it is missing — not while it is still loading.
         if (auth.isAuthenticated &&
             !auth.hasProfile &&
+            !auth.isLoading &&
+            !auth.isInitializing &&
             !isProfileSetup &&
             !isMapPicker &&
             !isDiagnostics) {
           return '/auth/profile';
         }
-        if (auth.isAuthenticated && auth.hasProfile && isAuthRoute) {
+        // Allow an authenticated user with a profile to explicitly visit
+        // /auth/profile to edit their profile (via Account → Edit profile).
+        // Without this exception the `isAuthRoute` rule below would bounce
+        // them back to `/`. Note: we use `loc.startsWith('/auth/')` rather
+        // than `isAuthRoute` because the latter includes `/account`, which
+        // would incorrectly bounce the Account bottom-nav tap to `/`.
+        final isProfileSetupExplicit = isProfileSetup;
+        if (auth.isAuthenticated &&
+            auth.hasProfile &&
+            !auth.isLoading &&
+            loc.startsWith('/auth/') &&
+            !isProfileSetupExplicit) {
           return '/';
         }
         return null;
@@ -287,7 +330,8 @@ class _AuthListenable extends ChangeNotifier {
     _sub = _ref.listenManual<AuthState>(authProvider, (prev, next) {
       if (prev?.isAuthenticated != next.isAuthenticated ||
           prev?.hasProfile != next.hasProfile ||
-          prev?.isInitializing != next.isInitializing) {
+          prev?.isInitializing != next.isInitializing ||
+          prev?.isLoading != next.isLoading) {
         notifyListeners();
       }
     });

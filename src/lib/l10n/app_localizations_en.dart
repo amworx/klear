@@ -654,4 +654,125 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get urgentSurcharge => 'Urgent surcharge';
+
+  @override
+  String get diagnosticsTitle => 'Diagnostics';
+
+  @override
+  String get diagnosticsSubtitle => 'View error & workflow logs';
+
+  @override
+  String get diagnosticsLogsTitle => 'Diagnostics — Logs';
+
+  @override
+  String get logsCopyAll => 'Copy all';
+
+  @override
+  String get logsClear => 'Clear';
+
+  @override
+  String get logsShareWithAdmin => 'Share with admin';
+
+  @override
+  String get logsShareTitle => 'Share with admin';
+
+  @override
+  String get logsShareDescription =>
+      'Describe what you were doing when the error happened. The last logs will be sent automatically.';
+
+  @override
+  String get logsShareHint => 'e.g. Tapped Sign in → entered email → saw error';
+
+  @override
+  String get logsNoEntries => 'No entries yet';
+
+  @override
+  String get logsNoEntriesSubtitle =>
+      'Errors, warnings and workflow steps appear here. Every error SnackBar is also logged, so a long message never has to be retyped — just open this screen and copy.';
+
+  @override
+  String get logsSuggestedFix => 'Suggested fix';
+
+  @override
+  String get logsCopy => 'Copy';
+
+  @override
+  String get logsCopied => 'Copied to clipboard';
+
+  @override
+  String get logsCopiedAll => 'Logs copied to clipboard';
+
+  @override
+  String get logsCleared => 'Logs cleared';
+
+  @override
+  String get logsEntryCopied => 'Entry copied';
+
+  @override
+  String get logsReportSending => 'Sending report…';
+
+  @override
+  String get logsReportSent => 'Report sent';
+
+  @override
+  String get logsReportFailed => 'Failed to send report';
+
+  @override
+  String get logsCopyLogs => 'Copy logs';
+
+  @override
+  String get updateAvailable => 'Update available';
+
+  @override
+  String get updateRequired => 'Update required';
+
+  @override
+  String updateAvailableSubtitle(String current, String latest) {
+    return 'Update available: $current → $latest';
+  }
+
+  @override
+  String updateCurrentLatest(String current, String latest) {
+    return '$current → $latest';
+  }
+
+  @override
+  String get updateChangelog => 'Changelog';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get updateNow => 'Update';
+
+  @override
+  String get updateCheck => 'Check for updates';
+
+  @override
+  String get updateChecking => 'Checking…';
+
+  @override
+  String get updateUpToDate => 'Up to date';
+
+  @override
+  String updateUpToDateWithVersion(String version) {
+    return 'Up to date ($version)';
+  }
+
+  @override
+  String get updateCouldNotCheck => 'Could not check for updates';
+
+  @override
+  String updateRequiredMessage(String version) {
+    return 'A required update is available ($version). Please update to continue.';
+  }
+
+  @override
+  String get viewLogs => 'View logs';
+
+  @override
+  String get shareWithAdmin => 'Share with admin';
+
+  @override
+  String get appUpdates => 'App updates';
 }

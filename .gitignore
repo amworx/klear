@@ -32,3 +32,5 @@ dist/
 *.ipa
 app.*.symbols
 app.*.map.json
+# Supabase CLI local state
+supabase/.temp/

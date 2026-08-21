@@ -22,13 +22,14 @@ void main() {
         home: const KlearSplashPage(),
       );
 
-  testWidgets('renders brand title + animated drop loader, no spinner',
+  testWidgets('renders animated drop loader only, no wordmark, no spinner',
       (tester) async {
     await tester.pumpWidget(build());
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Klear'), findsOneWidget);
     expect(find.byType(KlearDropLoader), findsOneWidget);
+    // The wordmark is gone — the drop is the only element.
+    expect(find.text('Klear'), findsNothing);
     // The boring progress spinner is gone.
     expect(find.byType(CircularProgressIndicator), findsNothing);
 
@@ -47,6 +48,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byType(KlearDropLoader), findsOneWidget);
-    expect(find.text('Klear'), findsOneWidget);
+    expect(find.text('Klear'), findsNothing);
   });
 }

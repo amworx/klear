@@ -642,4 +642,126 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get urgentSurcharge => 'رسوم الطلب العاجل';
+
+  @override
+  String get diagnosticsTitle => 'التشخيص';
+
+  @override
+  String get diagnosticsSubtitle => 'عرض سجلات الأخطاء وتدفق العمل';
+
+  @override
+  String get diagnosticsLogsTitle => 'التشخيص — السجلات';
+
+  @override
+  String get logsCopyAll => 'نسخ الكل';
+
+  @override
+  String get logsClear => 'مسح';
+
+  @override
+  String get logsShareWithAdmin => 'مشاركة مع الإدارة';
+
+  @override
+  String get logsShareTitle => 'مشاركة مع الإدارة';
+
+  @override
+  String get logsShareDescription =>
+      'صف ما كنت تفعله عند حدوث الخطأ. سيتم إرسال آخر السجلات تلقائياً.';
+
+  @override
+  String get logsShareHint =>
+      'مثال: ضغطت تسجيل الدخول → أدخلت البريد → ظهر الخطأ';
+
+  @override
+  String get logsNoEntries => 'لا توجد سجلات بعد';
+
+  @override
+  String get logsNoEntriesSubtitle =>
+      'ستظهر الأخطاء والتحذيرات وخطوات سير العمل هنا. كل رسالة خطأ تُسجل أيضاً، لذا لا حاجة لإعادة كتابة الرسائل الطويلة — فقط افتح هذه الشاشة وانسخ.';
+
+  @override
+  String get logsSuggestedFix => 'الحل المقترح';
+
+  @override
+  String get logsCopy => 'نسخ';
+
+  @override
+  String get logsCopied => 'تم النسخ إلى الحافظة';
+
+  @override
+  String get logsCopiedAll => 'تم نسخ السجلات إلى الحافظة';
+
+  @override
+  String get logsCleared => 'تم مسح السجلات';
+
+  @override
+  String get logsEntryCopied => 'تم نسخ السجل';
+
+  @override
+  String get logsReportSending => 'جارٍ إرسال التقرير…';
+
+  @override
+  String get logsReportSent => 'تم إرسال التقرير';
+
+  @override
+  String get logsReportFailed => 'فشل إرسال التقرير';
+
+  @override
+  String get logsCopyLogs => 'نسخ السجلات';
+
+  @override
+  String get updateAvailable => 'يتوفر تحديث';
+
+  @override
+  String get updateRequired => 'التحديث مطلوب';
+
+  @override
+  String updateAvailableSubtitle(String current, String latest) {
+    return 'يتوفر تحديث: $current → $latest';
+  }
+
+  @override
+  String updateCurrentLatest(String current, String latest) {
+    return '$current → $latest';
+  }
+
+  @override
+  String get updateChangelog => 'سجل التغييرات';
+
+  @override
+  String get updateLater => 'لاحقاً';
+
+  @override
+  String get updateNow => 'تحديث';
+
+  @override
+  String get updateCheck => 'التحقق من التحديثات';
+
+  @override
+  String get updateChecking => 'جارٍ التحقق…';
+
+  @override
+  String get updateUpToDate => 'محدّث';
+
+  @override
+  String updateUpToDateWithVersion(String version) {
+    return 'محدّث ($version)';
+  }
+
+  @override
+  String get updateCouldNotCheck => 'تعذّر التحقق من التحديثات';
+
+  @override
+  String updateRequiredMessage(String version) {
+    return 'يتوفر تحديث مطلوب ($version). يرجى التحديث للمتابعة.';
+  }
+
+  @override
+  String get viewLogs => 'عرض السجلات';
+
+  @override
+  String get shareWithAdmin => 'مشاركة مع الإدارة';
+
+  @override
+  String get appUpdates => 'تحديثات التطبيق';
 }

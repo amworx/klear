@@ -1339,6 +1339,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Urgent surcharge'**
   String get urgentSurcharge;
+
+  /// No description provided for @diagnosticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get diagnosticsTitle;
+
+  /// No description provided for @diagnosticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View error & workflow logs'**
+  String get diagnosticsSubtitle;
+
+  /// No description provided for @diagnosticsLogsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics — Logs'**
+  String get diagnosticsLogsTitle;
+
+  /// No description provided for @logsCopyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy all'**
+  String get logsCopyAll;
+
+  /// No description provided for @logsClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get logsClear;
+
+  /// No description provided for @logsShareWithAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with admin'**
+  String get logsShareWithAdmin;
+
+  /// No description provided for @logsShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with admin'**
+  String get logsShareTitle;
+
+  /// No description provided for @logsShareDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what you were doing when the error happened. The last logs will be sent automatically.'**
+  String get logsShareDescription;
+
+  /// No description provided for @logsShareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Tapped Sign in → entered email → saw error'**
+  String get logsShareHint;
+
+  /// No description provided for @logsNoEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries yet'**
+  String get logsNoEntries;
+
+  /// No description provided for @logsNoEntriesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors, warnings and workflow steps appear here. Every error SnackBar is also logged, so a long message never has to be retyped — just open this screen and copy.'**
+  String get logsNoEntriesSubtitle;
+
+  /// No description provided for @logsSuggestedFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested fix'**
+  String get logsSuggestedFix;
+
+  /// No description provided for @logsCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get logsCopy;
+
+  /// No description provided for @logsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get logsCopied;
+
+  /// No description provided for @logsCopiedAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs copied to clipboard'**
+  String get logsCopiedAll;
+
+  /// No description provided for @logsCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs cleared'**
+  String get logsCleared;
+
+  /// No description provided for @logsEntryCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry copied'**
+  String get logsEntryCopied;
+
+  /// No description provided for @logsReportSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending report…'**
+  String get logsReportSending;
+
+  /// No description provided for @logsReportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent'**
+  String get logsReportSent;
+
+  /// No description provided for @logsReportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send report'**
+  String get logsReportFailed;
+
+  /// No description provided for @logsCopyLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy logs'**
+  String get logsCopyLogs;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailable;
+
+  /// No description provided for @updateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Update required'**
+  String get updateRequired;
+
+  /// No description provided for @updateAvailableSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available: {current} → {latest}'**
+  String updateAvailableSubtitle(String current, String latest);
+
+  /// No description provided for @updateCurrentLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} → {latest}'**
+  String updateCurrentLatest(String current, String latest);
+
+  /// No description provided for @updateChangelog.
+  ///
+  /// In en, this message translates to:
+  /// **'Changelog'**
+  String get updateChangelog;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get updateNow;
+
+  /// No description provided for @updateCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get updateCheck;
+
+  /// No description provided for @updateChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get updateChecking;
+
+  /// No description provided for @updateUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get updateUpToDate;
+
+  /// No description provided for @updateUpToDateWithVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date ({version})'**
+  String updateUpToDateWithVersion(String version);
+
+  /// No description provided for @updateCouldNotCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check for updates'**
+  String get updateCouldNotCheck;
+
+  /// No description provided for @updateRequiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'A required update is available ({version}). Please update to continue.'**
+  String updateRequiredMessage(String version);
+
+  /// No description provided for @viewLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'View logs'**
+  String get viewLogs;
+
+  /// No description provided for @shareWithAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with admin'**
+  String get shareWithAdmin;
+
+  /// No description provided for @appUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'App updates'**
+  String get appUpdates;
 }
 
 class _AppLocalizationsDelegate

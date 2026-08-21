@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'app_update_provider.dart';
 
 /// Shows a banner/dialog when a newer version is available.
@@ -25,6 +26,7 @@ class UpdateBanner extends ConsumerWidget {
 
     // For a forced update, show a blocking dialog once.
     if (isForce) {
+      final l10n = AppLocalizations.of(context);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
         // Avoid showing the dialog repeatedly on rebuilds — only once per session.
@@ -34,16 +36,15 @@ class UpdateBanner extends ConsumerWidget {
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
-            title: const Text('Update required'),
+            title: Text(l10n.updateRequired),
             content: Text(
-              'A required update is available (${info.latestVersion}). '
-              'Please update to continue.\n\n'
+              '${l10n.updateRequiredMessage(info.latestVersion)}\n\n'
               '${info.changelog ?? ''}',
             ),
             actions: [
               FilledButton(
                 onPressed: () => ref.read(appUpdateProvider.notifier).launchUpdate(),
-                child: const Text('Update now'),
+                child: Text(l10n.updateNow),
               ),
             ],
           ),
@@ -72,7 +73,9 @@ class UpdateBanner extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    isForce ? 'Update required' : 'Update available',
+                    isForce
+                        ? AppLocalizations.of(context).updateRequired
+                        : AppLocalizations.of(context).updateAvailable,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: isForce
@@ -82,7 +85,10 @@ class UpdateBanner extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '${state.currentVersion} → ${info.latestVersion}',
+                  AppLocalizations.of(context).updateCurrentLatest(
+                        state.currentVersion!,
+                        info.latestVersion,
+                      ),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: isForce
                             ? Theme.of(context).colorScheme.onErrorContainer
@@ -108,13 +114,13 @@ class UpdateBanner extends ConsumerWidget {
                 if (!isForce)
                   TextButton(
                     onPressed: () => ref.read(appUpdateProvider.notifier).check(),
-                    child: const Text('Later'),
+                    child: Text(AppLocalizations.of(context).updateLater),
                   ),
                 const Spacer(),
                 FilledButton.icon(
                   onPressed: () => ref.read(appUpdateProvider.notifier).launchUpdate(),
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('Update'),
+                  label: Text(AppLocalizations.of(context).updateNow),
                 ),
               ],
             ),
@@ -134,19 +140,20 @@ class UpdateTile extends ConsumerWidget {
     final state = ref.watch(appUpdateProvider);
 
     String subtitle() {
-      if (state.isLoading) return 'Checking…';
-      if (state.error != null) return 'Could not check for updates';
-      if (state.info == null || state.currentVersion == null) return 'Up to date';
+      final l10n = AppLocalizations.of(context);
+      if (state.isLoading) return l10n.updateChecking;
+      if (state.error != null) return l10n.updateCouldNotCheck;
+      if (state.info == null || state.currentVersion == null) return l10n.updateUpToDate;
       if (state.hasUpdate) {
-        return 'Update available: ${state.currentVersion} → ${state.info!.latestVersion}';
+        return l10n.updateAvailableSubtitle(state.currentVersion!, state.info!.latestVersion);
       }
-      return 'Up to date (${state.currentVersion})';
+      return l10n.updateUpToDateWithVersion(state.currentVersion!);
     }
 
     return Card(
       child: ListTile(
         leading: const Icon(Icons.system_update_outlined),
-        title: const Text('App updates'),
+        title: Text(AppLocalizations.of(context).appUpdates),
         subtitle: Text(subtitle()),
         trailing: state.isLoading
             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
@@ -156,23 +163,24 @@ class UpdateTile extends ConsumerWidget {
           if (!context.mounted) return;
           final s = ref.read(appUpdateProvider);
           if (s.hasUpdate && s.info != null) {
+            final l10n = AppLocalizations.of(context);
             final ok = await showDialog<bool>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: Text(s.isForceUpdate ? 'Update required' : 'Update available'),
+                title: Text(s.isForceUpdate ? l10n.updateRequired : l10n.updateAvailable),
                 content: Text(
-                  'Current: ${s.currentVersion}\nLatest: ${s.info!.latestVersion}\n\n'
-                  '${s.info!.changelog ?? 'A new version is available.'}',
+                  '${l10n.updateCurrentLatest(s.currentVersion!, s.info!.latestVersion)}\n\n'
+                  '${s.info!.changelog ?? l10n.updateAvailable}',
                 ),
                 actions: [
                   if (!s.isForceUpdate)
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Later'),
+                      child: Text(l10n.updateLater),
                     ),
                   FilledButton(
                     onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Update'),
+                    child: Text(l10n.updateNow),
                   ),
                 ],
               ),
@@ -182,7 +190,7 @@ class UpdateTile extends ConsumerWidget {
             }
           } else if (s.error == null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('You are on the latest version')),
+              SnackBar(content: Text(AppLocalizations.of(context).updateUpToDate)),
             );
           }
         },

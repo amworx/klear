@@ -217,5 +217,64 @@
   "timeWindowAfternoon": "2م–6م",
   "timeUrgentTitle": "أو إذا كنت بحاجة لغسيل عاجل!",
   "timeUrgentLabel": "في أي وقت اليوم (+25%)",
-  "urgentSurcharge": "رسوم الطلب العاجل"
+  "urgentSurcharge": "رسوم الطلب العاجل",
+  "diagnosticsTitle": "التشخيص",
+  "diagnosticsSubtitle": "عرض سجلات الأخطاء وتدفق العمل",
+  "diagnosticsLogsTitle": "التشخيص — السجلات",
+  "logsCopyAll": "نسخ الكل",
+  "logsClear": "مسح",
+  "logsShareWithAdmin": "مشاركة مع الإدارة",
+  "logsShareTitle": "مشاركة مع الإدارة",
+  "logsShareDescription": "صف ما كنت تفعله عند حدوث الخطأ. سيتم إرسال آخر السجلات تلقائياً.",
+  "logsShareHint": "مثال: ضغطت تسجيل الدخول → أدخلت البريد → ظهر الخطأ",
+  "logsNoEntries": "لا توجد سجلات بعد",
+  "logsNoEntriesSubtitle": "ستظهر الأخطاء والتحذيرات وخطوات سير العمل هنا. كل رسالة خطأ تُسجل أيضاً، لذا لا حاجة لإعادة كتابة الرسائل الطويلة — فقط افتح هذه الشاشة وانسخ.",
+  "logsSuggestedFix": "الحل المقترح",
+  "logsCopy": "نسخ",
+  "logsCopied": "تم النسخ إلى الحافظة",
+  "logsCopiedAll": "تم نسخ السجلات إلى الحافظة",
+  "logsCleared": "تم مسح السجلات",
+  "logsEntryCopied": "تم نسخ السجل",
+  "logsReportSending": "جارٍ إرسال التقرير…",
+  "logsReportSent": "تم إرسال التقرير",
+  "logsReportFailed": "فشل إرسال التقرير",
+  "logsCopyLogs": "نسخ السجلات",
+  "updateAvailable": "يتوفر تحديث",
+  "updateRequired": "التحديث مطلوب",
+  "updateAvailableSubtitle": "يتوفر تحديث: {current} → {latest}",
+  "@updateAvailableSubtitle": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "latest": { "type": "String" }
+    }
+  },
+  "updateCurrentLatest": "{current} → {latest}",
+  "@updateCurrentLatest": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "latest": { "type": "String" }
+    }
+  },
+  "updateChangelog": "سجل التغييرات",
+  "updateLater": "لاحقاً",
+  "updateNow": "تحديث",
+  "updateCheck": "التحقق من التحديثات",
+  "updateChecking": "جارٍ التحقق…",
+  "updateUpToDate": "محدّث",
+  "updateUpToDateWithVersion": "محدّث ({version})",
+  "@updateUpToDateWithVersion": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "updateCouldNotCheck": "تعذّر التحقق من التحديثات",
+  "updateRequiredMessage": "يتوفر تحديث مطلوب ({version}). يرجى التحديث للمتابعة.",
+  "@updateRequiredMessage": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "viewLogs": "عرض السجلات",
+  "shareWithAdmin": "مشاركة مع الإدارة",
+  "appUpdates": "تحديثات التطبيق"
 }

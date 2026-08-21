@@ -1,31 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Klear brand mark (polished): soft shadow + white circle + cyan water drop
-     with specular highlight and a tiny bubble — reads as a designed droplet,
-     matches the in-app hero and the Flutter splash loader. Flat colors only
-     (no gradients) for full API 21+ vector compatibility. -->
+<!-- Klear launch mark v2: solid cyan drop sized to fill the Android 12+
+     splash container so it renders COMPLETELY (stroke/outline icons get
+     clipped by the OS). Matches the Flutter animated drop shape (same
+     normalized control points) and its solid first frame, so the system
+     splash hands over seamlessly to the filling drop. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="96dp"
     android:height="96dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Soft shadow crescent under the white circle (20% cyan, offset down) -->
-    <path
-        android:fillColor="#330E7490"
-        android:pathData="M1.7,12.8A10.3,10.3 0 1,0 22.3,12.8A10.3,10.3 0 1,0 1.7,12.8Z" />
-    <!-- White circle (center 12,12, radius 10) -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M2,12A10,10 0 1,0 22,12A10,10 0 1,0 2,12Z" />
-    <!-- Cyan water drop (brand primary #0E7490), tip up -->
+    <!-- Cyan water drop (brand primary #0E7490), tip up, fills the canvas -->
     <path
         android:fillColor="#FF0E7490"
-        android:pathData="M12,5.3C12,5.3 17.6,10.8 17.6,15C17.6,18.6 15,20.6 12,20.6C9,20.6 6.4,18.6 6.4,15C6.4,10.8 12,5.3 12,5.3Z" />
+        android:pathData="M12,1.44C12,1.44 21.12,10.56 21.12,14.88C21.12,19.2 17.4,22.56 12,22.56C6.6,22.56 2.88,19.2 2.88,14.88C2.88,10.56 12,1.44 12,1.44Z" />
     <!-- Specular highlight: small white glint in the upper-left of the bulb -->
     <path
         android:fillColor="#D9FFFFFF"
-        android:pathData="M8.5,12.6A1.2,1.2 0 1,0 10.9,12.6A1.2,1.2 0 1,0 8.5,12.6Z" />
+        android:pathData="M8.6,12.9A1.5,1.5 0 1,0 11.6,12.9A1.5,1.5 0 1,0 8.6,12.9Z" />
     <!-- Tiny bubble near the lower-right (mirrors the loader's rising bubbles) -->
     <path
         android:fillColor="#B3FFFFFF"
-        android:pathData="M13,18A0.8,0.8 0 1,0 14.6,18A0.8,0.8 0 1,0 13,18Z" />
+        android:pathData="M13.4,18.4A1.0,1.0 0 1,0 15.4,18.4A1.0,1.0 0 1,0 13.4,18.4Z" />
 </vector>

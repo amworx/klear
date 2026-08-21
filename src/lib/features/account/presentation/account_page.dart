@@ -76,7 +76,7 @@ class _GuestView extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () => context.push(KlearRoutes.logs),
                 icon: const Icon(Icons.bug_report_outlined),
-                label: const Text('Diagnostics — View logs'),
+                label: Text(l10n.diagnosticsLogsTitle),
               ),
               const SizedBox(height: 12),
               const UpdateTile(),
@@ -191,8 +191,8 @@ class _ProfileView extends StatelessWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.bug_report_outlined),
-              title: const Text('Diagnostics'),
-              subtitle: const Text('View error & workflow logs'),
+              title: Text(l10n.diagnosticsTitle),
+              subtitle: Text(l10n.diagnosticsSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(KlearRoutes.logs),
             ),

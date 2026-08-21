@@ -217,5 +217,64 @@
   "timeWindowAfternoon": "2pm–6pm",
   "timeUrgentTitle": "Or if you need a wash urgently!",
   "timeUrgentLabel": "Anytime today (+25%)",
-  "urgentSurcharge": "Urgent surcharge"
+  "urgentSurcharge": "Urgent surcharge",
+  "diagnosticsTitle": "Diagnostics",
+  "diagnosticsSubtitle": "View error & workflow logs",
+  "diagnosticsLogsTitle": "Diagnostics — Logs",
+  "logsCopyAll": "Copy all",
+  "logsClear": "Clear",
+  "logsShareWithAdmin": "Share with admin",
+  "logsShareTitle": "Share with admin",
+  "logsShareDescription": "Describe what you were doing when the error happened. The last logs will be sent automatically.",
+  "logsShareHint": "e.g. Tapped Sign in → entered email → saw error",
+  "logsNoEntries": "No entries yet",
+  "logsNoEntriesSubtitle": "Errors, warnings and workflow steps appear here. Every error SnackBar is also logged, so a long message never has to be retyped — just open this screen and copy.",
+  "logsSuggestedFix": "Suggested fix",
+  "logsCopy": "Copy",
+  "logsCopied": "Copied to clipboard",
+  "logsCopiedAll": "Logs copied to clipboard",
+  "logsCleared": "Logs cleared",
+  "logsEntryCopied": "Entry copied",
+  "logsReportSending": "Sending report…",
+  "logsReportSent": "Report sent",
+  "logsReportFailed": "Failed to send report",
+  "logsCopyLogs": "Copy logs",
+  "updateAvailable": "Update available",
+  "updateRequired": "Update required",
+  "updateAvailableSubtitle": "Update available: {current} → {latest}",
+  "@updateAvailableSubtitle": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "latest": { "type": "String" }
+    }
+  },
+  "updateCurrentLatest": "{current} → {latest}",
+  "@updateCurrentLatest": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "latest": { "type": "String" }
+    }
+  },
+  "updateChangelog": "Changelog",
+  "updateLater": "Later",
+  "updateNow": "Update",
+  "updateCheck": "Check for updates",
+  "updateChecking": "Checking…",
+  "updateUpToDate": "Up to date",
+  "updateUpToDateWithVersion": "Up to date ({version})",
+  "@updateUpToDateWithVersion": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "updateCouldNotCheck": "Could not check for updates",
+  "updateRequiredMessage": "A required update is available ({version}). Please update to continue.",
+  "@updateRequiredMessage": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "viewLogs": "View logs",
+  "shareWithAdmin": "Share with admin",
+  "appUpdates": "App updates"
 }

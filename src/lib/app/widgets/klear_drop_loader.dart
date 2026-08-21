@@ -2,15 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// Animated Klear brand loader: a water drop that fills from bottom to top
-/// with an oscillating wave surface and rising bubbles, plus a subtle
-/// "breathing" scale on the whole mark.
+/// Animated Klear brand loader: a solid cyan water drop (identical to the
+/// native launch-screen mark, same shape and size) that fills from the base
+/// with a bright water surface, rising bubbles and a specular glint.
 ///
-/// Doubles as the splash hero — the white circle + cyan drop matches the
-/// native launch screen artwork, so the cold-start transition is seamless.
-/// Honors reduced motion (renders a static full drop, no wave, no bubbles).
+/// Because the drop is ALWAYS solid cyan — never an empty outline — the
+/// handoff from the Android system splash is invisible: the drop simply
+/// starts filling with water. Honors reduced motion (static filled drop).
 class KlearDropLoader extends StatefulWidget {
-  const KlearDropLoader({super.key, this.size = 120});
+  const KlearDropLoader({super.key, this.size = 206});
 
   final double size;
 
@@ -28,7 +28,7 @@ class _KlearDropLoaderState extends State<KlearDropLoader>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 2400),
     )..repeat();
   }
 
@@ -62,23 +62,12 @@ class _KlearDropLoaderState extends State<KlearDropLoader>
         final progress = _reducedMotion ? 1.0 : t;
         // Gentle breathing: two subtle scale pulses per cycle.
         final scale =
-            _reducedMotion ? 1.0 : 1.0 + 0.02 * math.sin(t * math.pi * 4);
+            _reducedMotion ? 1.0 : 1.0 + 0.015 * math.sin(t * math.pi * 4);
         return Transform.scale(
           scale: scale,
-          child: Container(
+          child: SizedBox(
             width: widget.size,
             height: widget.size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
             child: CustomPaint(
               painter: _FillingDropPainter(
                 progress: progress,
@@ -113,9 +102,15 @@ class _FillingDropPainter extends CustomPainter {
     final h = size.height;
     final drop = _dropPath(w, h);
 
-    // Water surface rises from the drop base toward the tip as progress → 1.
+    // The drop body is ALWAYS solid cyan — identical to the native splash
+    // mark, so the cold-start handoff shows no state change.
+    canvas.drawPath(drop, Paint()..color = color);
+
+    // Bright water surface rises from the base toward the tip as progress
+    // → 1, clipped to the drop. Slightly translucent so the cyan body shows
+    // through at the top and the drop never disappears at full progress.
     final bottom = h * 0.94;
-    final nearTip = h * 0.22;
+    final nearTip = h * 0.12;
     final surfaceY = bottom + (nearTip - bottom) * progress;
 
     if (progress > 0.01) {
@@ -123,14 +118,7 @@ class _FillingDropPainter extends CustomPainter {
       canvas.clipPath(drop);
       canvas.drawPath(
         _waterPath(w, h, surfaceY),
-        Paint()..color = color,
-      );
-      // Static specular glint (upper-left of the bulb) — appears as the
-      // water rises, matching the native brand mark.
-      canvas.drawCircle(
-        Offset(w * 0.40, h * 0.55),
-        w * 0.045,
-        Paint()..color = Colors.white.withValues(alpha: 0.85),
+        Paint()..color = Colors.white.withValues(alpha: 0.88),
       );
       if (!reduced) {
         _drawBubbles(canvas, w, h, surfaceY);
@@ -138,24 +126,26 @@ class _FillingDropPainter extends CustomPainter {
       canvas.restore();
     }
 
-    // Outline.
-    canvas.drawPath(
-      drop,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = w * 0.03
-        ..color = color,
+    // Specular glint, upper-left of the bulb — matches the native mark.
+    canvas.drawCircle(
+      Offset(w * 0.42, h * 0.54),
+      w * 0.0625,
+      Paint()..color = Colors.white.withValues(alpha: 0.85),
     );
   }
 
-  /// Symmetric teardrop, tip pointing up.
+  /// Symmetric teardrop, tip pointing up. Control points are normalized
+  /// from the native launch-screen vector (24-viewport) so the shapes match
+  /// pixel-for-pixel: tip y=0.06, bulge to x=0.88/0.62, base y=0.94.
   Path _dropPath(double w, double h) {
     return Path()
-      ..moveTo(w * 0.5, h * 0.06)
-      ..cubicTo(w * 0.5, h * 0.06, w * 0.82, h * 0.44, w * 0.82, h * 0.62)
-      ..cubicTo(w * 0.82, h * 0.86, w * 0.68, h * 0.94, w * 0.5, h * 0.94)
-      ..cubicTo(w * 0.32, h * 0.94, w * 0.18, h * 0.86, w * 0.18, h * 0.62)
-      ..cubicTo(w * 0.18, h * 0.44, w * 0.5, h * 0.06, w * 0.5, h * 0.06)
+      ..moveTo(w * 0.50, h * 0.06)
+      ..cubicTo(
+          w * 0.50, h * 0.06, w * 0.88, h * 0.44, w * 0.88, h * 0.62)
+      ..cubicTo(w * 0.88, h * 0.80, w * 0.725, h * 0.94, w * 0.50, h * 0.94)
+      ..cubicTo(w * 0.275, h * 0.94, w * 0.12, h * 0.80, w * 0.12, h * 0.62)
+      ..cubicTo(
+          w * 0.12, h * 0.44, w * 0.50, h * 0.06, w * 0.50, h * 0.06)
       ..close();
   }
 
@@ -163,8 +153,8 @@ class _FillingDropPainter extends CustomPainter {
   Path _waterPath(double w, double h, double surfaceY) {
     const samples = 24;
     final amp = reduced ? 0.0 : w * 0.02;
-    final left = w * 0.18;
-    final right = w * 0.82;
+    final left = w * 0.12;
+    final right = w * 0.88;
     final path = Path()..moveTo(left, surfaceY);
     for (var i = 0; i <= samples; i++) {
       final t = i / samples;
@@ -183,8 +173,8 @@ class _FillingDropPainter extends CustomPainter {
     final paint = Paint()..color = Colors.white.withValues(alpha: 0.85);
     for (var i = 0; i < 3; i++) {
       final t = (progress * 1.4 + i * 0.33) % 1.0;
-      final y = surfaceY - t * (surfaceY - h * 0.16);
-      final x = w * 0.5 + math.sin(wavePhase * 0.5 + i * 2.1) * w * 0.10;
+      final y = surfaceY - t * (surfaceY - h * 0.12);
+      final x = w * 0.5 + math.sin(wavePhase * 0.5 + i * 2.1) * w * 0.12;
       final r = w * (0.03 + 0.012 * ((i + 1) % 3));
       canvas.drawCircle(Offset(x, y), r, paint);
     }

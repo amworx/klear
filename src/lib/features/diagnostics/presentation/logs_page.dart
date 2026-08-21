@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/logger/app_logger.dart';
 import '../../../core/logger/error_suggestions.dart';
+import '../../../l10n/app_localizations.dart';
 import '../data/diagnostics_repository.dart';
 
 /// In-app diagnostics: shows the last ~120 log entries (errors, warnings,
@@ -18,6 +19,7 @@ class LogsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final logger = ref.watch(appLoggerProvider);
+    final l10n = AppLocalizations.of(context);
     // Rebuild when the logger notifies (ChangeNotifier).
     return AnimatedBuilder(
       animation: logger,
@@ -31,23 +33,24 @@ class LogsPage extends ConsumerWidget {
             break;
           }
         }
+        final isArabic = Localizations.localeOf(context).languageCode == 'ar';
         final suggestion = latestError != null
-            ? ErrorSuggestions.forError('${latestError.error ?? latestError.message}')
+            ? ErrorSuggestions.forError('${latestError.error ?? latestError.message}', isArabic: isArabic)
             : null;
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Diagnostics — Logs'),
+            title: Text(l10n.diagnosticsLogsTitle),
             actions: [
               if (entries.isNotEmpty)
                 IconButton(
-                  tooltip: 'Share with admin',
+                  tooltip: l10n.shareWithAdmin,
                   icon: const Icon(Icons.outgoing_mail),
                   onPressed: () => _shareWithAdmin(context, ref, logger),
                 ),
               if (entries.isNotEmpty)
                 IconButton(
-                  tooltip: 'Copy all',
+                  tooltip: l10n.logsCopyAll,
                   icon: const Icon(Icons.copy_all_outlined),
                   onPressed: () async {
                     await Clipboard.setData(
@@ -55,13 +58,13 @@ class LogsPage extends ConsumerWidget {
                     );
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Logs copied to clipboard')),
+                      SnackBar(content: Text(l10n.logsCopiedAll)),
                     );
                   },
                 ),
               if (entries.isNotEmpty)
                 IconButton(
-                  tooltip: 'Clear',
+                  tooltip: l10n.logsClear,
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => logger.clear(),
                 ),
@@ -81,14 +84,12 @@ class LogsPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No entries yet',
+                          l10n.logsNoEntries,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Errors, warnings and workflow steps appear here. '
-                          'Every error SnackBar is also logged, so a long message '
-                          'never has to be retyped — just open this screen and copy.',
+                          l10n.logsNoEntriesSubtitle,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -123,7 +124,7 @@ class LogsPage extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Suggested fix',
+                                    l10n.logsSuggestedFix,
                                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                           fontWeight: FontWeight.w700,
                                           color: Theme.of(context).colorScheme.onSecondaryContainer,
@@ -138,7 +139,7 @@ class LogsPage extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    ErrorSuggestions.generic,
+                                    ErrorSuggestions.generic(isArabic),
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                           color: Theme.of(context).colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
                                           fontStyle: FontStyle.italic,
@@ -170,7 +171,7 @@ class LogsPage extends ConsumerWidget {
                             child: FilledButton.icon(
                               onPressed: () => _shareWithAdmin(context, ref, logger),
                               icon: const Icon(Icons.outgoing_mail),
-                              label: const Text('Share with admin'),
+                              label: Text(l10n.logsShareWithAdmin),
                             ),
                           ),
                         ),
@@ -188,25 +189,24 @@ Future<void> _shareWithAdmin(
   WidgetRef ref,
   AppLogger logger,
 ) async {
+  final l10n = AppLocalizations.of(context);
   final controller = TextEditingController();
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Share with admin'),
+      title: Text(l10n.logsShareTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Describe what you were doing when the error happened. The last logs will be sent automatically.',
-          ),
+          Text(l10n.logsShareDescription),
           const SizedBox(height: 12),
           TextField(
             controller: controller,
             maxLines: 3,
-            decoration: const InputDecoration(
-              hintText: 'e.g. Tapped Sign in → entered email → saw error',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: l10n.logsShareHint,
+              border: const OutlineInputBorder(),
             ),
           ),
         ],
@@ -214,11 +214,11 @@ Future<void> _shareWithAdmin(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancelLabel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Send'),
+          child: Text(l10n.saveLabel),
         ),
       ],
     ),
@@ -241,7 +241,7 @@ Future<void> _shareWithAdmin(
   // Show progress
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sending report…')),
+      SnackBar(content: Text(l10n.logsReportSending)),
     );
   }
 
@@ -255,7 +255,7 @@ Future<void> _shareWithAdmin(
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(id != null ? 'Report sent (id ${id.substring(0, 8)})' : 'Report sent'),
+        content: Text(id != null ? '${l10n.logsReportSent} (id ${id.substring(0, 8)})' : l10n.logsReportSent),
       ),
     );
     AppLogger.instance.i('diagnostics', 'user shared report ${id ?? 'no-id'}');
@@ -264,9 +264,9 @@ Future<void> _shareWithAdmin(
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Failed to send: $e'),
+        content: Text('${l10n.logsReportFailed}: $e'),
         action: SnackBarAction(
-          label: 'Copy logs',
+          label: l10n.logsCopyLogs,
           onPressed: () => Clipboard.setData(ClipboardData(text: logs)),
         ),
       ),
@@ -360,7 +360,7 @@ class _LogTile extends StatelessWidget {
                     await Clipboard.setData(ClipboardData(text: entry.toString()));
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Entry copied')),
+                      SnackBar(content: Text(AppLocalizations.of(context).logsEntryCopied)),
                     );
                   },
                   child: const Padding(
@@ -390,7 +390,8 @@ class _LogTile extends StatelessWidget {
             ],
             if (entry.level == LogLevel.error)
               Builder(builder: (context) {
-                final s = ErrorSuggestions.forError('${entry.error ?? entry.message}');
+                final isAr = Localizations.localeOf(context).languageCode == 'ar';
+                final s = ErrorSuggestions.forError('${entry.error ?? entry.message}', isArabic: isAr);
                 if (s == null) return const SizedBox.shrink();
                 return Padding(
                   padding: const EdgeInsets.only(top: 8),
