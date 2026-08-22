@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/app_config.dart';
@@ -15,6 +18,8 @@ class AuthState {
     this.pendingEmail,
     this.isLoading = false,
     this.isInitializing = false,
+    this.justSignedUp = false,
+    this.onboardingCompleted = false,
     this.error,
   });
 
@@ -35,10 +40,22 @@ class AuthState {
   /// branded splash — never render welcome/profile-setup — until this is false.
   final bool isInitializing;
 
+  /// True only for the short window after a brand-new account is created in
+  /// this session. Used to show the new-user onboarding once (existing users
+  /// who simply restored a session never get it).
+  final bool justSignedUp;
+
+  /// Persisted flag: the new-user onboarding has been completed at least once.
+  final bool onboardingCompleted;
+
   final String? error;
 
   bool get isAuthenticated => user != null;
   bool get hasProfile => profile != null && !profile!.isGuest;
+
+  /// Show the onboarding only to users who just signed up and haven't
+  /// completed it yet.
+  bool get shouldShowOnboarding => justSignedUp && !onboardingCompleted;
 
   AuthState copyWith({
     User? user,
@@ -46,6 +63,8 @@ class AuthState {
     String? pendingEmail,
     bool? isLoading,
     bool? isInitializing,
+    bool? justSignedUp,
+    bool? onboardingCompleted,
     String? error,
     bool clearUser = false,
     bool clearProfile = false,
@@ -58,6 +77,8 @@ class AuthState {
           clearPendingEmail ? null : (pendingEmail ?? this.pendingEmail),
       isLoading: isLoading ?? this.isLoading,
       isInitializing: isInitializing ?? this.isInitializing,
+      justSignedUp: justSignedUp ?? this.justSignedUp,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       error: error,
     );
   }
@@ -71,6 +92,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   final Ref _ref;
 
+  /// SharedPreferences key for the persisted onboarding-completed flag.
+  static const String _onboardingKey = 'klear_onboarding_completed_v1';
+
   void _init() {
     // No backend configured (tests / offline mode): stay signed out and ready
     // so the router redirects everyone to the welcome screen.
@@ -78,6 +102,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = const AuthState();
       return;
     }
+
+    // Recover the persisted onboarding flag (async, non-blocking). Subsequent
+    // `copyWith` calls below preserve it.
+    SharedPreferences.getInstance().then((prefs) {
+      final done = prefs.getBool(_onboardingKey) ?? false;
+      if (mounted) state = state.copyWith(onboardingCompleted: done);
+    });
 
     // Watch auth state changes.
     SupabaseClientManager.instance.client.auth.onAuthStateChange.listen((data) {
@@ -141,8 +172,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         emailRedirectTo: AppConfig.emailRedirectUrl,
         shouldCreateUser: shouldCreateUser,
       );
-      AppLogger.instance.i('auth', 'signInWithOtp succeeded for $email');
-      state = state.copyWith(isLoading: false);
+       AppLogger.instance.i('auth', 'signInWithOtp succeeded for $email');
+       state = state.copyWith(isLoading: false);
     } catch (e, st) {
       AppLogger.instance.e('auth', 'signInWithOtp failed for $email', e, st);
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -183,13 +214,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  /// Mark the new-user onboarding as completed (persisted) so it is never
+  /// shown again for this user/device.
+  Future<void> completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardingKey, true);
+    state = state.copyWith(onboardingCompleted: true, justSignedUp: false);
+  }
+
   /// Update the user's profile.
   Future<void> updateProfile(KlearUser profile) async {
+    // A user saving their profile for the first time (profile was null) is a
+    // brand-new sign-up — flag them so the router shows the onboarding once.
+    final wasNewUser = state.profile == null;
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repo = _ref.read(usersRepositoryProvider);
       final updated = await repo.upsertProfile(profile);
-      state = state.copyWith(profile: updated, isLoading: false);
+      state = state.copyWith(
+        profile: updated,
+        isLoading: false,
+        justSignedUp: wasNewUser,
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;

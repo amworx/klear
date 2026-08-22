@@ -18,6 +18,8 @@ class KlearRoutes {
   static const String signUp = '/auth/signup';
   static const String otpVerify = '/auth/otp';
   static const String profileSetup = '/auth/profile';
+  // New-user welcome/onboarding (shown once after profile setup).
+  static const String onboarding = '/onboarding';
   // Shell routes (inside the bottom-nav).
   static const String home = '/';
   static const String services = '/services';

@@ -15,6 +15,7 @@ import '../features/auth/email_signin_page.dart';
 import '../features/auth/otp_verify_page.dart';
 import '../features/auth/profile_setup_page.dart';
 import '../features/auth/welcome_page.dart';
+import '../features/onboarding/presentation/onboarding_page.dart';
 import '../features/diagnostics/presentation/logs_page.dart';
 import '../features/bookings/presentation/booking_details_page.dart';
 import '../features/bookings/presentation/confirmation_page.dart';
@@ -26,6 +27,7 @@ import '../features/orders/presentation/order_details_page.dart';
 import '../features/orders/presentation/orders_page.dart';
 import '../features/services/presentation/services_page.dart';
 import 'scaffold_with_navbar.dart';
+import 'app_router.dart';
 import 'widgets/klear_splash_page.dart';
 
 /// Root widget for the Klear application.
@@ -147,6 +149,15 @@ class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
             !isProfileSetupExplicit) {
           return '/';
         }
+        // New-user onboarding gate: a freshly signed-up user (with a profile
+        // now saved) is sent to the onboarding flow exactly once. Once
+        // completed (or for any returning user) they go straight to Home.
+        if (auth.isAuthenticated &&
+            auth.hasProfile &&
+            auth.shouldShowOnboarding &&
+            loc != KlearRoutes.onboarding) {
+          return KlearRoutes.onboarding;
+        }
         return null;
       },
       routes: _buildRoutes(),
@@ -188,6 +199,10 @@ class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
         path: '/auth/profile',
         pageBuilder: (context, state) =>
             _fadeSlidePage(const ProfileSetupPage()),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (context, state) => _fadeSlidePage(const OnboardingPage()),
       ),
       // Full-screen detours (outside the bottom-nav shell): map picker and
       // the address book. Both are pushed with `context.push` from any branch.
