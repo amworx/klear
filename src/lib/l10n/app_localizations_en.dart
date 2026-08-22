@@ -18,6 +18,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loading => 'Loading';
 
   @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingGetStarted => 'Get started';
+
+  @override
+  String get onboardingStep1Title => 'Book a wash in minutes';
+
+  @override
+  String get onboardingStep1Body =>
+      'Pick a service, choose a time, and drop a pin — your car wash is booked.';
+
+  @override
+  String get onboardingStep2Title => 'We come to you';
+
+  @override
+  String get onboardingStep2Body =>
+      'Our captain arrives at your home, office, or anywhere you park.';
+
+  @override
+  String get onboardingStep3Title => 'Spotless, every time';
+
+  @override
+  String get onboardingStep3Body =>
+      'Quality products and a careful team leave your car fresh and shining.';
+
+  @override
   String get homeWelcome => 'Welcome to Klear';
 
   @override

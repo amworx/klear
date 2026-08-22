@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/klear_lottie.dart';
 import '../../../l10n/app_localizations.dart';
 import 'klear_ripple_scene.dart';
 
@@ -29,7 +30,10 @@ class KlearSplashPage extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const KlearRippleScene(size: 280),
+                  KlearLottieAsset(
+                    LottieAssets.splash,
+                    fallback: const KlearRippleScene(size: 280),
+                  ),
                   const SizedBox(height: 28),
                   const _FadeWordmark(),
                 ],

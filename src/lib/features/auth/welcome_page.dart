@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/app_router.dart';
 import '../../../app/widgets/language_tile.dart';
+import '../../../core/widgets/klear_lottie.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -25,29 +26,33 @@ class WelcomePage extends ConsumerWidget {
               constraints: const BoxConstraints(maxWidth: 480),
               child: StaggerList(
                 children: [
-                  // Hero mark.
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [scheme.secondary, scheme.primary],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: scheme.primary.withValues(alpha: 0.30),
-                          blurRadius: 28,
-                          offset: const Offset(0, 10),
+                  // Hero mark. Falls back to the branded gradient disc when no
+                  // Lottie asset is provided yet.
+                  KlearLottieAsset(
+                    LottieAssets.welcome,
+                    fallback: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [scheme.secondary, scheme.primary],
                         ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.water_drop,
-                      size: 68,
-                      color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: scheme.primary.withValues(alpha: 0.30),
+                            blurRadius: 28,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.water_drop,
+                        size: 68,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),

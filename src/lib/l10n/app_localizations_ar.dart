@@ -18,6 +18,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loading => 'جارٍ التحميل';
 
   @override
+  String get onboardingSkip => 'تخطّي';
+
+  @override
+  String get onboardingNext => 'التالي';
+
+  @override
+  String get onboardingGetStarted => 'ابدأ الآن';
+
+  @override
+  String get onboardingStep1Title => 'احجز غسلة في دقائق';
+
+  @override
+  String get onboardingStep1Body =>
+      'اختر الخدمة وحدّد الوقت وحدّد موقعك — تُحجز غسلة سيارتك.';
+
+  @override
+  String get onboardingStep2Title => 'نحن نأتي إليك';
+
+  @override
+  String get onboardingStep2Body =>
+      'يصل كابتن كليير إلى منزلك أو عملك أو أي مكان تركن فيه.';
+
+  @override
+  String get onboardingStep3Title => 'نظيفة دائماً';
+
+  @override
+  String get onboardingStep3Body =>
+      'منتجات عالية الجودة وفريق عناية يتركان سيارتك منعشة لامعة.';
+
+  @override
   String get homeWelcome => 'أهلاً بك في كليير';
 
   @override

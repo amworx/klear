@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_router.dart';
+import '../../../core/widgets/klear_lottie.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../account/presentation/auth_providers.dart';
@@ -143,6 +144,12 @@ class _OnboardingStep extends StatelessWidget {
       _HeroKind.wave => const WaveHero(),
       _HeroKind.shine => const ShineHero(),
     };
+    // Use a sourced Lottie hero when available; otherwise keep the built-in
+    // water-themed painter so the step always renders.
+    final animatedHero = KlearLottieAsset(
+      LottieAssets.onboarding[index],
+      fallback: heroWidget,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -163,7 +170,7 @@ class _OnboardingStep extends StatelessWidget {
                 child: Opacity(opacity: opacity, child: child),
               );
             },
-            child: SizedBox(width: 248, height: 248, child: heroWidget),
+            child: SizedBox(width: 248, height: 248, child: animatedHero),
           ),
           const SizedBox(height: 44),
           StaggerList(

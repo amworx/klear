@@ -41,6 +41,7 @@ dependencies:
   latlong2: ^0.10.1
   http: ^1.6.0
   url_launcher: ^6.1.12
+  lottie: ^3.5.1
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +67,11 @@ flutter:
 
   # Generate localizations (ar/en) from lib/l10n/*.arb.
   generate: true
+
+  assets:
+    # Drop Lottie (.json) animations here. The splash, welcome and onboarding
+    # screens fall back to their built-in animations until these are provided.
+    - assets/lottie/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
