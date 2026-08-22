@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klear — Lottie Asset Showcase</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --accent: #22D3EE;
+      --surface: #F5F7F8;
+      --ink: #0F172A;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #0b1220;
+      color: #e6edf3;
+      padding: 32px 16px 64px;
+    }
+    h1 { font-weight: 700; margin: 0 0 4px; }
+    p.sub { margin: 0 0 32px; color: #9fb0c0; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #111c2e;
+      border: 1px solid #1f2d44;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card .stage {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      background: var(--primary);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card .stage.dark { background: #0E7490; }
+    .card h2 {
+      font-size: 14px;
+      letter-spacing: .3px;
+      margin: 14px 0 4px;
+      color: #cfe3ee;
+    }
+    .card .path {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      color: #7d93a8;
+      word-break: break-all;
+      text-align: center;
+    }
+    footer {
+      max-width: 1100px;
+      margin: 40px auto 0;
+      color: #7d93a8;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    code { background: #0d1626; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Klear — Lottie Asset Showcase</h1>
+  <p class="sub">All animations are rendered from <code>assets/lottie/*.json</code> (brand palette: primary #0E7490, accent #22D3EE).</p>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <p><strong>How to run:</strong> serve this folder's parent (<code>src/</code>) over HTTP, e.g.
+      <code>cd src &amp;&amp; python -m http.server 8000</code> then open
+      <code>http://localhost:8000/showcase/index.html</code>.</p>
+    <p>Animations are loaded from <code>../assets/lottie/&lt;name&gt;.json</code> relative to this page,
+       so they stay in sync with the app's bundled assets.</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script>
+    const ITEMS = [
+      { name: "Splash",        file: "splash.json",        dark: true  },
+      { name: "Welcome",       file: "welcome.json",       dark: false },
+      { name: "Onboarding 1",  file: "onboarding_1.json",  dark: false },
+      { name: "Onboarding 2",  file: "onboarding_2.json",  dark: false },
+      { name: "Onboarding 3",  file: "onboarding_3.json",  dark: false },
+    ];
+
+    const grid = document.getElementById("grid");
+    for (const item of ITEMS) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const stage = document.createElement("div");
+      stage.className = "stage" + (item.dark ? " dark" : "");
+      stage.style.background = item.dark ? "var(--primary)" : "var(--surface)";
+
+      card.appendChild(stage);
+
+      const h2 = document.createElement("h2");
+      h2.textContent = item.name;
+      card.appendChild(h2);
+
+      const path = document.createElement("div");
+      path.className = "path";
+      path.textContent = "assets/lottie/" + item.file;
+      card.appendChild(path);
+
+      grid.appendChild(card);
+
+      lottie.loadAnimation({
+        container: stage,
+        renderer: "svg",
+        loop: true,
+        autoplay: true,
+        path: "../assets/lottie/" + item.file,
+      });
+    }
+  </script>
+</body>
+</html>

@@ -60,6 +60,9 @@ class KlearLottieAsset extends StatelessWidget {
             animate: animate ?? !reduced,
             repeat: repeat,
             fit: fit,
+            // If the asset is present but malformed, degrade to the fallback
+            // rather than surfacing Lottie's error UI.
+            errorBuilder: (_, _, _) => fallback ?? const SizedBox.shrink(),
           );
         }
         return fallback ?? const SizedBox.shrink();
