@@ -195,9 +195,15 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                     _PriceRow(
                       label: l10n.priceBase,
                       value:
-                          '${draft.service?.basePrice.toStringAsFixed(0) ?? '0'} '
+                          '${draft.service?.finalPrice.toStringAsFixed(0) ?? '0'} '
                           '${draft.service?.currency ?? 'SYP'}',
                     ),
+                    if (draft.service?.hasDiscount ?? false)
+                      _PriceRow(
+                        label: l10n.discountLabel,
+                        value: '-${draft.service!.savingsAmount.toStringAsFixed(0)} '
+                            '${draft.service!.currency}',
+                      ),
                     _PriceRow(
                       label: l10n.sizeAdjustment,
                       value: draft.car == null

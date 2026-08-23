@@ -5,6 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers.dart';
 
+/// Finder for the popup menu item (generic [CheckedPopupMenuItem]) that
+/// contains [inside] — tapping the item itself, not its text label.
+Finder languageMenuItem(Finder inside) => find.ancestor(
+      of: inside,
+      matching: find.byWidgetPredicate((w) => w is CheckedPopupMenuItem),
+    );
+
 void main() {
   testWidgets('Boots with Arabic (RTL) even when device is English',
       (WidgetTester tester) async {
@@ -26,21 +33,24 @@ void main() {
     await tester.pumpWidget(await buildKlearApp());
     await tester.pumpAndSettle();
 
-    // Welcome screen shows the language switcher (Arabic labels).
-    expect(find.text('اللغة'), findsOneWidget);
+    // Welcome screen shows the single-icon language switcher (Arabic label).
+    final arabicMenuButton = find.byTooltip('اللغة');
+    expect(arabicMenuButton, findsOneWidget);
 
-    // Scroll the toggle into view and switch to English.
-    await tester.ensureVisible(find.text('الإنجليزية').last);
+    // Open the menu and switch to English — no scrolling involved.
+    await tester.tap(arabicMenuButton);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('الإنجليزية').last);
+    await tester.tap(languageMenuItem(find.text('الإنجليزية')));
     await tester.pumpAndSettle();
 
     // Welcome screen now renders in English.
     expect(find.text('Welcome to Klear'), findsOneWidget);
-    expect(find.text('Language'), findsOneWidget);
+    expect(find.byTooltip('Language'), findsOneWidget);
 
-    // Switch back to Arabic.
-    await tester.tap(find.text('Arabic').last);
+    // Switch back to Arabic via the same menu.
+    await tester.tap(find.byTooltip('Language'));
+    await tester.pumpAndSettle();
+    await tester.tap(languageMenuItem(find.text('Arabic')));
     await tester.pumpAndSettle();
     expect(find.text('مرحباً بك في كليير'), findsOneWidget);
   });

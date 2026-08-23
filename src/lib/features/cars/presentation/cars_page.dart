@@ -109,17 +109,22 @@ class CarsPage extends ConsumerWidget {
                                       .titleMedium,
                                 ),
                                 const SizedBox(height: 4),
-                                Row(
+                                // Wrap (not Row): the default-car chip adds
+                                // an extra intrinsic-width child on top of
+                                // the size chip + plate badge, which used to
+                                // overflow narrow rows by a few pixels. A
+                                // Wrap flows excess chips onto a new line.
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     _SizeChip(
                                       label: _sizeLabel(
                                           car.size, langCode, l10n),
                                     ),
-                                    const SizedBox(width: 8),
-                                    if (car.isDefault) ...[
+                                    if (car.isDefault)
                                       _DefaultChip(label: l10n.defaultCar),
-                                      const SizedBox(width: 8),
-                                    ],
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 8,

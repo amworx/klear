@@ -26,7 +26,11 @@ class KlearRoutes {
   static const String orders = '/orders';
   /// Booking detail (inside the orders branch). Uses a path param for the id.
   static const String ordersDetail = '/orders/:id';
-  static const String account = '/account';
+  // App settings — the fourth bottom-nav tab.
+  static const String settings = '/settings';
+  // User profile — full-screen detour opened from the top-bar avatar
+  // (present on every main screen).
+  static const String profile = '/profile';
   // Booking flow (child routes of the home branch). MUST be absolute paths:
   // go_router resolves a relative location ('book/car') against the CURRENT
   // location, so from /book/service it produces /book/book/car and throws
@@ -34,12 +38,12 @@ class KlearRoutes {
   static const String bookSelectService = '/book/service';
   static const String bookDetails = '/book/details';
   static const String bookConfirm = '/book/confirm';
-  // My Cars (child routes of the account branch).
-  static const String myCars = '/account/cars';
-  static const String carAdd = '/account/cars/add';
-  static const String carEdit = '/account/cars/edit';
-  // Address book (child route of the account branch).
-  static const String addressBook = '/account/addresses';
+  // My Cars (full-screen detours, pushed from the profile screen).
+  static const String myCars = '/cars';
+  static const String carAdd = '/cars/add';
+  static const String carEdit = '/cars/edit';
+  // Address book (full-screen detour, pushed from the profile screen).
+  static const String addressBook = '/addresses';
   // Map picker (full-screen detour; pushed with `context.push`).
   static const String mapPicker = '/map-picker';
   // Diagnostics — in-app log viewer (errors, warnings, workflow).
@@ -52,5 +56,5 @@ class NavBranch {
   static const int home = 0;
   static const int services = 1;
   static const int orders = 2;
-  static const int account = 3;
+  static const int settings = 3;
 }

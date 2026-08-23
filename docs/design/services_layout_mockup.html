@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klear — خدماتنا: بدائل التصميم</title>
+<style>
+  :root{
+    --primary:#0E7490; --primary-dark:#0C637B; --teal:#14B8A6; --sky:#0891B2;
+    --primary-container:#D3F2F7; --on-primary-container:#083B48;
+    --surface:#F4FBFC; --card:#FFFFFF; --ink:#0A2A33;
+    --muted:#5B7780; --outline:#C9DEE3; --muted-fill:#E1EFF1;
+    --green:#16A34A; --green-container:#DCFCE7; --on-green:#15803D;
+    --amber:#D97706; --amber-container:#FEF3C7; --red:#DC2626; --red-container:#FEE2E2;
+    --gold:#FACC15;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:"Segoe UI",Tahoma,sans-serif;background:#D8E4E8;color:var(--ink);
+    min-height:100vh;padding-bottom:40px;
+  }
+  /* ======= top switcher (laptop-only chrome) ======= */
+  .switcher{
+    position:sticky;top:0;z-index:50;background:#0A2A33;color:#CFE9EF;
+    padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    box-shadow:0 4px 18px rgba(10,42,51,.25);
+  }
+  .switcher .brand{font-weight:800;font-size:14px;letter-spacing:.3px;color:#fff;}
+  .tab{
+    border:1px solid #2E5560;background:transparent;color:#CFE9EF;border-radius:99px;
+    padding:6px 14px;font-size:12.5px;font-family:inherit;cursor:pointer;transition:.15s;
+  }
+  .tab:hover{background:#123844;}
+  .tab.on{background:var(--gold);color:#0A2A33;border-color:var(--gold);font-weight:700;}
+  .note{
+    flex-basis:100%;font-size:12px;color:#9FC9D4;padding-top:6px;line-height:1.5;
+  }
+  .stage{display:flex;justify-content:center;padding:26px 12px 0;}
+  .phone{display:none;width:400px;background:var(--surface);border-radius:32px;overflow:hidden;
+    box-shadow:0 24px 60px rgba(10,42,51,.28);border:1px solid #B9CFD5;height:820px;
+    position:relative;flex-direction:column;}
+  .phone.show{display:flex;}
+  .appbar{padding:16px 20px 10px;display:flex;align-items:center;gap:12px;}
+  .appbar h1{font-size:19px;font-weight:800;flex:1;}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--muted-fill);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--primary);}
+  .scroll{flex:1;overflow-y:auto;padding:4px 16px 96px;}
+  /* bottom nav shared */
+  .bnav{
+    position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--outline);
+    display:flex;justify-content:space-around;padding:10px 6px 14px;font-size:11px;color:var(--muted);
+  }
+  .bnav div{display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .bnav .ic{font-size:17px;}
+  .bnav .on{color:var(--primary);font-weight:700;}
+  /* shared bits */
+  .pill{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:3px 9px;font-size:11px;font-weight:700;}
+  .strike{text-decoration:line-through;color:var(--muted);}
+  .mins{color:var(--muted);font-size:11.5px;}
+
+  /* ================= OPTION 0 : CURRENT LIST ================= */
+  .cur-card{background:var(--card);border-radius:20px;padding:16px;display:flex;gap:14px;
+    align-items:flex-start;margin-bottom:12px;box-shadow:0 1px 2px rgba(10,42,51,.06);position:relative;}
+  .cur-ic{width:52px;height:52px;border-radius:16px;background:var(--primary-container);
+    display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .cur-body{flex:1;min-width:0;}
+  .cur-body h3{font-size:15px;margin-bottom:3px;}
+  .cur-body p{font-size:12px;color:var(--muted);line-height:1.45;}
+  .cur-price{background:var(--primary-container);color:var(--on-primary-container);
+    border-radius:99px;padding:8px 12px;font-size:13.5px;font-weight:800;white-space:nowrap;}
+
+  /* ================= OPTION A : HERO + RAIL ================= */
+  .hero{
+    margin-top:6px;border-radius:24px;padding:20px;color:#fff;position:relative;overflow:hidden;
+    background:linear-gradient(140deg,#0C637B 0%,#0E7490 45%,#14B8A6 100%);
+    box-shadow:0 14px 30px rgba(14,116,144,.35);
+  }
+  .hero::before{content:"";position:absolute;width:190px;height:190px;border-radius:50%;
+    background:rgba(255,255,255,.09);top:-70px;left:-60px;}
+  .hero::after{content:"";position:absolute;width:120px;height:120px;border-radius:50%;
+    background:rgba(255,255,255,.07);bottom:-50px;right:-30px;}
+  .hero .badge{background:rgba(255,255,255,.18);backdrop-filter:blur(2px);color:#fff;}
+  .hero h2{font-size:21px;font-weight:800;margin:10px 0 4px;}
+  .hero p{font-size:12.5px;color:#D9F3F8;line-height:1.5;max-width:75%;}
+  .hero .row{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;}
+  .hero .price-big{font-size:26px;font-weight:800;}
+  .hero .cur{font-size:12px;font-weight:600;}
+  .hero .old{font-size:12.5px;margin-right:6px;}
+  .hero-cta{background:#fff;color:var(--primary-dark);border:none;border-radius:14px;
+    padding:11px 22px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;
+    box-shadow:0 6px 16px rgba(0,0,0,.18);}
+  .burst{
+    position:absolute;top:14px;left:16px;width:58px;height:58px;display:flex;align-items:center;justify-content:center;
+    background:var(--gold);color:#7A4D00;font-weight:900;font-size:14px;transform:rotate(-10deg);
+    clip-path:polygon(50% 0%,61% 10%,76% 6%,80% 21%,95% 25%,90% 39%,100% 50%,90% 61%,95% 75%,80% 79%,76% 94%,61% 90%,50% 100%,39% 90%,24% 94%,20% 79%,5% 75%,10% 61%,0% 50%,10% 39%,5% 25%,20% 21%,24% 6%,39% 10%);
+    box-shadow:0 4px 12px rgba(0,0,0,.2);
+  }
+  .rail-h{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 10px;}
+  .rail-h h3{font-size:14.5px;}
+  .rail-h span{font-size:11.5px;color:var(--primary);font-weight:700;}
+  .rail{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory;}
+  .rail::-webkit-scrollbar{display:none;}
+  .mini{scroll-snap-align:start;flex:0 0 168px;background:var(--card);border-radius:18px;padding:13px;
+    box-shadow:0 1px 3px rgba(10,42,51,.07);}
+  .mini .tile{width:40px;height:40px;border-radius:13px;background:var(--primary-container);
+    display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:9px;}
+  .mini h4{font-size:13.5px;margin-bottom:2px;}
+  .mini .mins{display:block;margin-bottom:7px;}
+  .mini .pr{display:flex;align-items:baseline;gap:6px;}
+  .mini .now{font-weight:800;font-size:14px;color:var(--ink);}
+  .mini .off{background:var(--red-container);color:var(--red);border-radius:99px;padding:1px 6px;font-size:10px;font-weight:800;}
+
+  /* ================= OPTION B : BENTO ================= */
+  .bento{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+  .bt{border-radius:20px;padding:14px;position:relative;overflow:hidden;background:var(--card);
+    box-shadow:0 1px 3px rgba(10,42,51,.07);display:flex;flex-direction:column;}
+  .bt.wide{grid-column:1/-1;}
+  .bt .zone{height:74px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    font-size:30px;margin-bottom:10px;}
+  .bt.wide .zone{height:104px;}
+  .bt h4{font-size:14.5px;margin-bottom:3px;}
+  .bt .d{font-size:11.5px;color:var(--muted);line-height:1.45;flex:1;}
+  .bt .foot{display:flex;align-items:flex-end;justify-content:space-between;margin-top:10px;}
+  .ribbon{
+    position:absolute;top:14px;left:-34px;transform:rotate(-45deg);background:var(--red);
+    color:#fff;font-size:10.5px;font-weight:800;padding:4px 36px;box-shadow:0 3px 8px rgba(220,38,38,.35);
+  }
+  .z-cyan{background:linear-gradient(135deg,var(--primary-container),#B9EAF3);}
+  .z-sand{background:linear-gradient(135deg,#FEF3C7,#FDE68A);}
+  .z-mint{background:linear-gradient(135deg,#DCFCE7,#BBF7D0);}
+  .z-slate{background:linear-gradient(135deg,#E2E8F0,#CBD5E1);}
+  .bt .go{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .bt .prices{line-height:1.2;}
+  .bt .n{font-weight:800;font-size:16px;}
+  .slim-row{display:flex;align-items:center;gap:12px;}
+  .slim-row .zone{width:64px;height:64px;margin:0;flex-shrink:0;}
+  .slim-row .txt{flex:1;}
+  .tagchip{position:absolute;top:12px;right:12px;z-index:2;}
+
+  /* ================= OPTION C : SWIPE DECK ================= */
+  .deck{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 14px;margin:0 -4px;}
+  .deck::-webkit-scrollbar{display:none;}
+  .cardx{
+    scroll-snap-align:center;flex:0 0 82%;border-radius:26px;padding:20px;min-height:430px;
+    display:flex;flex-direction:column;position:relative;overflow:hidden;color:var(--ink);
+  }
+  .cardx.darkc{color:#fff;}
+  .cdots{display:flex;gap:6px;justify-content:center;margin-top:2px;}
+  .cdots span{width:7px;height:7px;border-radius:50%;background:var(--outline);transition:.2s;}
+  .cdots span.on{background:var(--primary);width:20px;border-radius:99px;}
+  .cx-badge{align-self:flex-start;}
+  .cardx h2{font-size:20px;font-weight:800;margin:12px 0 6px;}
+  .cardx .sub{font-size:12.5px;opacity:.85;line-height:1.55;}
+  .feat{margin:14px 0;display:flex;flex-direction:column;gap:8px;font-size:12.5px;}
+  .feat span{display:flex;align-items:center;gap:8px;}
+  .feat i{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.22);
+    display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;}
+  .cardx.lite .feat i{background:var(--green-container);color:var(--on-green);}
+  .cx-foot{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;}
+  .cx-price{font-size:24px;font-weight:800;line-height:1;}
+  .cx-old{font-size:12px;margin-right:6px;opacity:.65;}
+  .cx-btn{border:none;border-radius:13px;padding:10px 20px;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;}
+  .g-cy{background:linear-gradient(160deg,#0C637B,#0E7490 55%,#14B8A6);}
+  .g-lt{background:#fff;box-shadow:0 1px 3px rgba(10,42,51,.09);border:1px solid var(--outline);}
+  .g-gd{background:linear-gradient(160deg,#134E4A,#0F3D3A);color:#FFF7DB;}
+  .g-gd .cx-price{color:var(--gold);}
+
+  /* ================= OPTION D : SMART CATALOG ================= */
+  .seg{display:flex;gap:8px;margin:4px 0 14px;flex-wrap:wrap;}
+  .seg button{
+    border:1.5px solid var(--outline);background:#fff;color:var(--muted);border-radius:99px;
+    padding:7px 15px;font-size:12.5px;font-family:inherit;font-weight:600;cursor:pointer;transition:.15s;
+  }
+  .seg button.on{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .smart{position:relative;background:var(--card);border-radius:20px;margin-bottom:12px;
+    box-shadow:0 1px 3px rgba(10,42,51,.07);padding:15px 15px 15px 15px;overflow:visible;}
+  .smart::before{content:"";position:absolute;inset-inline-start:0;top:14px;bottom:14px;width:4px;
+    border-radius:99px;background:var(--accent,var(--primary));}
+  .smart .top{display:flex;gap:13px;align-items:center;}
+  .smart .tic{width:48px;height:48px;border-radius:15px;display:flex;align-items:center;justify-content:center;
+    font-size:21px;flex-shrink:0;background:var(--tint,var(--primary-container));}
+  .smart h3{font-size:15px;display:flex;align-items:center;gap:7px;}
+  .chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;}
+  .chip{background:var(--surface);border:1px solid var(--outline);color:var(--muted);
+    border-radius:99px;padding:3px 9px;font-size:10.5px;font-weight:600;}
+  .smart .foot{display:flex;align-items:center;justify-content:space-between;margin-top:11px;padding-top:11px;
+    border-top:1px dashed var(--outline);}
+  .smart .bookbtn{
+    background:var(--primary);color:#fff;border:none;border-radius:11px;padding:8px 18px;
+    font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer;}
+  .floatbadge{position:absolute;top:-9px;inset-inline-end:14px;}
+</style>
+</head>
+<body>
+
+<div class="switcher">
+  <span class="brand">KLEAR · خدماتنا</span>
+  <button class="tab on" data-opt="cur">0 · الحالي</button>
+  <button class="tab" data-opt="a">A · هيرو + رف</button>
+  <button class="tab" data-opt="b">B · بينتو</button>
+  <button class="tab" data-opt="c">C · سوايب ديك</button>
+  <button class="tab" data-opt="d">D · كتالوج ذكي</button>
+  <div class="note" id="note">التصميم الحالي — قائمة بطاقات بيضاء متطابقة.</div>
+</div>
+
+<!-- ============ OPTION 0 : CURRENT ============ -->
+<section class="phone show" id="opt-cur">
+  <div class="appbar"><h1>خدماتنا</h1><div class="avatar">JD</div></div>
+  <div class="scroll">
+    <div class="cur-card">
+      <span class="pill floatbadge" style="position:absolute;top:-9px;inset-inline-start:12px;background:var(--primary);color:#fff;">🔥 الأكثر طلباً</span>
+      <div class="cur-ic">🫧</div>
+      <div class="cur-body"><h3>باقة العناية الكاملة</h3><p>تنظيف شامل من الداخل والخارج</p><span class="mins">⏱ ≈ 60 دقيقة</span></div>
+      <div style="text-align:left;">
+        <div style="font-weight:800;font-size:14px;color:var(--on-green);" dir="ltr">255 SYP</div>
+        <div style="font-size:10.5px;"><span class="off pill" style="background:var(--red-container);color:var(--red);">-15%</span></div>
+        <div class="strike" style="font-size:11px;" dir="ltr">300 SYP</div>
+      </div>
+    </div>
+    <div class="cur-card">
+      <span class="pill floatbadge" style="position:absolute;top:-9px;inset-inline-start:12px;background:var(--sky);color:#fff;">جديد ✨</span>
+      <div class="cur-ic">💦</div>
+      <div class="cur-body"><h3>غسيل خارجي</h3><p>غسيل وشطف خارجي بمستوى احترافي</p><span class="mins">⏱ ≈ 20 دقيقة</span></div>
+      <div class="cur-price" dir="ltr">200 SYP</div>
+    </div>
+    <div class="cur-card">
+      <div class="cur-ic">🧹</div>
+      <div class="cur-body"><h3>تنظيف داخلي</h3><p>تنظيف بالمكنسة ومسح كامل للمقصورة</p><span class="mins">⏱ ≈ 30 دقيقة</span></div>
+      <div class="cur-price" dir="ltr">150 SYP</div>
+    </div>
+    <div class="cur-card">
+      <span class="pill floatbadge" style="position:absolute;top:-9px;inset-inline-start:12px;background:var(--amber-container);color:var(--amber);">💎 أفضل قيمة</span>
+      <div class="cur-ic">📅</div>
+      <div class="cur-body"><h3>باقة اسبوعية</h3><p>اشتراك اسبوعي للتوفير</p><span class="mins">⏱ ≈ 15 دقيقة</span></div>
+      <div style="text-align:left;">
+        <div style="font-weight:800;font-size:14px;color:var(--on-green);" dir="ltr">450 SYP</div>
+        <div style="font-size:10.5px;"><span class="pill" style="background:var(--red-container);color:var(--red);">-10%</span></div>
+        <div class="strike" style="font-size:11px;" dir="ltr">500 SYP</div>
+      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div><span class="ic">🏠</span>الرئيسية</div>
+    <div class="on"><span class="ic">🧼</span>الخدمات</div>
+    <div><span class="ic">📦</span>طلباتي</div>
+    <div><span class="ic">⚙️</span>الإعدادات</div>
+  </nav>
+</section>
+
+<!-- ============ OPTION A : HERO + RAIL ============ -->
+<section class="phone" id="opt-a">
+  <div class="appbar"><h1>خدماتنا</h1><div class="avatar">JD</div></div>
+  <div class="scroll">
+    <div class="hero">
+      <div class="burst">-15%</div>
+      <span class="pill badge">🔥 الأكثر طلباً</span>
+      <h2>باقة العناية الكاملة</h2>
+      <p>تنظيف شامل من الداخل والخارج — سيارتك تعود كأنها جديدة.</p>
+      <div class="row">
+        <div>
+          <span class="price-big" dir="ltr">255</span> <span class="cur">SYP</span>
+          <div class="old strike" dir="ltr">300 SYP · ⏱ 60د</div>
+        </div>
+        <button class="hero-cta">احجز الآن</button>
+      </div>
+    </div>
+
+    <div class="rail-h"><h3>كل الخدمات</h3><span>اسحب لاستكشاف المزيد ←</span></div>
+    <div class="rail" id="railA">
+      <div class="mini">
+        <div class="tile">📅</div>
+        <h4>باقة اسبوعية</h4>
+        <span class="mins">⏱ ≈ 15 دقيقة</span>
+        <div class="pr"><span class="now" dir="ltr">450 SYP</span><span class="off">-10%</span></div>
+        <div class="strike" style="font-size:10.5px;" dir="ltr">500 SYP</div>
+      </div>
+      <div class="mini">
+        <span class="pill" style="background:var(--sky);color:#fff;margin-bottom:8px;">جديد ✨</span>
+        <div class="tile">💦</div>
+        <h4>غسيل خارجي</h4>
+        <span class="mins">⏱ ≈ 20 دقيقة</span>
+        <div class="pr"><span class="now" dir="ltr">200 SYP</span></div>
+      </div>
+      <div class="mini">
+        <div class="tile">🧹</div>
+        <h4>تنظيف داخلي</h4>
+        <span class="mins">⏱ ≈ 30 دقيقة</span>
+        <div class="pr"><span class="now" dir="ltr">150 SYP</span></div>
+      </div>
+    </div>
+
+    <div class="rail-h"><h3>لماذا كليير؟</h3></div>
+    <div style="display:flex;gap:8px;">
+      <div class="mini" style="flex:1;"><div style="font-size:20px;margin-bottom:6px;">📍</div><div style="font-size:11.5px;font-weight:700;">نوصلك وين ما كنت</div></div>
+      <div class="mini" style="flex:1;"><div style="font-size:20px;margin-bottom:6px;">🕒</div><div style="font-size:11.5px;font-weight:700;">بنختار وقتك المناسب</div></div>
+      <div class="mini" style="flex:1;"><div style="font-size:20px;margin-bottom:6px;">✅</div><div style="font-size:11.5px;font-weight:700;">كباتن مدربين</div></div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div><span class="ic">🏠</span>الرئيسية</div>
+    <div class="on"><span class="ic">🧼</span>الخدمات</div>
+    <div><span class="ic">📦</span>طلباتي</div>
+    <div><span class="ic">⚙️</span>الإعدادات</div>
+  </nav>
+</section>
+
+<!-- ============ OPTION B : BENTO GRID ============ -->
+<section class="phone" id="opt-b">
+  <div class="appbar"><h1>خدماتنا</h1><div class="avatar">JD</div></div>
+  <div class="scroll">
+    <div class="bento">
+      <div class="bt wide">
+        <span class="pill tagchip" style="background:var(--primary);color:#fff;">🔥 الأكثر طلباً</span>
+        <div class="ribbon">خصم 15%</div>
+        <div class="zone z-cyan">🫧</div>
+        <h4>باقة العناية الكاملة</h4>
+        <div class="d">تنظيف شامل من الداخل والخارج — أقوى باقة عندنا.</div>
+        <div class="foot">
+          <div class="prices">
+            <div class="n" dir="ltr" style="color:var(--on-green);">255 SYP</div>
+            <div class="strike" style="font-size:11px;" dir="ltr">300 SYP · ⏱ 60د</div>
+          </div>
+          <div class="go">←</div>
+        </div>
+      </div>
+      <div class="bt">
+        <span class="pill tagchip" style="background:var(--sky);color:#fff;">جديد ✨</span>
+        <div class="zone z-mint">💦</div>
+        <h4>غسيل خارجي</h4>
+        <div class="d">غسيل وشطف احترافي</div>
+        <div class="foot">
+          <div class="n" dir="ltr">200 SYP</div>
+          <div class="go">←</div>
+        </div>
+      </div>
+      <div class="bt">
+        <div class="zone z-slate">🧹</div>
+        <h4>تنظيف داخلي</h4>
+        <div class="d">مكنسة + مسح كامل</div>
+        <div class="foot">
+          <div class="n" dir="ltr">150 SYP</div>
+          <div class="go">←</div>
+        </div>
+      </div>
+      <div class="bt wide">
+        <span class="pill tagchip" style="background:var(--amber-container);color:var(--amber);">💎 أفضل قيمة</span>
+        <div class="ribbon">خصم 10%</div>
+        <div class="slim-row">
+          <div class="zone z-sand">📅</div>
+          <div class="txt">
+            <h4>باقة اسبوعية</h4>
+            <div class="d">اشتراك اسبوعي للتوفير · ⏱ 15د</div>
+          </div>
+          <div class="prices" style="text-align:left;">
+            <div class="n" dir="ltr" style="color:var(--on-green);">450 SYP</div>
+            <div class="strike" style="font-size:10.5px;" dir="ltr">500 SYP</div>
+          </div>
+          <div class="go">←</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div><span class="ic">🏠</span>الرئيسية</div>
+    <div class="on"><span class="ic">🧼</span>الخدمات</div>
+    <div><span class="ic">📦</span>طلباتي</div>
+    <div><span class="ic">⚙️</span>الإعدادات</div>
+  </nav>
+</section>
+
+<!-- ============ OPTION C : SWIPE DECK ============ -->
+<section class="phone" id="opt-c">
+  <div class="appbar"><h1>خدماتنا</h1><div class="avatar">JD</div></div>
+  <div class="scroll">
+    <div class="deck" id="deckC">
+
+      <article class="cardx darkc g-cy">
+        <span class="pill cx-badge" style="background:rgba(255,255,255,.2);color:#fff;">🔥 الأكثر طلباً</span>
+        <h2>باقة العناية الكاملة</h2>
+        <div class="sub">تنظيف شامل من الداخل والخارج — سيارتك تعود كأنها جديدة.</div>
+        <div class="feat">
+          <span><i>✓</i> تنظيف داخلي عميق بالمكنسة</span>
+          <span><i>✓</i> غسيل وتلميع خارجي</span>
+          <span><i>✓</i> معطر مقصورة مجاناً</span>
+        </div>
+        <div class="cx-foot">
+          <div>
+            <div class="cx-price" dir="ltr">255 <small style="font-size:12px;">SYP</small></div>
+            <div class="cx-old strike" dir="ltr">300 SYP · ⏱ 60د</div>
+          </div>
+          <button class="cx-btn" style="background:#fff;color:var(--primary-dark);">احجز الآن</button>
+        </div>
+      </article>
+
+      <article class="cardx lite g-lt">
+        <span class="pill cx-badge" style="background:var(--sky);color:#fff;">جديد ✨</span>
+        <h2>غسيل خارجي</h2>
+        <div class="sub" style="color:var(--muted);">غسيل وشطف خارجي بمستوى احترافي.</div>
+        <div class="feat">
+          <span><i>✓</i> رغوة نشطة للطلاء</span>
+          <span><i>✓</i> شطف بضغط عالي</span>
+          <span><i>✓</i> تجفيف ناعم بدون خطوط</span>
+        </div>
+        <div class="cx-foot">
+          <div>
+            <div class="cx-price" dir="ltr" style="color:var(--primary-dark);">200 <small style="font-size:12px;">SYP</small></div>
+            <div class="cx-old" dir="ltr">⏱ 20د</div>
+          </div>
+          <button class="cx-btn" style="background:var(--primary);color:#fff;">احجز الآن</button>
+        </div>
+      </article>
+
+      <article class="cardx lite g-lt">
+        <h2>تنظيف داخلي</h2>
+        <div class="sub" style="color:var(--muted);">تنظيف بالمكنسة ومسح كامل للمقصورة.</div>
+        <div class="feat">
+          <span><i>✓</i> مكنسة قوية للمقاعد</span>
+          <span><i>✓</i> مسح التابلوه والزجاج</span>
+          <span><i>✓</i> إزالة الغبار الشامل</span>
+        </div>
+        <div class="cx-foot">
+          <div>
+            <div class="cx-price" dir="ltr" style="color:var(--primary-dark);">150 <small style="font-size:12px;">SYP</small></div>
+            <div class="cx-old" dir="ltr">⏱ 30د</div>
+          </div>
+          <button class="cx-btn" style="background:var(--primary);color:#fff;">احجز الآن</button>
+        </div>
+      </article>
+
+      <article class="cardx g-gd">
+        <span class="pill cx-badge" style="background:var(--gold);color:#134E4A;">💎 أفضل قيمة</span>
+        <h2>باقة اسبوعية</h2>
+        <div class="sub" style="opacity:.85;">اشتراك اسبوعي للتوفير — تغسيل بلا قلق طوال الأسبوع.</div>
+        <div class="feat">
+          <span><i style="background:rgba(250,204,21,.25);color:var(--gold);">✓</i> ٣ غسيلات خلال الأسبوع</span>
+          <span><i style="background:rgba(250,204,21,.25);color:var(--gold);">✓</i> أولوية في المواعيد</span>
+        </div>
+        <div class="cx-foot">
+          <div>
+            <div class="cx-price" dir="ltr">450 <small style="font-size:12px;">SYP</small></div>
+            <div class="cx-old strike" dir="ltr">500 SYP</div>
+          </div>
+          <button class="cx-btn" style="background:var(--gold);color:#134E4A;">اشترك</button>
+        </div>
+      </article>
+
+    </div>
+    <div class="cdots" id="dotsC"><span class="on"></span><span></span><span></span><span></span></div>
+  </div>
+  <nav class="bnav">
+    <div><span class="ic">🏠</span>الرئيسية</div>
+    <div class="on"><span class="ic">🧼</span>الخدمات</div>
+    <div><span class="ic">📦</span>طلباتي</div>
+    <div><span class="ic">⚙️</span>الإعدادات</div>
+  </nav>
+</section>
+
+<!-- ============ OPTION D : SMART CATALOG ============ -->
+<section class="phone" id="opt-d">
+  <div class="appbar"><h1>خدماتنا</h1><div class="avatar">JD</div></div>
+  <div class="scroll">
+    <div class="seg" id="segD">
+      <button class="on" data-f="all">الكل</button>
+      <button data-f="ext">خارجي</button>
+      <button data-f="int">داخلي</button>
+      <button data-f="pack">باقات</button>
+    </div>
+
+    <div class="smart" data-cat="pack" style="--accent:var(--primary);--tint:linear-gradient(135deg,var(--primary-container),#B9EAF3);">
+      <span class="pill floatbadge" style="background:var(--primary);color:#fff;">🔥 الأكثر طلباً</span>
+      <div class="top">
+        <div class="tic">🫧</div>
+        <div style="flex:1;">
+          <h3>باقة العناية الكاملة</h3>
+          <span class="mins">تنظيف شامل من الداخل والخارج</span>
+        </div>
+      </div>
+      <div class="chips"><span class="chip">⏱ ≈ 60 دقيقة</span><span class="chip">داخلي + خارجي</span></div>
+      <div class="foot">
+        <div>
+          <div style="font-weight:800;color:var(--on-green);" dir="ltr">255 SYP <span class="pill" style="background:var(--red-container);color:var(--red);font-size:10px;">-15%</span></div>
+          <div class="strike" style="font-size:11px;" dir="ltr">300 SYP</div>
+        </div>
+        <button class="bookbtn">احجز</button>
+      </div>
+    </div>
+
+    <div class="smart" data-cat="ext" style="--accent:var(--sky);--tint:linear-gradient(135deg,#E0F2FE,#BAE6FD);">
+      <span class="pill floatbadge" style="background:var(--sky);color:#fff;">جديد ✨</span>
+      <div class="top">
+        <div class="tic">💦</div>
+        <div style="flex:1;">
+          <h3>غسيل خارجي</h3>
+          <span class="mins">غسيل وشطف خارجي بمستوى احترافي</span>
+        </div>
+      </div>
+      <div class="chips"><span class="chip">⏱ ≈ 20 دقيقة</span><span class="chip">رغوة + شطف ضغط</span></div>
+      <div class="foot">
+        <div style="font-weight:800;" dir="ltr">200 SYP</div>
+        <button class="bookbtn">احجز</button>
+      </div>
+    </div>
+
+    <div class="smart" data-cat="int" style="--accent:var(--teal);--tint:linear-gradient(135deg,#CCFBF1,#99F6E4);">
+      <div class="top">
+        <div class="tic">🧹</div>
+        <div style="flex:1;">
+          <h3>تنظيف داخلي</h3>
+          <span class="mins">تنظيف بالمكنسة ومسح كامل للمقصورة</span>
+        </div>
+      </div>
+      <div class="chips"><span class="chip">⏱ ≈ 30 دقيقة</span><span class="chip">مقاعد + تابلوه</span></div>
+      <div class="foot">
+        <div style="font-weight:800;" dir="ltr">150 SYP</div>
+        <button class="bookbtn">احجز</button>
+      </div>
+    </div>
+
+    <div class="smart" data-cat="pack" style="--accent:var(--amber);--tint:linear-gradient(135deg,var(--amber-container),#FDE68A);">
+      <span class="pill floatbadge" style="background:var(--amber-container);color:var(--amber);">💎 أفضل قيمة</span>
+      <div class="top">
+        <div class="tic">📅</div>
+        <div style="flex:1;">
+          <h3>باقة اسبوعية</h3>
+          <span class="mins">اشتراك اسبوعي للتوفير</span>
+        </div>
+      </div>
+      <div class="chips"><span class="chip">⏱ ≈ 15 دقيقة</span><span class="chip">٣ غسيلات اسبوعياً</span></div>
+      <div class="foot">
+        <div>
+          <div style="font-weight:800;color:var(--on-green);" dir="ltr">450 SYP <span class="pill" style="background:var(--red-container);color:var(--red);font-size:10px;">-10%</span></div>
+          <div class="strike" style="font-size:11px;" dir="ltr">500 SYP</div>
+        </div>
+        <button class="bookbtn" style="background:var(--amber);">اشترك</button>
+      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div><span class="ic">🏠</span>الرئيسية</div>
+    <div class="on"><span class="ic">🧼</span>الخدمات</div>
+    <div><span class="ic">📦</span>طلباتي</div>
+    <div><span class="ic">⚙️</span>الإعدادات</div>
+  </nav>
+</section>
+
+<script>
+  // ---- tab switcher ----
+  const notes = {
+    cur: 'التصميم الحالي — قائمة بطاقات بيضاء متطابقة.',
+    a:   'A — HERO + RAIL: البطاقة الأقوى تتصدر بحجم كبير مع ملصق خصم بارز، والباقي رف أفقي قابل للسحب. نمط تطبيقات التوصيل — يبيع العرض الأفضل فوراً.',
+    b:   'B — BENTO GRID: شبكة مربعات بأحجام مختلفة، كل خدمة لها لونها. عصري وكثيف المعلومات، يظهر كل شيء بلا سحب — لكن المساحة أقل للأوصاف.',
+    c:   'C — SWIPE DECK: كل خدمة صفحة منتج مصغّرة تتم التقلب بينها بالسحب. أكثر إحساس "تطبيق عصري"، والمقارنة تحتاج تمرير.',
+    d:   'D — SMART CATALOG: تصنيفات فوق + صفوف غنية بشارة عائمة وسعر مخفض واضح. الأقرب للتصميم الحالي وبأقل مخاطرة.'
+  };
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+      t.classList.add('on');
+      document.querySelectorAll('.phone').forEach(p=>p.classList.remove('show'));
+      document.getElementById('opt-'+t.dataset.opt).classList.add('show');
+      document.getElementById('note').textContent = notes[t.dataset.opt];
+    });
+  });
+  // ---- option D filter ----
+  document.querySelectorAll('#segD button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#segD button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      const f=b.dataset.f;
+      document.querySelectorAll('#opt-d .smart').forEach(card=>{
+        card.style.display=(f==='all'||card.dataset.cat===f)?'':'none';
+      });
+    });
+  });
+  // ---- option C dots ----
+  const deck=document.getElementById('deckC');
+  deck.addEventListener('scroll',()=>{
+    const cards=[...deck.children];
+    // RTL carousels report negative scrollLeft; use magnitude.
+    const idx=Math.round(Math.abs(deck.scrollLeft)/(cards[0].offsetWidth+12));
+    document.querySelectorAll('#dotsC span').forEach((d,i)=>d.classList.toggle('on',i===idx));
+  },{passive:true});
+</script>
+</body>
+</html>

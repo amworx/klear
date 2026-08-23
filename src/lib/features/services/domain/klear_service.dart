@@ -9,6 +9,8 @@ class KlearService {
     required this.basePrice,
     required this.currency,
     this.durationMin,
+    this.discountPercent,
+    this.badgeKey,
   });
 
   /// Fallback used when a booking references a service that is no longer
@@ -32,6 +34,34 @@ class KlearService {
   /// Estimated duration of the wash in minutes (Captainz-style display).
   final int? durationMin;
 
+  /// Real discount applied to [basePrice] (percent, 1–90), or null/0 for
+  /// none. Discounts are honored in every total the customer pays.
+  final int? discountPercent;
+
+  /// Merchandising badge key ('popular' | 'new' | 'best_value'), or null.
+  final String? badgeKey;
+
+  bool get hasDiscount => discountPercent != null && discountPercent! > 0;
+
+  /// The price the customer actually pays before car-size/urgent factors:
+  /// [basePrice] minus any real discount.
+  double get finalPrice =>
+      hasDiscount ? basePrice * (1 - discountPercent! / 100) : basePrice;
+
+  /// Amount saved versus [basePrice] when discounted (0 otherwise).
+  double get savingsAmount =>
+      hasDiscount ? basePrice - finalPrice : 0;
+
+  /// Picks the catalog's featured (hero) service: the first one carrying
+  /// the 'popular' badge, otherwise simply the first service. Catalog UIs
+  /// render [featuredOf] as the hero and the rest as the scroll rail.
+  static KlearService featuredOf(List<KlearService> services) {
+    for (final s in services) {
+      if (s.badgeKey == 'popular') return s;
+    }
+    return services.first;
+  }
+
   /// Returns the localized name. Callers pass the current language code.
   String nameFor(String langCode) =>
       langCode == 'ar' && nameAr.isNotEmpty ? nameAr : nameEn;
@@ -51,6 +81,8 @@ class KlearService {
         basePrice: (map['base_price'] as num?)?.toDouble() ?? 0,
         currency: (map['currency'] as String?) ?? 'SYP',
         durationMin: map['duration_min'] as int?,
+        discountPercent: map['discount_percent'] as int?,
+        badgeKey: map['badge_key'] as String?,
       );
 
   Map<String, dynamic> toMap() => {
@@ -62,5 +94,7 @@ class KlearService {
         'base_price': basePrice,
         'currency': currency,
         'duration_min': durationMin,
+        'discount_percent': discountPercent,
+        'badge_key': badgeKey,
       };
 }

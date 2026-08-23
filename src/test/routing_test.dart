@@ -16,6 +16,9 @@ void main() {
     // Welcome screen renders.
     expect(find.text('مرحباً بك في كليير'), findsOneWidget);
     expect(find.text('تسجيل الدخول'), findsOneWidget);
+
+    // Fixed single-screen layout: no scroll views anywhere on welcome.
+    expect(find.byType(ScrollView), findsNothing);
   });
 
   testWidgets('AppLocalizations loads', (tester) async {

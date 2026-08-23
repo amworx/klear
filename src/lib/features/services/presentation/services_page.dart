@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_router.dart';
+import '../../../app/widgets/app_data_refresh.dart';
+import '../../../app/widgets/profile_avatar_button.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../bookings/presentation/booking_providers.dart';
 import '../../home/presentation/widgets/services_section.dart';
@@ -20,29 +22,36 @@ class ServicesPage extends ConsumerWidget {
     final servicesAsync = ref.watch(servicesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navServices)),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  l10n.servicesTitle,
-                  style: Theme.of(context).textTheme.headlineSmall,
+      appBar: AppBar(
+        title: Text(l10n.navServices),
+        actions: const [ProfileAvatarButton()],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => refreshAppData(ref),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    l10n.servicesTitle,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                 ),
-              ),
-              ServicesSection(
-                servicesAsync: servicesAsync,
-                onBookService: (service) {
-                  ref.read(bookingDraftProvider.notifier).startNew();
-                  ref.read(bookingDraftProvider.notifier).setService(service);
-                  context.go(KlearRoutes.bookDetails);
-                },
-              ),
-            ],
+                ServicesSection(
+                  servicesAsync: servicesAsync,
+                  onBookService: (service) {
+                    ref.read(bookingDraftProvider.notifier).startNew();
+                    ref.read(bookingDraftProvider.notifier).setService(service);
+                    context.go(KlearRoutes.bookDetails);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

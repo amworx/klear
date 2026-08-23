@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/presentation/auth_providers.dart';
+import '../../bookings/domain/booking_insights.dart';
 import '../../bookings/domain/klear_booking.dart';
 import '../../bookings/presentation/booking_providers.dart';
 import '../../services/presentation/services_providers.dart';
@@ -43,4 +44,16 @@ final myBookingsProvider = FutureProvider<List<KlearBooking>>((ref) async {
         userId: userId,
         servicesById: servicesById,
       );
+});
+
+/// Personalization signals (T3): most-used service, last booking and
+/// preferred time window — derived purely from booking history. Null while
+/// history is still loading.
+final bookingInsightsProvider = Provider<BookingInsights?>((ref) {
+  final bookings = ref.watch(myBookingsProvider).valueOrNull;
+  if (bookings == null) return null;
+  // Catalog order is only needed for most-used tie-breaking; fall back to
+  // an empty list when the catalog hasn't loaded yet.
+  final catalog = ref.watch(servicesProvider).valueOrNull ?? const [];
+  return BookingInsights.compute(bookings, catalog);
 });

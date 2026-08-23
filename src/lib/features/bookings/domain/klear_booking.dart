@@ -231,14 +231,15 @@ class BookingDraft {
       address!.isNotEmpty &&
       dateTime != null;
 
-  /// Estimated base price = service base price × car-size factor (admin-
-  /// configurable via [AppSettings]). Does NOT include the urgent surcharge,
-  /// so live UI can apply the +25% without double-counting when editing an
-  /// already-urgent booking. Falls back to [AppSettings.defaults] when no
-  /// settings are supplied (tests / offline).
+  /// Estimated base price = service discounted price × car-size factor
+  /// (admin-configurable via [AppSettings]). Uses [KlearService.finalPrice]
+  /// so catalog discounts are REAL — the customer pays less. Does NOT
+  /// include the urgent surcharge, so live UI can apply the +25% without
+  /// double-counting when editing an already-urgent booking. Falls back to
+  /// [AppSettings.defaults] when no settings are supplied (tests / offline).
   double estimatedTotal([AppSettings? settings]) {
     final s = settings ?? AppSettings.defaults;
-    final base = (service?.basePrice ?? 0) *
+    final base = (service?.finalPrice ?? 0) *
         s.priceFactorFor(car?.size ?? KlearCarSize.medium);
     return base;
   }

@@ -266,6 +266,42 @@ abstract class AppLocalizations {
   /// **'Could not load services. Please try again.'**
   String get errorLoadingServices;
 
+  /// No description provided for @badgePopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Most popular'**
+  String get badgePopular;
+
+  /// No description provided for @badgeNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get badgeNew;
+
+  /// No description provided for @badgeBestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Best value'**
+  String get badgeBestValue;
+
+  /// No description provided for @discountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get discountLabel;
+
+  /// No description provided for @bookNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Book now'**
+  String get bookNow;
+
+  /// No description provided for @allServices.
+  ///
+  /// In en, this message translates to:
+  /// **'All services'**
+  String get allServices;
+
   /// No description provided for @noServices.
   ///
   /// In en, this message translates to:
@@ -1046,6 +1082,18 @@ abstract class AppLocalizations {
   /// **'View details'**
   String get viewDetails;
 
+  /// No description provided for @bookAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Book again'**
+  String get bookAgain;
+
+  /// No description provided for @mostOrdered.
+  ///
+  /// In en, this message translates to:
+  /// **'Your favorite'**
+  String get mostOrdered;
+
   /// No description provided for @orderDetailsTitle.
   ///
   /// In en, this message translates to:
@@ -1388,6 +1436,60 @@ abstract class AppLocalizations {
   /// **'Anytime today (+25%)'**
   String get timeUrgentLabel;
 
+  /// No description provided for @availLegendFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get availLegendFree;
+
+  /// No description provided for @availLegendLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited'**
+  String get availLegendLimited;
+
+  /// No description provided for @availLegendFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get availLegendFull;
+
+  /// No description provided for @availTeamsLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} wash team(s) available'**
+  String availTeamsLine(int n);
+
+  /// No description provided for @availSlotFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get availSlotFree;
+
+  /// No description provided for @availSlotOneLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'One spot left'**
+  String get availSlotOneLeft;
+
+  /// No description provided for @availTodayTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get availTodayTag;
+
+  /// No description provided for @availTomorrowTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get availTomorrowTag;
+
+  /// No description provided for @availAllFullNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Fully booked — try another day'**
+  String get availAllFullNote;
+
   /// No description provided for @urgentSurcharge.
   ///
   /// In en, this message translates to:
@@ -1615,6 +1717,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App updates'**
   String get appUpdates;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
 }
 
 class _AppLocalizationsDelegate

@@ -9,6 +9,7 @@ import 'core/config/app_config.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/logger/app_logger.dart';
 import 'core/network/supabase_service.dart';
+import 'core/theme/theme_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +31,11 @@ Future<void> main() async {
     logger.i('config', 'Supabase config present, initializing');
   }
 
-  // Load persisted preferences once, then hand them to the locale notifier.
-  LocaleNotifier.prefs = await SharedPreferences.getInstance();
+  // Load persisted preferences once, then hand them to the notifiers that
+  // read them (locale + theme).
+  final prefs = await SharedPreferences.getInstance();
+  LocaleNotifier.prefs = prefs;
+  ThemeController.prefs = prefs;
   await SupabaseClientManager.init();
   logger.i('app', 'Supabase init complete (isReady=${SupabaseClientManager.isReady})');
   runApp(

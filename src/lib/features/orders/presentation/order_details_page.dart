@@ -67,7 +67,7 @@ class OrderDetailPage extends ConsumerWidget {
               if (booking.totalPrice != null && car != null) ...[
                 const SizedBox(height: 12),
                 _Breakdown(
-                  basePrice: booking.service.basePrice,
+                  basePrice: booking.service.finalPrice,
                   sizeLabel: switch (car.size) {
                     KlearCarSize.small => l10n.sizeSmall,
                     KlearCarSize.medium => l10n.sizeMedium,

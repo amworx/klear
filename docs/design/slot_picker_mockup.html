@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>كليير — نموذج اختيار الموعد المتاح</title>
+<style>
+  :root{
+    --primary:#0E7490; --primary-dark:#0C637B; --on-primary:#FFFFFF;
+    --primary-container:#D3F2F7; --on-primary-container:#083B48;
+    --surface:#F4FBFC; --card:#FFFFFF; --ink:#0A2A33;
+    --muted:#5B7780; --outline:#C9DEE3; --muted-fill:#E1EFF1;
+    --green:#16A34A; --amber:#D97706; --red:#DC2626;
+    --amber-container:#FEF3C7; --red-container:#FEE2E2; --green-container:#DCFCE7;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:"Segoe UI", Tahoma, sans-serif; background:#DCE8EB;
+    display:flex; justify-content:center; padding:24px 12px; min-height:100vh;
+  }
+  .phone{
+    width:400px; background:var(--surface); border-radius:32px; overflow:hidden;
+    box-shadow:0 24px 60px rgba(10,42,51,.28); border:1px solid #B9CFD5;
+  }
+  .banner{
+    background:var(--ink); color:#CFE9EF; text-align:center; font-size:12px;
+    padding:7px 12px; letter-spacing:.4px;
+  }
+  .appbar{
+    background:var(--surface); padding:14px 20px 10px; display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid var(--outline);
+  }
+  .appbar h1{font-size:18px; color:var(--ink); font-weight:700; flex:1; text-align:center;}
+  .icon-btn{
+    width:38px;height:38px;border-radius:50%;background:var(--muted-fill);
+    display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:17px;
+  }
+  .step-dots{display:flex;gap:6px;justify-content:center;padding:12px 0 2px;}
+  .step-dots span{height:4px;border-radius:99px;background:var(--muted-fill);transition:.3s;width:26px;}
+  .step-dots span.on{background:var(--primary);width:40px;}
+  .body{padding:14px 16px 110px; overflow-y:auto; max-height:calc(100vh - 60px);}
+  .sec-h{display:flex;align-items:center;gap:8px;margin:18px 0 10px;font-weight:700;color:var(--ink);font-size:15px;}
+  .sec-h:first-child{margin-top:0;}
+  .sec-h .ic{color:var(--primary);font-size:19px;}
+  /* car chips */
+  .cars{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
+  .car-chip{
+    min-width:130px;background:var(--card);border:1.5px solid var(--outline);
+    border-radius:16px;padding:11px 14px;font-size:13px;color:var(--ink);
+  }
+  .car-chip b{display:block;margin-bottom:3px;}
+  .car-chip.sel{background:var(--primary-container);border-color:var(--primary);}
+  .car-chip .plate{direction:ltr;text-align:right;color:var(--muted);letter-spacing:1px;font-size:11.5px;font-weight:700;}
+  /* address */
+  .addr{
+    background:var(--card);border:1.5px solid var(--outline);border-radius:14px;
+    padding:13px 14px;color:var(--ink);font-size:13.5px;display:flex;align-items:center;gap:9px;
+  }
+  .addr .pin{color:var(--primary);}
+  /* ===== calendar strip ===== */
+  .cal-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none;}
+  .cal-strip::-webkit-scrollbar{display:none;}
+  .day{
+    flex:0 0 62px;background:var(--card);border:1.5px solid var(--outline);
+    border-radius:16px;padding:9px 4px 7px;text-align:center;cursor:pointer;
+    transition:border-color .15s, background .15s, transform .1s; position:relative;
+  }
+  .day:active{transform:scale(.96);}
+  .day .dw{font-size:11px;color:var(--muted);margin-bottom:2px;}
+  .day .dn{font-size:17px;font-weight:800;color:var(--ink);line-height:1.15;}
+  .day .dm{font-size:10px;color:var(--muted);}
+  .day .dot{width:7px;height:7px;border-radius:50%;margin:5px auto 0;}
+  .dot.free{background:var(--green);} .dot.limited{background:var(--amber);} .dot.full{background:var(--red);}
+  .day.sel{background:var(--primary-container);border-color:var(--primary);box-shadow:0 0 0 1px var(--primary);}
+  .day.sel .dn{color:var(--on-primary-container);}
+  .day .tag-today{
+    position:absolute;top:-7px;right:50%;transform:translateX(50%);background:var(--primary);
+    color:var(--on-primary);font-size:9px;padding:1.5px 7px;border-radius:99px;font-weight:700;
+  }
+  /* legend */
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);padding:0 4px;}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:5px;}
+  /* capacity info line */
+  .cap-line{
+    margin-top:10px;display:flex;align-items:center;gap:8px;background:var(--primary-container);
+    color:var(--on-primary-container);border-radius:12px;padding:9px 13px;font-size:12.5px;font-weight:600;
+  }
+  /* window pills */
+  .wins{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+  .win{
+    background:var(--card);border:1.5px solid var(--outline);border-radius:16px;
+    padding:12px 14px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;
+  }
+  .win:active{transform:scale(.985);}
+  .win .wt{text-align:center;min-width:74px;}
+  .win .wt b{display:block;font-size:15px;color:var(--ink);}
+  .win .wt small{color:var(--muted);font-size:11px;}
+  .win .wm{flex:1;}
+  .win .st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:2.5px 9px;border-radius:99px;}
+  .st.free{background:var(--green-container);color:var(--green);}
+  .st.limited{background:var(--amber-container);color:var(--amber);}
+  .st.full{background:var(--red-container);color:var(--red);}
+  .bar{height:4px;background:var(--muted-fill);border-radius:99px;margin-top:8px;overflow:hidden;}
+  .bar i{display:block;height:100%;border-radius:99px;transition:width .35s;}
+  .win.full{opacity:.55;cursor:not-allowed;background:repeating-linear-gradient(45deg,var(--card),var(--card) 8px,#F7FAFB 8px,#F7FAFB 16px);}
+  .win.sel{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary);background:var(--primary-container);}
+  .win .radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--outline);flex:0 0 auto;}
+  .win.sel .radio{border-color:var(--primary);background:radial-gradient(circle,var(--primary) 42%,transparent 46%);}
+  /* all-day / urgent */
+  .opt{
+    background:var(--card);border:1.5px solid var(--outline);border-radius:16px;
+    padding:12px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:8px;transition:.15s;
+  }
+  .opt.sel{background:var(--primary-container);border-color:var(--primary);box-shadow:0 0 0 1px var(--primary);}
+  .opt.dis{opacity:.5;cursor:not-allowed;}
+  .opt .oi{font-size:19px;}
+  .opt b{display:block;font-size:13.5px;color:var(--ink);}
+  .opt small{color:var(--muted);font-size:11.5px;}
+  .opt .badge-up{background:var(--amber-container);color:var(--amber);font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:99px;margin-right:6px;}
+  .opt .radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--outline);margin-right:auto;flex:0 0 auto;}
+  .opt.sel .radio{border-color:var(--primary);background:radial-gradient(circle,var(--primary) 42%,transparent 46%);}
+  /* selected summary */
+  .summary{
+    margin-top:14px;background:var(--card);border:1.5px dashed var(--primary);
+    border-radius:14px;padding:11px 14px;font-size:13.5px;font-weight:700;color:var(--primary);text-align:center;
+  }
+  /* bottom bar */
+  .bottom{
+    position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,var(--surface) 70%,transparent);
+    padding:14px 16px 20px;
+  }
+  .cta{
+    width:100%;background:var(--primary);color:var(--on-primary);border:none;border-radius:16px;
+    padding:15px;font-size:15.5px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(14,116,144,.35);
+  }
+  .phone-wrap{position:relative;}
+  h2.note{color:#37545C;font-size:13px;font-weight:600;max-width:400px;margin-bottom:14px;line-height:1.7;}
+  h2.note b{color:var(--primary-dark);}
+</style>
+</head>
+<body>
+<div>
+  <h2 class="note">
+    📱 <b>نموذج تفاعلي</b> — جرّب الضغط على الأيام والفترات. الشريط يعرض 14 يوماً،
+    والنقطة تحت كل يوم تلخّص الإشغال، والبطاقات أدناه تعرض السعة الفعلية لكل فترة
+    (تُحسب من عدد فرق الغسيل المتاحة في لوحة التحكم). هذا القسم سيحل محل «الفئات المرنة» الحالية في خطوة 2.
+  </h2>
+  <div class="phone phone-wrap">
+    <div class="banner">نموذج تصميم — غير مرتبط بالبيانات الحقيقية</div>
+    <div class="appbar">
+      <div class="icon-btn">←</div>
+      <h1>تفاصيل الحجز</h1>
+      <div class="icon-btn">👤</div>
+    </div>
+    <div class="step-dots"><span></span><span class="on"></span><span></span></div>
+
+    <div class="body">
+      <!-- context: car -->
+      <div class="sec-h"><span class="ic">🚗</span> اختر سيارتك</div>
+      <div class="cars">
+        <div class="car-chip sel"><b>Kia Sorento</b><span class="plate">232426 ?</span></div>
+        <div class="car-chip"><b>Land Rover Defender</b><span class="plate">170250-D</span></div>
+      </div>
+
+      <!-- context: address -->
+      <div class="sec-h"><span class="ic">📍</span> عنوان الغسيل</div>
+      <div class="addr"><span class="pin">📌</span> دمشق - المزة، جسر الأصدقاء</div>
+
+      <!-- ===== NEW SCHEDULE SECTION ===== -->
+      <div class="sec-h"><span class="ic">🗓️</span> اختر يوم الغسيل</div>
+      <div class="cal-strip" id="strip"></div>
+      <div class="legend">
+        <span><i class="dot free" style="margin:0 0 0 5px"></i> متاح</span>
+        <span><i class="dot limited"></i> أماكن محدودة</span>
+        <span><i class="dot full"></i> ممتلئ</span>
+      </div>
+
+      <div class="sec-h" style="margin-top:16px"><span class="ic">⏰</span> الفترات المتاحة</div>
+      <div class="cap-line" id="capLine">👥 متاح اليوم: 3 فرق غسيل</div>
+      <div class="wins" id="wins"></div>
+
+      <div class="opt" id="allDay">
+        <span class="oi">☀️</span>
+        <span><b>أي وقت خلال اليوم</b><small>8 صباحاً – 6 مساءً · يحدده الفريق</small></span>
+        <span class="radio"></span>
+      </div>
+      <div class="opt" id="urgent">
+        <span class="oi">⚡</span>
+        <span style="display:flex;align-items:center"><b style="display:inline">غسيل عاجل</b><span class="badge-up">+25%</span></span>
+        <small style="display:block">اليوم فقط · أول فريق يتفرغ</small>
+        <span class="radio"></span>
+      </div>
+
+      <div class="summary" id="summary">اختر يوماً وفترة للمتابعة</div>
+    </div>
+
+    <div class="bottom"><button class="cta" id="cta" disabled>متابعة</button></div>
+  </div>
+</div>
+
+<script>
+// ---- simulated availability (in production: RPC day_availability(day)) ----
+const CAPACITY_TEAMS = 3;                       // from admin: available providers
+const WINDOWS = [
+  {key:'morning',   label:'8:00ص', sub:'8ص – 12م',       from:8,  to:12},
+  {key:'midday',    label:'10:00ص',sub:'10ص – 2م',       from:10, to:14},
+  {key:'afternoon', label:'2:00م', sub:'2م – 6م',        from:14, to:18},
+];
+const DW = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+const MONTHS = ['كانون٢','شباط','آذار','نيسان','أيار','حزيران','تموز','آب','أيلول','تشرين١','تشرين٢','كانون١'];
+
+function dayData(offset){                        // deterministic demo pattern
+  const d = new Date(); d.setDate(d.getDate()+offset);
+  return {
+    offset, date:d,
+    wins: WINDOWS.map((w,i)=>{
+      const booked = (offset*7 + i*5 + w.from) % (CAPACITY_TEAMS+1);
+      return {...w, booked};
+    })
+  };
+}
+const DAYS = Array.from({length:14},(_,i)=>dayData(i));
+const statusOf = w => w.booked>=CAPACITY_TEAMS ? 'full'
+                    : CAPACITY_TEAMS-w.booked===1 ? 'limited' : 'free';
+const ST_TXT = {free:'متاح', limited:'متبقي مكان', full:'ممتلئ'};
+
+let selDay = DAYS[0], selWin = null, mode = null; // mode: win | allday | urgent
+
+function renderStrip(){
+  const el = document.getElementById('strip'); el.innerHTML='';
+  const today = new Date();
+  DAYS.forEach(day=>{
+    const full = day.wins.every(w=>statusOf(w)==='full');
+    const limited = !full && day.wins.some(w=>statusOf(w)!=='free');
+    const div = document.createElement('div');
+    div.className = 'day' + (day===selDay?' sel':'');
+    div.innerHTML = `
+      ${day.offset===0?'<span class="tag-today">اليوم</span>':''}
+      ${day.offset===1?'<span class="tag-today">غداً</span>':''}
+      <div class="dw">${DW[day.date.getDay()]}</div>
+      <div class="dn">${day.date.getDate()}</div>
+      <div class="dm">${MONTHS[day.date.getMonth()]}</div>
+      <div class="dot ${full?'full':limited?'limited':'free'}"></div>`;
+    div.onclick = ()=>{ selDay=day; selWin=null; mode=null; renderAll(); };
+    el.appendChild(div);
+  });
+}
+
+function renderWins(){
+  const box = document.getElementById('wins'); box.innerHTML='';
+  document.getElementById('capLine').innerHTML =
+    `👥 متاح ${selDay.offset===0?'اليوم':'في هذا اليوم'}: <b>${CAPACITY_TEAMS}</b> فرق غسيل`;
+  selDay.wins.forEach(w=>{
+    const st = statusOf(w), remain = CAPACITY_TEAMS-w.booked;
+    const pct = Math.round(w.booked/CAPACITY_TEAMS*100);
+    const col = st==='full'?'var(--red)':st==='limited'?'var(--amber)':'var(--green)';
+    const div = document.createElement('div');
+    div.className = 'win' + (st==='full'?' full':'') +
+                    (mode==='win'&&selWin===w?' sel':'');
+    div.innerHTML = `
+      <div class="wt"><b>${w.label}</b><small>${w.sub}</small></div>
+      <div class="wm">
+        <span class="st ${st}">● ${ST_TXT[st]}${st==='limited'?' واحد':''}</span>
+        <div class="bar"><i style="width:${pct}%;background:${col}"></i></div>
+      </div>
+      <span class="radio" style="width:20px;height:20px;border-radius:50%;
+        border:2px solid ${mode==='win'&&selWin===w?'var(--primary)':'var(--outline)'};
+        background:${mode==='win'&&selWin===w?'radial-gradient(circle,var(--primary) 42%,transparent 46%)':'transparent'}"></span>`;
+    if(st!=='full') div.onclick = ()=>{ mode='win'; selWin=w; syncOptions(); renderAll(); };
+    box.appendChild(div);
+  });
+}
+
+function syncOptions(){
+  const allFull = selDay.wins.every(w=>statusOf(w)==='full');
+  const ad = document.getElementById('allDay'), ur = document.getElementById('urgent');
+  ad.classList.toggle('dis', allFull);
+  ad.classList.toggle('sel', mode==='allday' && !allFull);
+  ur.classList.toggle('dis', selDay.offset!==0);
+  ur.classList.toggle('sel', mode==='urgent' && selDay.offset===0);
+}
+
+function renderSummary(){
+  const s = document.getElementById('summary'), cta = document.getElementById('cta');
+  const d = selDay.date;
+  const dayTxt = selDay.offset===0?'اليوم':selDay.offset===1?'غداً':
+                 `${DW[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
+  let txt = null;
+  if(mode==='win'&&selWin) txt = `${dayTxt} · ${selWin.sub}`;
+  if(mode==='allday')      txt = `${dayTxt} · أي وقت 8ص–6م`;
+  if(mode==='urgent')      txt = `${dayTxt} · عاجل — أول فريق يتفرغ ⚡`;
+  s.textContent = txt ?? 'اختر يوماً وفترة للمتابعة';
+  cta.disabled = !txt;
+}
+
+document.getElementById('allDay').onclick = ()=>{
+  if(selDay.wins.every(w=>statusOf(w)==='full')) return;
+  mode='allday'; selWin=null; syncOptions(); renderAll();
+};
+document.getElementById('urgent').onclick = ()=>{
+  if(selDay.offset!==0) return;
+  mode='urgent'; selWin=null; syncOptions(); renderAll();
+};
+document.getElementById('cta').onclick = ()=>
+  alert('هنا يتم الانتقال إلى خطوة التأكيد (3/3)');
+
+function renderAll(){ renderStrip(); renderWins(); syncOptions(); renderSummary(); }
+renderAll();
+</script>
+</body>
+</html>

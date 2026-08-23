@@ -7,8 +7,10 @@ import '../../l10n/app_localizations.dart';
 import '../core/l10n/app_locales.dart';
 import '../core/l10n/locale_controller.dart';
 import '../core/theme/app_theme.dart';
-import '../features/account/presentation/account_page.dart';
+import '../core/theme/theme_controller.dart';
 import '../features/account/presentation/auth_providers.dart';
+import '../features/account/presentation/profile_page.dart';
+import '../features/settings/presentation/settings_page.dart';
 import '../features/addresses/presentation/address_book_page.dart';
 import '../features/addresses/presentation/map_picker_page.dart';
 import '../features/auth/email_signin_page.dart';
@@ -74,11 +76,13 @@ class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
   Widget build(BuildContext context) {
     // Arabic by default; only changes when the user explicitly toggles it.
     final appLocale = ref.watch(localeControllerProvider);
+    final themeMode = ref.watch(themeControllerProvider);
     return MaterialApp.router(
       title: 'Klear',
       debugShowCheckedModeBanner: false,
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       locale: appLocale,
+      themeMode: themeMode,
       supportedLocales: AppLocales.supported,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -110,8 +114,9 @@ class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
         }
         final isAuthRoute = loc.startsWith('/welcome') ||
             loc.startsWith('/auth/') ||
-            loc.startsWith('/account') ||
             loc.startsWith('/diagnostics');
+        // Guests are not allowed into the main app (tabs, profile, settings,
+        // cars, addresses) — they are bounced to the welcome screen.
         final isProfileSetup = loc == '/auth/profile';
         // Map picker and diagnostics are reachable before AND after profile setup
         // and even when unauthenticated (so an error SnackBar's "View logs"
@@ -136,11 +141,9 @@ class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
           return '/auth/profile';
         }
         // Allow an authenticated user with a profile to explicitly visit
-        // /auth/profile to edit their profile (via Account → Edit profile).
-        // Without this exception the `isAuthRoute` rule below would bounce
-        // them back to `/`. Note: we use `loc.startsWith('/auth/')` rather
-        // than `isAuthRoute` because the latter includes `/account`, which
-        // would incorrectly bounce the Account bottom-nav tap to `/`.
+        // /auth/profile to edit their profile (via Profile → Edit profile).
+        // Without this exception the rule below would bounce them back to
+        // `/` — authed users must never linger on the sign-up/sign-in forms.
         final isProfileSetupExplicit = isProfileSetup;
         if (auth.isAuthenticated &&
             auth.hasProfile &&
@@ -214,8 +217,32 @@ class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
         path: '/diagnostics/logs',
         pageBuilder: (context, state) => _fadeSlidePage(const LogsPage()),
       ),
+      // User profile — full-screen detour from the top-bar avatar.
       GoRoute(
-        path: '/account/addresses',
+        path: '/profile',
+        pageBuilder: (context, state) => _fadeSlidePage(const ProfilePage()),
+      ),
+      // My Cars — pushed from the profile screen.
+      GoRoute(
+        path: '/cars',
+        pageBuilder: (context, state) => _fadeSlidePage(const CarsPage()),
+        routes: [
+          GoRoute(
+            path: 'add',
+            pageBuilder: (context, state) =>
+                _fadeSlidePage(const CarFormPage()),
+          ),
+          GoRoute(
+            path: 'edit',
+            pageBuilder: (context, state) => _fadeSlidePage(CarFormPage(
+              car: state.extra as dynamic,
+            )),
+          ),
+        ],
+      ),
+      // Address book — pushed from the profile screen or booking flow.
+      GoRoute(
+        path: '/addresses',
         pageBuilder: (context, state) => _fadeSlidePage(
           AddressBookPage(selectable: state.extra == true),
         ),
@@ -279,27 +306,9 @@ class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/account',
-                pageBuilder: (context, state) => _fadeSlidePage(const AccountPage()),
-                routes: [
-                  GoRoute(
-                    path: 'cars',
-                    pageBuilder: (context, state) =>
-                        _fadeSlidePage(const CarsPage()),
-                  ),
-                  GoRoute(
-                    path: 'cars/add',
-                    pageBuilder: (context, state) =>
-                        _fadeSlidePage(const CarFormPage()),
-                  ),
-                  GoRoute(
-                    path: 'cars/edit',
-                    pageBuilder: (context, state) =>
-                        _fadeSlidePage(CarFormPage(
-                      car: state.extra as dynamic,
-                    )),
-                  ),
-                ],
+                path: '/settings',
+                pageBuilder: (context, state) =>
+                    _fadeSlidePage(const SettingsPage()),
               ),
             ],
           ),

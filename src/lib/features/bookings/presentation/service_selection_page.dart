@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/app_router.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../services/presentation/widgets/service_merch.dart';
 import '../../services/presentation/services_providers.dart';
 import 'booking_providers.dart';
 import 'widgets/booking_step_scaffold.dart';
@@ -72,12 +73,23 @@ class ServiceSelectionPage extends ConsumerWidget {
                       ),
                       title: Text(service.nameFor(langCode)),
                       subtitle: Text(
-                        '${service.basePrice.toStringAsFixed(0)} ${service.currency}'
-                        '${service.durationMin != null ? " · ${l10n.approxMinutes('${service.durationMin}')}" : ''}',
+                        service.durationMin != null
+                            ? l10n.approxMinutes('${service.durationMin}')
+                            : '',
                       ),
-                      trailing: isSelected
-                          ? Icon(Icons.check_circle, color: scheme.primary)
-                          : const Icon(Icons.chevron_right),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ServicePriceTag(service: service),
+                          if (isSelected) ...[
+                            const SizedBox(width: 8),
+                            Icon(Icons.check_circle, color: scheme.primary),
+                          ] else ...[
+                            const SizedBox(width: 8),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ],
+                      ),
                       onTap: () {
                         ref
                             .read(bookingDraftProvider.notifier)

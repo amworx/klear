@@ -96,6 +96,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get errorLoadingServices => 'تعذّر تحميل الخدمات. حاول مرة أخرى';
 
   @override
+  String get badgePopular => 'الأكثر طلباً';
+
+  @override
+  String get badgeNew => 'جديد';
+
+  @override
+  String get badgeBestValue => 'أفضل قيمة';
+
+  @override
+  String get discountLabel => 'الخصم';
+
+  @override
+  String get bookNow => 'احجز الآن';
+
+  @override
+  String get allServices => 'كل الخدمات';
+
+  @override
   String get noServices => 'لا توجد خدمات متاحة حالياً';
 
   @override
@@ -499,6 +517,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get viewDetails => 'عرض التفاصيل';
 
   @override
+  String get bookAgain => 'احجز مرة أخرى';
+
+  @override
+  String get mostOrdered => 'مفضلتك';
+
+  @override
   String get orderDetailsTitle => 'تفاصيل الحجز';
 
   @override
@@ -671,6 +695,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String get timeUrgentLabel => 'في أي وقت اليوم (+25%)';
 
   @override
+  String get availLegendFree => 'متاح';
+
+  @override
+  String get availLegendLimited => 'محدود';
+
+  @override
+  String get availLegendFull => 'ممتلئ';
+
+  @override
+  String availTeamsLine(int n) {
+    return 'متاح: $n فرق غسيل';
+  }
+
+  @override
+  String get availSlotFree => 'متاح';
+
+  @override
+  String get availSlotOneLeft => 'متبقي مكان واحد';
+
+  @override
+  String get availTodayTag => 'اليوم';
+
+  @override
+  String get availTomorrowTag => 'غداً';
+
+  @override
+  String get availAllFullNote => 'ممتلئ بالكامل — جرّب يوماً آخر';
+
+  @override
   String get urgentSurcharge => 'رسوم الطلب العاجل';
 
   @override
@@ -794,4 +847,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get appUpdates => 'تحديثات التطبيق';
+
+  @override
+  String get settings => 'الإعدادات';
+
+  @override
+  String get theme => 'المظهر';
+
+  @override
+  String get themeLight => 'فاتح';
+
+  @override
+  String get themeDark => 'داكن';
+
+  @override
+  String get themeSystem => 'حسب النظام';
 }

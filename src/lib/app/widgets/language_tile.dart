@@ -72,6 +72,41 @@ class LanguageTile extends ConsumerWidget {
   }
 }
 
+/// Single-icon language switcher for compact placements (e.g. the top corner
+/// of the Welcome screen).
+///
+/// Opens a Material popup listing both languages in their own script
+/// (العربية / English) with the active one checked — same persistence and
+/// Arabic-default rules as [LanguageTile], one icon instead of a card.
+class LanguageMenuButton extends ConsumerWidget {
+  const LanguageMenuButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final isArabic = ref.watch(localeControllerProvider) == AppLocales.arabic;
+    final notifier = ref.read(localeControllerProvider.notifier);
+
+    return PopupMenuButton<Locale>(
+      tooltip: l10n.language,
+      icon: const Icon(Icons.translate),
+      onSelected: notifier.setLocale,
+      itemBuilder: (_) => [
+        CheckedPopupMenuItem(
+          value: AppLocales.arabic,
+          checked: isArabic,
+          child: Text(l10n.languageArabic),
+        ),
+        CheckedPopupMenuItem(
+          value: AppLocales.english,
+          checked: !isArabic,
+          child: Text(l10n.languageEnglish),
+        ),
+      ],
+    );
+  }
+}
+
 class _LanguagePill extends StatelessWidget {
   const _LanguagePill({
     required this.label,
@@ -132,9 +167,9 @@ class _LanguagePill extends StatelessWidget {
                       label,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: foreground,
-                            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                          ),
+                        color: foreground,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],

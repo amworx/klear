@@ -98,6 +98,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not load services. Please try again.';
 
   @override
+  String get badgePopular => 'Most popular';
+
+  @override
+  String get badgeNew => 'New';
+
+  @override
+  String get badgeBestValue => 'Best value';
+
+  @override
+  String get discountLabel => 'Discount';
+
+  @override
+  String get bookNow => 'Book now';
+
+  @override
+  String get allServices => 'All services';
+
+  @override
   String get noServices => 'No services available yet.';
 
   @override
@@ -507,6 +525,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewDetails => 'View details';
 
   @override
+  String get bookAgain => 'Book again';
+
+  @override
+  String get mostOrdered => 'Your favorite';
+
+  @override
   String get orderDetailsTitle => 'Booking details';
 
   @override
@@ -683,6 +707,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeUrgentLabel => 'Anytime today (+25%)';
 
   @override
+  String get availLegendFree => 'Available';
+
+  @override
+  String get availLegendLimited => 'Limited';
+
+  @override
+  String get availLegendFull => 'Full';
+
+  @override
+  String availTeamsLine(int n) {
+    return '$n wash team(s) available';
+  }
+
+  @override
+  String get availSlotFree => 'Available';
+
+  @override
+  String get availSlotOneLeft => 'One spot left';
+
+  @override
+  String get availTodayTag => 'Today';
+
+  @override
+  String get availTomorrowTag => 'Tomorrow';
+
+  @override
+  String get availAllFullNote => 'Fully booked — try another day';
+
+  @override
   String get urgentSurcharge => 'Urgent surcharge';
 
   @override
@@ -805,4 +858,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appUpdates => 'App updates';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeSystem => 'System';
 }

@@ -53,9 +53,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
                   label: l10n.navOrders,
                 ),
                 KlearNavDestination(
-                  icon: Icons.person_outline,
-                  selectedIcon: Icons.person,
-                  label: l10n.navAccount,
+                  icon: Icons.settings_outlined,
+                  selectedIcon: Icons.settings,
+                  label: l10n.settings,
                 ),
               ],
             ),

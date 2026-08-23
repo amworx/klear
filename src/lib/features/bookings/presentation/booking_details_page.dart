@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../app/app_router.dart';
 import '../../../core/geocoding/nominatim_service.dart';
@@ -12,11 +11,15 @@ import '../../account/presentation/auth_providers.dart';
 import '../../addresses/presentation/map_picker_page.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../cars/presentation/cars_providers.dart';
+import '../../orders/presentation/orders_providers.dart';
 import '../../settings/domain/app_settings.dart';
 import '../../settings/presentation/settings_provider.dart';
 import '../domain/klear_booking.dart';
+import '../domain/day_availability.dart';
+import 'availability_providers.dart';
 import 'booking_providers.dart';
 import 'booking_time_labels.dart';
+import 'widgets/availability_calendar_strip.dart';
 import 'widgets/booking_step_scaffold.dart';
 
 /// Step 2: car + address + schedule on one screen.
@@ -73,6 +76,12 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
   @override
   void initState() {
     super.initState();
+    // Refresh availability counts every time the flow is entered so the
+    // calendar reflects bookings created elsewhere (e.g. another device).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.invalidate(availabilityRangeProvider);
+    });
     final draft = ref.read(bookingDraftProvider);
     if (draft.address != null) {
       _addressController.text = draft.address!;
@@ -221,24 +230,6 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     }
   }
 
-  void _selectDay(DateTime day) {
-    setState(() => _selectedDay = day);
-  }
-
-  Future<void> _pickCustomDay() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final initial = _selectedDay ?? today;
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial.isBefore(today) ? today : initial,
-      firstDate: today,
-      lastDate: today.add(const Duration(days: 30)),
-    );
-    if (picked == null || !mounted) return;
-    setState(() => _selectedDay = picked);
-  }
-
   void _selectChoice(_TimeChoice choice) {
     setState(() => _selectedChoice = choice);
   }
@@ -304,17 +295,6 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     }
   }
 
-  String _dayLabel(DateTime day, AppLocalizations l10n, String langCode) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final dayDate = DateTime(day.year, day.month, day.day);
-    if (dayDate == today) return l10n.quickSlotToday;
-    if (dayDate == today.add(const Duration(days: 1))) {
-      return l10n.quickSlotTomorrow;
-    }
-    return DateFormat(langCode == 'ar' ? 'MM/dd' : 'MMM d').format(day);
-  }
-
   bool _isSameDay(DateTime? a, DateTime? b) {
     if (a == null || b == null) return false;
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -327,29 +307,272 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     return _isSameDay(day, today);
   }
 
-  List<DateTime> _dayOptions() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return [today, today.add(const Duration(days: 1))];
+  /// The availability slot matching a flexibility choice, if any.
+  WindowSlot? _slotFor(DayAvailability? day, _TimeChoice choice) {
+    final key = switch (choice) {
+      _TimeChoice.windowMorning => 'morning',
+      _TimeChoice.windowMidday => 'midday',
+      _TimeChoice.windowAfternoon => 'afternoon',
+      _ => '',
+    };
+    return day?.slot(key);
   }
 
-  List<_TimeChoice> get _windowChoices => const [
-        _TimeChoice.windowMorning,
-        _TimeChoice.windowMidday,
-        _TimeChoice.windowAfternoon,
-      ];
+  /// Maps a slot key from the availability RPC back to its choice.
+  _TimeChoice? _choiceForKey(String key) => switch (key) {
+        'morning' => _TimeChoice.windowMorning,
+        'midday' => _TimeChoice.windowMidday,
+        'afternoon' => _TimeChoice.windowAfternoon,
+        _ => null,
+      };
 
-  String _windowLabel(_TimeChoice choice, AppLocalizations l10n) {
-    switch (choice) {
-      case _TimeChoice.windowMorning:
-        return l10n.timeWindowMorning;
-      case _TimeChoice.windowMidday:
-        return l10n.timeWindowMidday;
-      case _TimeChoice.windowAfternoon:
-        return l10n.timeWindowAfternoon;
-      default:
-        return '';
+  /// Maps a historical window start hour (T3 preferred window) back to the
+  /// matching flexibility choice. Slot starts are 08:00 / 10:00 / 14:00.
+  _TimeChoice? _choiceForStartHour(int hour) {
+    if (hour <= 9) return _TimeChoice.windowMorning;
+    if (hour <= 12) return _TimeChoice.windowMidday;
+    return _TimeChoice.windowAfternoon;
+  }
+
+  /// Whether the current schedule selection is bookable (window not full,
+  /// all-day day not saturated). Recomputed on every build by
+  /// [_scheduleSection]; gates the Continue CTA.
+  bool _scheduleValid = false;
+
+  /// T3 smart default: applied at most once per page visit, only while the
+  /// user hasn't picked a time themselves.
+  bool _smartDefaultApplied = false;
+
+  DateTime get _todayDate {
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, n.day);
+  }
+
+  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  /// The rebuilt schedule section: calendar strip with load dots, legend,
+  /// per-window availability cards, plus the all-day / urgent fallbacks.
+  List<Widget> _scheduleSection(
+    BuildContext context,
+    AppLocalizations l10n,
+    String langCode,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    final availAsync = ref.watch(
+      availabilityRangeProvider((from: _todayDate, days: 14)),
+    );
+    final availList = availAsync.valueOrNull ?? const <DayAvailability>[];
+    final byDay = {for (final d in availList) d.day: d};
+    final selectedAvail = byDay[_dateOnly(_selectedDay ?? _todayDate)];
+    final allFull = selectedAvail?.allFull ?? false;
+
+    // T3 smart default: preselect the user's habitual window once, only
+    // while they haven't picked anything and it still has capacity.
+    if (!_smartDefaultApplied &&
+        _selectedChoice == null &&
+        selectedAvail != null) {
+      _smartDefaultApplied = true;
+      final pref = ref.read(bookingInsightsProvider)?.preferredWindow;
+      final choice = switch (pref) {
+        (TimeWindowType.allDay, _) => _TimeChoice.allDay,
+        (TimeWindowType.window, final h?) => _choiceForStartHour(h),
+        _ => null,
+      };
+      if (choice != null) {
+        final bookable = switch (choice) {
+          _TimeChoice.allDay => !allFull,
+          _TimeChoice.urgent => false,
+          _ =>
+            _slotFor(selectedAvail, choice)?.status != SlotStatus.full &&
+                _slotFor(selectedAvail, choice) != null,
+        };
+        if (bookable) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            // Never override a manual pick made in the same frame window.
+            if (_selectedChoice == null) {
+              setState(() => _selectedChoice = choice);
+            }
+          });
+        }
+      }
     }
+
+    // Drop a selection that became unbookable (e.g. window filled up or the
+    // user switched to a fully-booked day). Deferred so we never setState
+    // during build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final invalid = switch (_selectedChoice) {
+        null => false,
+        _TimeChoice.allDay => selectedAvail != null && allFull,
+        _TimeChoice.urgent => false,
+        _ =>
+            _slotFor(selectedAvail, _selectedChoice!)?.status ==
+                SlotStatus.full,
+      };
+      if (invalid) setState(() => _selectedChoice = null);
+    });
+
+    // CTA gate — mirrors what is rendered below.
+    _scheduleValid = switch (_selectedChoice) {
+      null => false,
+      _TimeChoice.urgent => true,
+      _TimeChoice.allDay => !allFull,
+      _ =>
+            (_slotFor(selectedAvail, _selectedChoice!)?.status ??
+                SlotStatus.full) !=
+            SlotStatus.full,
+    };
+
+    return [
+      _SectionHeader(
+        icon: Icons.event_available_outlined,
+        title: l10n.selectDateTime,
+      ),
+      const SizedBox(height: 12),
+      AvailabilityCalendarStrip(
+        selectedDay: _dateOnly(_selectedDay ?? _todayDate),
+        availabilityByDay: byDay,
+        onSelect: (day) => setState(() {
+          _selectedDay = day;
+          // Urgent only applies to today; reset when leaving it.
+          if (!_canChooseUrgent(day) && _selectedChoice == _TimeChoice.urgent) {
+            _selectedChoice = null;
+          }
+        }),
+      ),
+      const SizedBox(height: 8),
+      // Legend for the strip's load dots.
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _legendDot(const Color(0xFF16A34A), l10n.availLegendFree),
+          const SizedBox(width: 14),
+          _legendDot(const Color(0xFFD97706), l10n.availLegendLimited),
+          const SizedBox(width: 14),
+          _legendDot(scheme.error, l10n.availLegendFull),
+        ],
+      ),
+      const SizedBox(height: 12),
+      availAsync.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.symmetric(vertical: 18),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            onPressed: () =>
+                ref.invalidate(availabilityRangeProvider),
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(l10n.errorLoadingServices),
+          ),
+        ),
+        data: (_) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (selectedAvail != null) ...[
+              // Capacity context line (same for every window of the day).
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  l10n.availTeamsLine(selectedAvail.capacity),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                      ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              for (final slot in selectedAvail.slots) ...[
+                _WindowCard(
+                  slot: slot,
+                  label: switch (_choiceForKey(slot.key)) {
+                    _TimeChoice.windowMorning => l10n.timeWindowMorning,
+                    _TimeChoice.windowMidday => l10n.timeWindowMidday,
+                    _TimeChoice.windowAfternoon => l10n.timeWindowAfternoon,
+                    _ => slot.key,
+                  },
+                  statusText: switch (slot.status) {
+                    SlotStatus.free => l10n.availSlotFree,
+                    SlotStatus.limited => l10n.availSlotOneLeft,
+                    SlotStatus.full => l10n.availLegendFull,
+                  },
+                  selected: _selectedChoice == _choiceForKey(slot.key),
+                  onTap: slot.status == SlotStatus.full
+                      ? null
+                      : () => _selectChoice(_choiceForKey(slot.key)!),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (allFull)
+                Text(
+                  l10n.availAllFullNote,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.error,
+                      ),
+                ),
+            ],
+          ],
+        ),
+      ),
+      const SizedBox(height: 16),
+      // All-day remains available unless the whole day is saturated.
+      _TimeOptionCard(
+        icon: Icons.wb_sunny_outlined,
+        title: l10n.timeAllDayTitle,
+        value: l10n.timeAllDayLabel,
+        selected: _selectedChoice == _TimeChoice.allDay,
+        enabled: !allFull,
+        onTap: () => _selectChoice(_TimeChoice.allDay),
+      ),
+      const SizedBox(height: 8),
+      // Urgent (today only) ignores windows entirely.
+      _TimeOptionCard(
+        icon: Icons.bolt_outlined,
+        title: l10n.timeUrgentTitle,
+        value: l10n.timeUrgentLabel,
+        selected: _selectedChoice == _TimeChoice.urgent,
+        enabled: _canChooseUrgent(_selectedDay ?? DateTime.now()),
+        onTap: () => _selectChoice(_TimeChoice.urgent),
+      ),
+      if (_selectedChoice != null) ...[
+        const SizedBox(height: 12),
+        Text(
+          BookingTimeLabels.fullLabel(
+            start: _windowFor(_selectedDay!, _selectedChoice!).start,
+            end: _windowFor(_selectedDay!, _selectedChoice!).end,
+            type: _windowFor(_selectedDay!, _selectedChoice!).type,
+            l10n: l10n,
+            langCode: langCode,
+          ),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: scheme.primary,
+              ),
+        ),
+      ],
+    ];
+  }
+
+  Widget _legendDot(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 5),
+        Text(label, style: Theme.of(context).textTheme.labelSmall),
+      ],
+    );
   }
 
   @override
@@ -357,7 +580,6 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     final l10n = AppLocalizations.of(context);
     final carsAsync = ref.watch(carsProvider);
     final draft = ref.watch(bookingDraftProvider);
-    final scheme = Theme.of(context).colorScheme;
     final langCode = Localizations.localeOf(context).languageCode;
     final savedAddress = ref.watch(authProvider).profile?.address;
     final hasSavedAddress =
@@ -509,97 +731,7 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               ),
             ),
             const SizedBox(height: 24),
-            _SectionHeader(
-              icon: Icons.schedule_outlined,
-              title: l10n.selectDateTime,
-            ),
-            const SizedBox(height: 12),
-            // Day selector: Today / Tomorrow / pick another day.
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final day in _dayOptions())
-                  ChoiceChip(
-                    label: Text(_dayLabel(day, l10n, langCode)),
-                    selected: _isSameDay(_selectedDay, day),
-                    onSelected: (_) => _selectDay(day),
-                  ),
-                ActionChip(
-                  avatar: Icon(
-                    Icons.edit_calendar,
-                    size: 18,
-                    color: scheme.primary,
-                  ),
-                  label: Text(l10n.pickAnotherDay),
-                  onPressed: _pickCustomDay,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Category 1 — all-day window.
-            _TimeOptionCard(
-              icon: Icons.wb_sunny_outlined,
-              title: l10n.timeAllDayTitle,
-              value: l10n.timeAllDayLabel,
-              selected: _selectedChoice == _TimeChoice.allDay,
-              onTap: () => _selectChoice(_TimeChoice.allDay),
-            ),
-            const SizedBox(height: 8),
-            // Category 2 — specific 4-hour windows.
-            _TimeOptionCard(
-              icon: Icons.timelapse_outlined,
-              title: l10n.timeSpecificTitle,
-              value: l10n.timeSpecificLabel,
-              selected: _selectedChoice != null &&
-                  _selectedChoice! != _TimeChoice.allDay &&
-                  _selectedChoice! != _TimeChoice.urgent,
-              onTap: () => _selectChoice(_TimeChoice.windowMorning),
-            ),
-            const SizedBox(height: 8),
-            if (_selectedChoice != null &&
-                _selectedChoice != _TimeChoice.allDay &&
-                _selectedChoice != _TimeChoice.urgent)
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final choice in _windowChoices)
-                    ChoiceChip(
-                      label: Text(_windowLabel(choice, l10n)),
-                      selected: _selectedChoice == choice,
-                      onSelected: (_) => _selectChoice(choice),
-                    ),
-                ],
-              ),
-            if (_selectedChoice != null &&
-                _selectedChoice != _TimeChoice.allDay &&
-                _selectedChoice != _TimeChoice.urgent)
-              const SizedBox(height: 8),
-            // Category 3 — urgent (today only).
-            _TimeOptionCard(
-              icon: Icons.bolt_outlined,
-              title: l10n.timeUrgentTitle,
-              value: l10n.timeUrgentLabel,
-              selected: _selectedChoice == _TimeChoice.urgent,
-              enabled: _canChooseUrgent(_selectedDay ?? DateTime.now()),
-              onTap: () => _selectChoice(_TimeChoice.urgent),
-            ),
-            if (_selectedChoice != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                BookingTimeLabels.fullLabel(
-                  start: _windowFor(_selectedDay!, _selectedChoice!).start,
-                  end: _windowFor(_selectedDay!, _selectedChoice!).end,
-                  type: _windowFor(_selectedDay!, _selectedChoice!).type,
-                  l10n: l10n,
-                  langCode: langCode,
-                ),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: scheme.primary,
-                    ),
-              ),
-            ],
+            ..._scheduleSection(context, l10n, langCode),
             if (draft.car != null) ...[
               const SizedBox(height: 24),
               _BreakdownCard(
@@ -617,7 +749,7 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FilledButton(
-            onPressed: _canContinue ? _goNext : null,
+            onPressed: (_canContinue && _scheduleValid) ? _goNext : null,
             child: Text(l10n.continueLabel),
           ),
         ),
@@ -776,9 +908,16 @@ class _BreakdownCard extends StatelessWidget {
             _row(
               context,
               l10n.priceBase,
-              '${draft.service?.basePrice.toStringAsFixed(0) ?? '0'} '
+              '${draft.service?.finalPrice.toStringAsFixed(0) ?? '0'} '
               '${draft.service?.currency ?? 'SYP'}',
             ),
+            if (draft.service?.hasDiscount ?? false)
+              _row(
+                context,
+                l10n.discountLabel,
+                '-${draft.service!.savingsAmount.toStringAsFixed(0)} '
+                '${draft.service!.currency}',
+              ),
             _row(
               context,
               l10n.sizeAdjustment,
@@ -886,6 +1025,161 @@ class _CarChip extends StatelessWidget {
                           letterSpacing: 1.1,
                         ),
                   ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Availability card for one fixed business window (e.g. 8am–12pm):
+/// time block · status pill + capacity bar · radio. Full windows are
+/// disabled and dimmed — the user can't select what doesn't exist.
+class _WindowCard extends StatelessWidget {
+  const _WindowCard({
+    required this.slot,
+    required this.label,
+    required this.statusText,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final WindowSlot slot;
+  final String label;
+  final String statusText;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final full = slot.status == SlotStatus.full;
+    final pillColor = switch (slot.status) {
+      SlotStatus.free => const Color(0xFFDCFCE7),
+      SlotStatus.limited => const Color(0xFFFEF3C7),
+      SlotStatus.full => scheme.errorContainer,
+    };
+    final pillTextColor = switch (slot.status) {
+      SlotStatus.free => const Color(0xFF15803D),
+      SlotStatus.limited => const Color(0xFFB45309),
+      SlotStatus.full => scheme.onErrorContainer,
+    };
+    final fill = slot.capacity <= 0
+        ? 1.0
+        : (slot.booked / slot.capacity).clamp(0.0, 1.0);
+    final barColor = switch (slot.status) {
+      SlotStatus.free => const Color(0xFF16A34A),
+      SlotStatus.limited => const Color(0xFFD97706),
+      SlotStatus.full => scheme.error,
+    };
+
+    return Opacity(
+      opacity: full ? 0.55 : 1.0,
+      child: Material(
+        color: selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected ? scheme.primary : scheme.outlineVariant,
+                width: selected ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                // Time block.
+                SizedBox(
+                  width: 78,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Status + capacity bar.
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: pillColor,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.circle,
+                                size: 6, color: pillTextColor),
+                            const SizedBox(width: 5),
+                            Text(
+                              statusText,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(
+                                    color: pillTextColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          value: full ? 1.0 : (fill == 0 ? null : fill),
+                          minHeight: 4,
+                          backgroundColor: scheme.surfaceContainerHighest,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(barColor),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Radio.
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: selected
+                          ? scheme.primary
+                          : scheme.outlineVariant,
+                      width: 2,
+                    ),
+                    color: selected
+                        ? scheme.primary
+                        : Colors.transparent,
+                  ),
+                  child: selected
+                      ? Icon(Icons.check, size: 13, color: scheme.onPrimary)
+                      : null,
                 ),
               ],
             ),

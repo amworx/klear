@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/app_router.dart';
+import '../../../app/widgets/app_data_refresh.dart';
+import '../../../app/widgets/profile_avatar_button.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../bookings/domain/klear_booking.dart';
@@ -44,6 +46,7 @@ class _OrdersPageState extends ConsumerState<OrdersPage>
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.navOrders),
+        actions: const [ProfileAvatarButton()],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -113,11 +116,9 @@ class _OrdersTab extends ConsumerWidget {
           );
         }
         return RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(myBookingsProvider);
-            await ref.read(myBookingsProvider.future);
-          },
+          onRefresh: () => refreshAppData(ref),
           child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             itemCount: filtered.length,
             itemBuilder: (context, index) {

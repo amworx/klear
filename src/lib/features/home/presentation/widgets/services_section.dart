@@ -4,21 +4,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/motion.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../services/domain/klear_service.dart';
+import '../../../services/presentation/widgets/featured_service_hero.dart';
+import '../../../services/presentation/widgets/service_merch.dart';
 
 /// Shows the active services catalog from the repository,
 /// handling loading / error / empty states gracefully.
 ///
-/// Cards fade in with a soft stagger; loading shows skeleton placeholders.
-/// When [onBookService] is set, tapping a card starts booking with that service.
+/// Layout (approved Option A): the featured service renders as a full-width
+/// gradient HERO card; every other service sits in a horizontal snap RAIL
+/// of compact cards below it. Tapping either starts booking that service.
 class ServicesSection extends ConsumerWidget {
   const ServicesSection({
     super.key,
     required this.servicesAsync,
     this.onBookService,
+    this.mostUsedServiceId,
   });
 
   final AsyncValue<List<KlearService>> servicesAsync;
   final void Function(KlearService service)? onBookService;
+
+  /// When set (booking-insights argmax), the matching rail card shows an
+  /// automatic "most ordered" badge — but only when no admin badge exists
+  /// (admin badges always win).
+  final String? mostUsedServiceId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,6 +69,12 @@ class ServicesSection extends ConsumerWidget {
             ),
           );
         }
+        // Hero = first 'popular'-badged service (else the first one);
+        // everything else joins the rail.
+        final featured = KlearService.featuredOf(services);
+        final rest =
+            services.where((s) => s.id != featured.id).toList();
+
         return StaggerList(
           children: [
             Text(
@@ -67,13 +82,29 @@ class ServicesSection extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            for (final service in services)
-              _ServiceCard(
-                service: service,
+            FeaturedServiceHero(
+              service: featured,
+              onBook: onBookService == null
+                  ? null
+                  : () => onBookService!(featured),
+            ),
+            if (rest.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Text(
+                l10n.allServices,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 10),
+              _MiniRail(
+                services: rest,
                 onBook: onBookService == null
                     ? null
-                    : () => onBookService!(service),
+                    : (s) => onBookService!(s),
+                mostUsedServiceId: mostUsedServiceId,
               ),
+            ],
           ],
         );
       },
@@ -81,124 +112,181 @@ class ServicesSection extends ConsumerWidget {
   }
 }
 
-class _ServiceCard extends StatelessWidget {
-  const _ServiceCard({required this.service, this.onBook});
+/// Horizontal rail of compact service cards (everything but the hero).
+class _MiniRail extends StatelessWidget {
+  const _MiniRail({required this.services, this.onBook, this.mostUsedServiceId});
 
-  final KlearService service;
-  final VoidCallback? onBook;
+  final List<KlearService> services;
+  final void Function(KlearService service)? onBook;
+  final String? mostUsedServiceId;
 
   @override
   Widget build(BuildContext context) {
-    // Use localization locale so cards switch with app language.
-    final localizations = AppLocalizations.of(context);
-    final langCode = localizations.localeName.split('_').first;
+    return SizedBox(
+      // Tall enough for the worst-case stack: badge + icon + name +
+      // duration + discounted price row + struck original (verified by
+      // services_mini_overflow_test.dart).
+      height: 186,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        itemCount: services.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
+        itemBuilder: (context, i) => _MiniCard(
+          service: services[i],
+          onBook: onBook,
+          isMostUsed: services[i].id == mostUsedServiceId,
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniCard extends StatelessWidget {
+  const _MiniCard({required this.service, this.onBook, this.isMostUsed = false});
+
+  final KlearService service;
+  final void Function(KlearService service)? onBook;
+
+  /// Shows the auto "most ordered" badge when no admin badge is set.
+  final bool isMostUsed;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = l10n.localeName.split('_').first;
     final scheme = Theme.of(context).colorScheme;
 
-    final description = service.descFor(langCode);
-
-    return AnimatedPress(
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        clipBehavior: Clip.antiAlias,
+    return SizedBox(
+      width: 172,
+      child: Material(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
         child: InkWell(
-          onTap: onBook,
+          onTap: onBook == null ? null : () => onBook!(service),
+          borderRadius: BorderRadius.circular(18),
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+            padding: const EdgeInsets.all(13),
+            // Fixed-size tiles: clamp user font scaling so the known
+            // worst-case stack (badge+duration+discount) always fits.
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.0,
+              child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon tile.
+                // Single badge slot ABOVE the icon (stacked layout — a
+                // side-by-side row overflows: measured 'أفضل قيمة' badge
+                // is ~131px wide vs 146px inner card width).
+                // Admin badge wins; auto "most ordered" only when absent.
+                if (service.badgeKey != null)
+                  ServiceBadge(service: service)
+                else if (isMostUsed)
+                  ServiceBadge.auto(
+                    customIcon: Icons.history_rounded,
+                    customLabel: l10n.mostOrdered,
+                  )
+                else
+                  const SizedBox.shrink(),
+                SizedBox(height:
+                    service.badgeKey != null || isMostUsed ? 9 : 0),
                 Container(
-                  width: 52,
-                  height: 52,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: scheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(13),
                   ),
                   child: Icon(
                     Icons.local_car_wash,
                     color: scheme.onSecondaryContainer,
-                    size: 26,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 16),
-                // Name + optional description + price.
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        service.nameFor(langCode),
-                        style: Theme.of(context).textTheme.titleMedium,
+                const Spacer(),
+                Text(
+                  service.nameFor(langCode),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
                       ),
-                      if (description != null && description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          description,
-                          maxLines: 2,
+                ),
+                if (service.durationMin != null) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule,
+                        size: 12,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          l10n.approxMinutes('${service.durationMin}'),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
                         ),
-                      ],
-                      if (service.durationMin != null) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.schedule,
-                              size: 14,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              localizations.approxMinutes(
-                                '${service.durationMin}',
-                              ),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: scheme.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                ],
+                const SizedBox(height: 7),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: scheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                    Flexible(
                       child: Text(
-                        '${service.basePrice.toStringAsFixed(0)} ${service.currency}',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: scheme.onPrimaryContainer,
+                        '${service.finalPrice.toStringAsFixed(0)} ${service.currency}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: service.hasDiscount
+                                  ? const Color(0xFF15803D)
+                                  : scheme.onSurface,
                             ),
                       ),
                     ),
-                    if (onBook != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        localizations.bookService,
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
+                    if (service.hasDiscount) ...[
+                      const SizedBox(width: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scheme.errorContainer,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          '-${service.discountPercent}%',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                                color: scheme.onErrorContainer,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
                       ),
                     ],
                   ],
                 ),
+                if (service.hasDiscount)
+                  Text(
+                    '${service.basePrice.toStringAsFixed(0)} ${service.currency}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                  ),
               ],
+              ),
             ),
           ),
         ),
