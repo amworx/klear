@@ -228,6 +228,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneNumber => 'Phone number';
 
   @override
+  String get clientIdLabel => 'Client ID';
+
+  @override
   String get phoneRequired => 'Please enter your phone number';
 
   @override
@@ -485,7 +488,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusPending => 'Pending';
 
   @override
-  String get statusConfirmed => 'Confirmed';
+  String get statusAccepted => 'Accepted';
+
+  @override
+  String get statusOnTheWay => 'On the way';
 
   @override
   String get statusInProgress => 'In progress';
@@ -495,6 +501,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusCancelled => 'Cancelled';
+
+  @override
+  String get trackCaptain => 'Track your captain';
+
+  @override
+  String get trackCaptainSubtitle => 'Follow your captain\'s live location';
+
+  @override
+  String get captainOnTheWay => 'Your captain is on the way';
+
+  @override
+  String get captainWashing => 'Your captain is washing your car';
+
+  @override
+  String get trackingLive => 'Live';
+
+  @override
+  String get washPoint => 'Wash point';
+
+  @override
+  String get captainLastSeen => 'Last update';
+
+  @override
+  String get trackNotAvailable => 'Tracking unavailable';
+
+  @override
+  String get trackWaitingForLocation => 'Waiting for the captain\'s location…';
 
   @override
   String get reviewAndPay => 'Review & Pay';
@@ -873,4 +906,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeSystem => 'System';
+
+  @override
+  String get chatWithCaptain => 'Chat with captain';
+
+  @override
+  String get chatTitle => 'Chat with captain';
+
+  @override
+  String get chatEmpty => 'No messages yet — say hello to your captain';
+
+  @override
+  String get chatHint => 'Type a message…';
+
+  @override
+  String get chatLoadError => 'Could not load the conversation';
+
+  @override
+  String get sendFailed => 'Could not send your message';
 }

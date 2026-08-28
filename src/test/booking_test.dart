@@ -211,13 +211,15 @@ void main() {
         );
 
     expect(bookingWith(BookingStatus.pending).statusLabel('en'), 'Pending');
-    expect(bookingWith(BookingStatus.confirmed).statusLabel('en'), 'Confirmed');
+    expect(bookingWith(BookingStatus.accepted).statusLabel('en'), 'Accepted');
+    expect(bookingWith(BookingStatus.onTheWay).statusLabel('en'), 'On the way');
     expect(bookingWith(BookingStatus.inProgress).statusLabel('en'), 'In Progress');
     expect(bookingWith(BookingStatus.completed).statusLabel('en'), 'Completed');
     expect(bookingWith(BookingStatus.cancelled).statusLabel('en'), 'Cancelled');
 
     expect(bookingWith(BookingStatus.pending).statusLabel('ar'), 'قيد الانتظار');
-    expect(bookingWith(BookingStatus.confirmed).statusLabel('ar'), 'مؤكد');
+    expect(bookingWith(BookingStatus.accepted).statusLabel('ar'), 'تم قبول الحجز');
+    expect(bookingWith(BookingStatus.onTheWay).statusLabel('ar'), 'الكابتن في الطريق');
     expect(bookingWith(BookingStatus.inProgress).statusLabel('ar'), 'جاري التنفيذ');
     expect(bookingWith(BookingStatus.completed).statusLabel('ar'), 'مكتمل');
     expect(bookingWith(BookingStatus.cancelled).statusLabel('ar'), 'ملغى');

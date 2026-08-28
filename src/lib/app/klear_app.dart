@@ -10,6 +10,7 @@ import '../core/theme/app_theme.dart';
 import '../core/theme/theme_controller.dart';
 import '../features/account/presentation/auth_providers.dart';
 import '../features/account/presentation/profile_page.dart';
+import '../features/chat/presentation/chat_page.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/addresses/presentation/address_book_page.dart';
 import '../features/addresses/presentation/map_picker_page.dart';
@@ -25,6 +26,7 @@ import '../features/bookings/presentation/service_selection_page.dart';
 import '../features/cars/presentation/car_form_page.dart';
 import '../features/cars/presentation/cars_page.dart';
 import '../features/home/presentation/home_page.dart';
+import '../features/live_tracking/presentation/live_tracking_page.dart';
 import '../features/orders/presentation/order_details_page.dart';
 import '../features/orders/presentation/orders_page.dart';
 import '../features/services/presentation/services_page.dart';
@@ -216,6 +218,20 @@ class _KlearAppContentState extends ConsumerState<_KlearAppContent> {
       GoRoute(
         path: '/diagnostics/logs',
         pageBuilder: (context, state) => _fadeSlidePage(const LogsPage()),
+      ),
+      // Live captain tracking - pushed with the booking as `extra`.
+      GoRoute(
+        path: '/tracking',
+        pageBuilder: (context, state) => _fadeSlidePage(
+          LiveTrackingPage(booking: state.extra as dynamic),
+        ),
+      ),
+      // Booking chat - pushed with the booking id as `extra`.
+      GoRoute(
+        path: '/chat',
+        pageBuilder: (context, state) => _fadeSlidePage(
+          ChatPage(bookingId: state.extra as String),
+        ),
       ),
       // User profile — full-screen detour from the top-bar avatar.
       GoRoute(

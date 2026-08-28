@@ -147,6 +147,25 @@ class OrderDetailPage extends ConsumerWidget {
                     ],
                   ],
                 ),
+              if (booking.canTrack) ...[
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: () =>
+                      context.push(KlearRoutes.liveTracking, extra: booking),
+                  icon: const Icon(Icons.near_me),
+                  label: Text(l10n.trackCaptain),
+                ),
+              ],
+              if (booking.status != BookingStatus.pending &&
+                  booking.status != BookingStatus.cancelled) ...[
+                const SizedBox(height: 12),
+                FilledButton.tonalIcon(
+                  onPressed: () =>
+                      context.push(KlearRoutes.chat, extra: booking.id),
+                  icon: const Icon(Icons.chat_outlined),
+                  label: Text(l10n.chatWithCaptain),
+                ),
+              ],
             ],
           );
         },
@@ -173,7 +192,7 @@ class OrderDetailPage extends ConsumerWidget {
   /// address or service). Completed and cancelled ones are read-only.
   bool _canEdit(BookingStatus status) {
     return status == BookingStatus.pending ||
-        status == BookingStatus.confirmed;
+        status == BookingStatus.accepted;
   }
 
   /// Prefills the booking draft from the stored booking and opens the booking
@@ -371,8 +390,13 @@ class _StatusChip extends StatelessWidget {
           scheme.surfaceContainerHighest,
           scheme.onSurfaceVariant,
         ),
-      BookingStatus.confirmed => (
-          l10n.statusConfirmed,
+      BookingStatus.accepted => (
+          l10n.statusAccepted,
+          scheme.secondaryContainer,
+          scheme.onSecondaryContainer,
+        ),
+      BookingStatus.onTheWay => (
+          l10n.statusOnTheWay,
           scheme.primaryContainer,
           scheme.onPrimaryContainer,
         ),

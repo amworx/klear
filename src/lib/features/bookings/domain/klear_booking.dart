@@ -4,9 +4,18 @@ import '../../settings/domain/app_settings.dart';
 
 /// Booking status enum mirrors the database `booking_status` type.
 enum BookingStatus {
+  /// Reservation created, no captain assigned yet.
   pending,
-  confirmed,
+
+  /// A captain accepted/claimed the job (assigned).
+  accepted,
+
+  /// The captain is on their way to the wash point.
+  onTheWay,
+
+  /// The wash is in progress.
   inProgress,
+
   completed,
   cancelled,
 }
@@ -48,6 +57,7 @@ class KlearBooking {
     this.totalPrice,
     this.lat,
     this.lng,
+    this.providerId,
     this.timeType = TimeWindowType.window,
     this.scheduledEnd,
   });
@@ -68,6 +78,9 @@ class KlearBooking {
   final double? lat;
   final double? lng;
 
+  /// The captain (provider) assigned to this booking, when claimed.
+  final String? providerId;
+
   /// The flexibility category of the scheduled time.
   final TimeWindowType timeType;
 
@@ -81,13 +94,25 @@ class KlearBooking {
   /// Whether this booking carries the urgent surcharge.
   bool get isUrgent => timeType == TimeWindowType.urgent;
 
+  /// Whether the customer can live-track the captain right now.
+  /// Requires an assigned captain AND an active en-route/working state.
+  /// The captain must also have wash-point coordinates to show the target.
+  bool get canTrack =>
+      (status == BookingStatus.onTheWay ||
+          status == BookingStatus.inProgress) &&
+      providerId != null &&
+      lat != null &&
+      lng != null;
+
   /// Returns the localized status label.
   String statusLabel(String langCode) {
     switch (status) {
       case BookingStatus.pending:
         return langCode == 'ar' ? 'قيد الانتظار' : 'Pending';
-      case BookingStatus.confirmed:
-        return langCode == 'ar' ? 'مؤكد' : 'Confirmed';
+      case BookingStatus.accepted:
+        return langCode == 'ar' ? 'تم قبول الحجز' : 'Accepted';
+      case BookingStatus.onTheWay:
+        return langCode == 'ar' ? 'الكابتن في الطريق' : 'On the way';
       case BookingStatus.inProgress:
         return langCode == 'ar' ? 'جاري التنفيذ' : 'In Progress';
       case BookingStatus.completed:
@@ -113,6 +138,7 @@ class KlearBooking {
       totalPrice: (map['total_price'] as num?)?.toDouble(),
       lat: (map['lat'] as num?)?.toDouble(),
       lng: (map['lng'] as num?)?.toDouble(),
+      providerId: map['provider_id']?.toString(),
       timeType: _timeTypeFromString(map['time_type']?.toString()),
       scheduledEnd: DateTime.tryParse(map['scheduled_end']?.toString() ?? ''),
     );
@@ -123,6 +149,7 @@ class KlearBooking {
         'customer_id': userId,
         'service_id': serviceId,
         'car_id': carId,
+        'provider_id': providerId,
         'address': address,
         'lat': lat,
         'lng': lng,
@@ -139,8 +166,10 @@ class KlearBooking {
     switch (s?.toLowerCase()) {
       case 'pending':
         return BookingStatus.pending;
-      case 'confirmed':
-        return BookingStatus.confirmed;
+      case 'accepted':
+        return BookingStatus.accepted;
+      case 'on_the_way':
+        return BookingStatus.onTheWay;
       case 'in_progress':
         return BookingStatus.inProgress;
       case 'completed':

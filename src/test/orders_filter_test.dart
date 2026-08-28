@@ -26,10 +26,14 @@ KlearBooking bookingWith(BookingStatus status) => KlearBooking(
     );
 
 void main() {
-  test('current tab matches pending, confirmed and in-progress bookings', () {
+  test('current tab matches assigned/active statuses (pending..in-progress)', () {
     expect(OrdersFilter.current.matches(bookingWith(BookingStatus.pending)), isTrue);
     expect(
-      OrdersFilter.current.matches(bookingWith(BookingStatus.confirmed)),
+      OrdersFilter.current.matches(bookingWith(BookingStatus.accepted)),
+      isTrue,
+    );
+    expect(
+      OrdersFilter.current.matches(bookingWith(BookingStatus.onTheWay)),
       isTrue,
     );
     expect(

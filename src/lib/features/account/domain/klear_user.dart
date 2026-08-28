@@ -4,6 +4,7 @@ class KlearUser {
     required this.id,
     this.fullName,
     this.phone,
+    this.clientNo,
     this.lat,
     this.lng,
     this.address,
@@ -14,6 +15,10 @@ class KlearUser {
   final String id;
   final String? fullName;
   final String? phone;
+
+  /// Global, human-friendly sequential client number (e.g. CL-1001).
+  /// Assigned by the DB on insert; never written back via toMap.
+  final String? clientNo;
   final double? lat;
   final double? lng;
   final String? address;
@@ -34,6 +39,7 @@ class KlearUser {
         id: map['id']?.toString() ?? '',
         fullName: map['full_name'] as String?,
         phone: map['phone'] as String?,
+        clientNo: map['client_no'] as String?,
         lat: (map['lat'] as num?)?.toDouble(),
         lng: (map['lng'] as num?)?.toDouble(),
         address: map['address'] as String?,

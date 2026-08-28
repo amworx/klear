@@ -518,6 +518,12 @@ abstract class AppLocalizations {
   /// **'Phone number'**
   String get phoneNumber;
 
+  /// No description provided for @clientIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Client ID'**
+  String get clientIdLabel;
+
   /// No description provided for @phoneRequired.
   ///
   /// In en, this message translates to:
@@ -1004,11 +1010,17 @@ abstract class AppLocalizations {
   /// **'Pending'**
   String get statusPending;
 
-  /// No description provided for @statusConfirmed.
+  /// No description provided for @statusAccepted.
   ///
   /// In en, this message translates to:
-  /// **'Confirmed'**
-  String get statusConfirmed;
+  /// **'Accepted'**
+  String get statusAccepted;
+
+  /// No description provided for @statusOnTheWay.
+  ///
+  /// In en, this message translates to:
+  /// **'On the way'**
+  String get statusOnTheWay;
 
   /// No description provided for @statusInProgress.
   ///
@@ -1027,6 +1039,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancelled'**
   String get statusCancelled;
+
+  /// No description provided for @trackCaptain.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your captain'**
+  String get trackCaptain;
+
+  /// No description provided for @trackCaptainSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow your captain\'s live location'**
+  String get trackCaptainSubtitle;
+
+  /// No description provided for @captainOnTheWay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your captain is on the way'**
+  String get captainOnTheWay;
+
+  /// No description provided for @captainWashing.
+  ///
+  /// In en, this message translates to:
+  /// **'Your captain is washing your car'**
+  String get captainWashing;
+
+  /// No description provided for @trackingLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get trackingLive;
+
+  /// No description provided for @washPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Wash point'**
+  String get washPoint;
+
+  /// No description provided for @captainLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last update'**
+  String get captainLastSeen;
+
+  /// No description provided for @trackNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking unavailable'**
+  String get trackNotAvailable;
+
+  /// No description provided for @trackWaitingForLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the captain\'s location…'**
+  String get trackWaitingForLocation;
 
   /// No description provided for @reviewAndPay.
   ///
@@ -1747,6 +1813,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System'**
   String get themeSystem;
+
+  /// No description provided for @chatWithCaptain.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with captain'**
+  String get chatWithCaptain;
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with captain'**
+  String get chatTitle;
+
+  /// No description provided for @chatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet — say hello to your captain'**
+  String get chatEmpty;
+
+  /// No description provided for @chatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message…'**
+  String get chatHint;
+
+  /// No description provided for @chatLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the conversation'**
+  String get chatLoadError;
+
+  /// No description provided for @sendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send your message'**
+  String get sendFailed;
 }
 
 class _AppLocalizationsDelegate

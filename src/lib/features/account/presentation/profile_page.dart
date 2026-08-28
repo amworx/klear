@@ -25,6 +25,7 @@ class ProfilePage extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final auth = ref.watch(authProvider);
     final profile = auth.profile;
+    final clientNo = profile?.clientNo ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +71,14 @@ class ProfilePage extends ConsumerWidget {
           Card(
             child: Column(
               children: [
-                ListTile(
+                if (clientNo.isNotEmpty) ...[
+                  ListTile(
+                    leading: const Icon(Icons.badge_outlined),
+                    title: Text(l10n.clientIdLabel),
+                    subtitle: Text(clientNo),
+                  ),
+                  const Divider(height: 1),
+                ],                ListTile(
                   leading: const Icon(Icons.phone),
                   title: Text(l10n.phoneNumber),
                   subtitle: Text(profile?.displayPhone ?? '—'),

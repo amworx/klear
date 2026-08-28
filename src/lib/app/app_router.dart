@@ -46,6 +46,10 @@ class KlearRoutes {
   static const String addressBook = '/addresses';
   // Map picker (full-screen detour; pushed with `context.push`).
   static const String mapPicker = '/map-picker';
+  // Live captain tracking (full-screen detour; built from a booking).
+  static const String liveTracking = '/tracking';
+  // Booking chat (full-screen detour; pushed with the booking id as `extra`).
+  static const String chat = '/chat';
   // Diagnostics — in-app log viewer (errors, warnings, workflow).
   static const String logs = '/diagnostics/logs';
 }

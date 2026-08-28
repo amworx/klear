@@ -223,6 +223,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get phoneNumber => 'رقم الهاتف';
 
   @override
+  String get clientIdLabel => 'رقم العميل';
+
+  @override
   String get phoneRequired => 'الرجاء إدخال رقم الهاتف';
 
   @override
@@ -478,7 +481,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statusPending => 'قيد الانتظار';
 
   @override
-  String get statusConfirmed => 'مؤكد';
+  String get statusAccepted => 'تم قبول الحجز';
+
+  @override
+  String get statusOnTheWay => 'الكابتن في الطريق';
 
   @override
   String get statusInProgress => 'جاري التنفيذ';
@@ -488,6 +494,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statusCancelled => 'ملغى';
+
+  @override
+  String get trackCaptain => 'تتبّع الكابتن';
+
+  @override
+  String get trackCaptainSubtitle => 'تابع موقع الكابتن المباشر';
+
+  @override
+  String get captainOnTheWay => 'الكابتن في الطريق إليك';
+
+  @override
+  String get captainWashing => 'الكابتن يغسل سيارتك';
+
+  @override
+  String get trackingLive => 'مباشر';
+
+  @override
+  String get washPoint => 'نقطة الغسيل';
+
+  @override
+  String get captainLastSeen => 'آخر تحديث';
+
+  @override
+  String get trackNotAvailable => 'التتبّع غير متاح';
+
+  @override
+  String get trackWaitingForLocation => 'بانتظار موقع الكابتن…';
 
   @override
   String get reviewAndPay => 'مراجعة والدفع';
@@ -862,4 +895,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get themeSystem => 'حسب النظام';
+
+  @override
+  String get chatWithCaptain => 'الدردشة مع الكابتن';
+
+  @override
+  String get chatTitle => 'الدردشة مع الكابتن';
+
+  @override
+  String get chatEmpty => 'لا توجد رسائل بعد — رحّب بكابتنك';
+
+  @override
+  String get chatHint => 'اكتب رسالة…';
+
+  @override
+  String get chatLoadError => 'تعذر تحميل المحادثة';
+
+  @override
+  String get sendFailed => 'تعذر إرسال رسالتك';
 }

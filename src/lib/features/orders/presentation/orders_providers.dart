@@ -21,7 +21,8 @@ extension OrdersFilterX on OrdersFilter {
     return switch (this) {
       OrdersFilter.current =>
         booking.status == BookingStatus.pending ||
-            booking.status == BookingStatus.confirmed ||
+            booking.status == BookingStatus.accepted ||
+            booking.status == BookingStatus.onTheWay ||
             booking.status == BookingStatus.inProgress,
       OrdersFilter.finished => booking.status == BookingStatus.completed,
       OrdersFilter.cancelled => booking.status == BookingStatus.cancelled,

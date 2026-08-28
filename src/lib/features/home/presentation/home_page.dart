@@ -35,7 +35,9 @@ class HomePage extends ConsumerWidget {
         ?.where((b) =>
             b.windowEnd.isAfter(DateTime.now()) &&
             (b.status == BookingStatus.pending ||
-                b.status == BookingStatus.confirmed))
+                b.status == BookingStatus.accepted ||
+                b.status == BookingStatus.onTheWay ||
+                b.status == BookingStatus.inProgress))
         .toList()
         ?..sort((a, b) => a.dateTime.compareTo(b.dateTime));
     // T3 personalization: favorite-service badge + one-tap rebooking.

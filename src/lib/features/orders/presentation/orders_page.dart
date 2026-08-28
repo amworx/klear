@@ -306,8 +306,13 @@ class _StatusChip extends StatelessWidget {
           scheme.surfaceContainerHighest,
           scheme.onSurfaceVariant,
         ),
-      BookingStatus.confirmed => (
-          l10n.statusConfirmed,
+      BookingStatus.accepted => (
+          l10n.statusAccepted,
+          scheme.secondaryContainer,
+          scheme.onSecondaryContainer,
+        ),
+      BookingStatus.onTheWay => (
+          l10n.statusOnTheWay,
           scheme.primaryContainer,
           scheme.onPrimaryContainer,
         ),
