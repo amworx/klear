@@ -73,7 +73,7 @@ class OrderDetailPage extends ConsumerWidget {
                     KlearCarSize.medium => l10n.sizeMedium,
                     KlearCarSize.large => l10n.sizeLarge,
                   },
-                  factor: settings.priceFactorFor(car.size),
+                  factor: settings.carFactor(car),
                   total: booking.totalPrice!,
                   currency: booking.service.currency,
                   l10n: l10n,

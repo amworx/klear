@@ -788,6 +788,12 @@ abstract class AppLocalizations {
   /// **'Size adjustment'**
   String get sizeAdjustment;
 
+  /// No description provided for @attrAffectsPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Affects price'**
+  String get attrAffectsPrice;
+
   /// No description provided for @totalEstimate.
   ///
   /// In en, this message translates to:
@@ -1849,6 +1855,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not send your message'**
   String get sendFailed;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get fieldRequired;
 }
 
 class _AppLocalizationsDelegate

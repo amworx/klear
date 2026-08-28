@@ -268,8 +268,11 @@ class BookingDraft {
   /// [AppSettings.defaults] when no settings are supplied (tests / offline).
   double estimatedTotal([AppSettings? settings]) {
     final s = settings ?? AppSettings.defaults;
-    final base = (service?.finalPrice ?? 0) *
-        s.priceFactorFor(car?.size ?? KlearCarSize.medium);
+    // Car-size factor (admin-configurable) × extra price factor (product of
+    // all other price-affecting attributes, e.g. vehicle class/color add-ons).
+    final sizeFactor = s.priceFactorFor(car?.size ?? KlearCarSize.medium);
+    final extra = car?.extraPriceFactor ?? 1.0;
+    final base = (service?.finalPrice ?? 0) * sizeFactor * extra;
     return base;
   }
 

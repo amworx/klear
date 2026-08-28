@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/app_router.dart';
 import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
+import '../domain/car_attribute_catalog.dart';
 import '../domain/klear_car.dart';
 import 'cars_providers.dart';
 
@@ -20,6 +21,15 @@ class CarsPage extends ConsumerWidget {
     final carsAsync = ref.watch(carsProvider);
     final scheme = Theme.of(context).colorScheme;
     final langCode = Localizations.localeOf(context).languageCode;
+
+    // Visible non-system catalog attributes, used to render a car's dynamic
+    // attribute values as chips (raw values shown for select lookups without
+    // a translation is avoided — labels resolve from the catalog).
+    final catalog =
+        (ref.watch(carAttributesCatalogProvider).value ?? const <CarAttribute>[])
+            .where((a) =>
+                !const {'make', 'model', 'plate_number', 'size'}.contains(a.key))
+            .toList();
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.myCars)),
@@ -122,7 +132,25 @@ class CarsPage extends ConsumerWidget {
                                     _SizeChip(
                                       label: _sizeLabel(
                                           car.size, langCode, l10n),
+                                      tooltip:
+                                          '${l10n.sizeAdjustment} ×${_formatFactor(car.size.priceFactor)}',
                                     ),
+                                    // Dynamic (admin-defined) attribute values.
+                                    for (final attr in catalog)
+                                      if (car.attributes[attr.key]
+                                                  ?.trim()
+                                                  .isNotEmpty ??
+                                              false)
+                                        _AttrChip(
+                                          label:
+                                              '${attr.label(langCode)}: ${attr.labelForValue(car.attributes[attr.key]!, langCode)}',
+                                          tooltip: _attrTooltip(
+                                            attr,
+                                            car.attributes[attr.key]!,
+                                            langCode,
+                                            l10n,
+                                          ),
+                                        ),
                                     if (car.isDefault)
                                       _DefaultChip(label: l10n.defaultCar),
                                     Container(
@@ -205,6 +233,29 @@ class CarsPage extends ConsumerWidget {
     }
   }
 
+  /// Extra context for a car's dynamic attribute chip. Repeats the label/value
+  /// (useful on long/truncated chips) and, for price-affecting attributes,
+  /// notes the price impact (with the option factor when one is known).
+  String _attrTooltip(
+    CarAttribute attr,
+    String value,
+    String langCode,
+    AppLocalizations l10n,
+  ) {
+    final base =
+        '${attr.label(langCode)}: ${attr.labelForValue(value, langCode)}';
+    if (!attr.affectsPrice) return base;
+    final factor = attr.factorForValue(value);
+    if (factor == null) return '$base · ${l10n.attrAffectsPrice}';
+    return '$base · ${l10n.attrAffectsPrice} ×${_formatFactor(factor)}';
+  }
+
+  String _formatFactor(double factor) {
+    return factor == factor.roundToDouble()
+        ? factor.toStringAsFixed(0)
+        : factor.toStringAsFixed(2);
+  }
+
   Future<void> _confirmDelete(
     BuildContext context,
     AppLocalizations l10n,
@@ -235,14 +286,15 @@ class CarsPage extends ConsumerWidget {
 }
 
 class _SizeChip extends StatelessWidget {
-  const _SizeChip({required this.label});
+  const _SizeChip({required this.label, this.tooltip});
 
   final String label;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
+    final chip = Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: scheme.tertiaryContainer,
@@ -255,6 +307,9 @@ class _SizeChip extends StatelessWidget {
             ),
       ),
     );
+    final t = tooltip;
+    if (t == null || t.isEmpty) return chip;
+    return Tooltip(message: t, child: chip);
   }
 }
 
@@ -286,5 +341,34 @@ class _DefaultChip extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _AttrChip extends StatelessWidget {
+  const _AttrChip({required this.label, this.tooltip});
+
+  final String label;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final chip = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+    final t = tooltip;
+    if (t == null || t.isEmpty) return chip;
+    return Tooltip(message: t, child: chip);
   }
 }

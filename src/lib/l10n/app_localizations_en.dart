@@ -371,6 +371,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sizeAdjustment => 'Size adjustment';
 
   @override
+  String get attrAffectsPrice => 'Affects price';
+
+  @override
   String get totalEstimate => 'Estimated total';
 
   @override
@@ -924,4 +927,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendFailed => 'Could not send your message';
+
+  @override
+  String get fieldRequired => 'This field is required';
 }

@@ -365,6 +365,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sizeAdjustment => 'تعديل حسب الحجم';
 
   @override
+  String get attrAffectsPrice => 'تؤثر على السعر';
+
+  @override
   String get totalEstimate => 'التكلفة التقديرية';
 
   @override
@@ -913,4 +916,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sendFailed => 'تعذر إرسال رسالتك';
+
+  @override
+  String get fieldRequired => 'هذا الحقل مطلوب';
 }

@@ -56,6 +56,12 @@ class AppSettings {
     }
   }
 
+  /// Combined price factor for a whole car: size factor × the product of
+  /// factors of all other price-affecting attributes (extraPriceFactor).
+  /// Used for breakdown display so the shown multiplier matches the total.
+  double carFactor(KlearCar car) =>
+      priceFactorFor(car.size) * car.extraPriceFactor;
+
   factory AppSettings.fromMap(Map<String, dynamic> map) => AppSettings(
         sizeSmallFactor: (map['size_small_factor'] as num?)?.toDouble() ??
             defaults.sizeSmallFactor,

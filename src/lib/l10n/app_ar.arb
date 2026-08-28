@@ -120,6 +120,7 @@
   "priceEstimate": "تقدير التكلفة",
   "priceBase": "السعر الأساسي",
   "sizeAdjustment": "تعديل حسب الحجم",
+  "attrAffectsPrice": "تؤثر على السعر",
   "totalEstimate": "التكلفة التقديرية",
   "selectCar": "اختر سيارتك",
   "myCars": "سياراتي",
@@ -325,5 +326,6 @@
   "chatEmpty": "لا توجد رسائل بعد — رحّب بكابتنك",
   "chatHint": "اكتب رسالة…",
   "chatLoadError": "تعذر تحميل المحادثة",
-  "sendFailed": "تعذر إرسال رسالتك"
+  "sendFailed": "تعذر إرسال رسالتك",
+  "fieldRequired": "هذا الحقل مطلوب"
 }

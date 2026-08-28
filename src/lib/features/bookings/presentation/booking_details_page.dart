@@ -890,7 +890,7 @@ class _BreakdownCard extends StatelessWidget {
       KlearCarSize.medium => l10n.sizeMedium,
       KlearCarSize.large => l10n.sizeLarge,
     };
-    final factor = settings.priceFactorFor(size);
+    final factor = settings.carFactor(draft.car!);
     final factorLabel = factor == factor.roundToDouble()
         ? factor.toStringAsFixed(0)
         : factor.toStringAsFixed(2);

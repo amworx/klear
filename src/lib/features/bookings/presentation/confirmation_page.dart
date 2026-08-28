@@ -209,7 +209,7 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
                       value: draft.car == null
                           ? '—'
                           : '$sizeLabel · ×'
-                              '${_formatFactor(settings.priceFactorFor(draft.car!.size))}',
+                              '${_formatFactor(settings.carFactor(draft.car!))}',
                     ),
                     if (draft.isUrgent)
                       _PriceRow(

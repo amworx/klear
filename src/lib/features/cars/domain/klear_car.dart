@@ -51,6 +51,8 @@ class KlearCar {
     required this.size,
     this.isDefault = false,
     this.createdAt,
+    this.attributes = const {},
+    this.extraPriceFactor = 1.0,
   });
 
   final String id;
@@ -64,6 +66,19 @@ class KlearCar {
   /// At most one car per user can be default (DB partial unique index).
   final bool isDefault;
   final DateTime? createdAt;
+
+  /// Dynamic attribute values keyed by attribute key (e.g. {'color': 'red'}).
+  /// Stored in the `car_attribute_values` table (NOT in `cars`), so these are
+  /// attached by the data layer when the car is loaded. Does not include the
+  /// built-in [size], which stays a first-class field.
+  final Map<String, String> attributes;
+
+  /// Product of the price factors of every price-affecting attribute OTHER
+  /// than [size] (whose factor is always resolved from `app_settings`). The
+  /// catalog maps each attribute's selected option value to its factor;
+  /// computed at load time. Default 1.0 so cars without extra attributes
+  /// price exactly as before.
+  final double extraPriceFactor;
 
   /// Short display label e.g. "Toyota Corolla".
   String get displayName => '$make $model'.trim();
@@ -113,6 +128,37 @@ class KlearCar {
         size: size,
         isDefault: value,
         createdAt: createdAt,
+        attributes: attributes,
+        extraPriceFactor: extraPriceFactor,
+      );
+
+  /// Copy with attached dynamic attribute values (from `car_attribute_values`).
+  KlearCar withAttributeValues(Map<String, String> values) => KlearCar(
+        id: id,
+        userId: userId,
+        make: make,
+        model: model,
+        plateNumber: plateNumber,
+        size: size,
+        isDefault: isDefault,
+        createdAt: createdAt,
+        attributes: values,
+        extraPriceFactor: extraPriceFactor,
+      );
+
+  /// Copy with a recomputed extra price factor (product of non-size
+  /// price-affecting attribute factors).
+  KlearCar withExtraPriceFactor(double factor) => KlearCar(
+        id: id,
+        userId: userId,
+        make: make,
+        model: model,
+        plateNumber: plateNumber,
+        size: size,
+        isDefault: isDefault,
+        createdAt: createdAt,
+        attributes: attributes,
+        extraPriceFactor: factor,
       );
 }
 

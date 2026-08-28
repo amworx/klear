@@ -120,6 +120,7 @@
   "priceEstimate": "Cost estimate",
   "priceBase": "Base price",
   "sizeAdjustment": "Size adjustment",
+  "attrAffectsPrice": "Affects price",
   "totalEstimate": "Estimated total",
   "selectCar": "Select your car",
   "myCars": "My cars",
@@ -325,5 +326,6 @@
   "chatEmpty": "No messages yet — say hello to your captain",
   "chatHint": "Type a message…",
   "chatLoadError": "Could not load the conversation",
-  "sendFailed": "Could not send your message"
+  "sendFailed": "Could not send your message",
+  "fieldRequired": "This field is required"
 }
