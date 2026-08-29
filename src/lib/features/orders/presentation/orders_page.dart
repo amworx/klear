@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../bookings/domain/klear_booking.dart';
 import '../../bookings/presentation/booking_providers.dart';
 import '../../bookings/presentation/booking_time_labels.dart';
+import '../../cars/presentation/cars_providers.dart';
 import 'orders_providers.dart';
 
 /// User's booking history (Orders tab), with filter tabs:
@@ -115,24 +116,58 @@ class _OrdersTab extends ConsumerWidget {
             },
           );
         }
+        // "Current" tab groups expired (past their window, never served)
+        // bookings first with an alert so they are no longer presented as
+        // upcoming; the remaining active bookings follow normally.
+        final expired = OrdersFilter.current == filter
+            ? filtered.where((b) => b.isExpired).toList()
+            : const <KlearBooking>[];
+        final active = OrdersFilter.current == filter
+            ? filtered.where((b) => !b.isExpired).toList()
+            : filtered;
+
         return RefreshIndicator(
           onRefresh: () => refreshAppData(ref),
           child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            itemCount: filtered.length,
+            itemCount: expired.length + active.length,
             itemBuilder: (context, index) {
-              final booking = filtered[index];
+              final isExpiredCard = index < expired.length;
+              final booking = isExpiredCard ? expired[index] : active[index - expired.length];
+                  final child = isExpiredCard
+                      ? _ExpiredOrderCard(
+                          booking: booking,
+                          langCode: langCode,
+                          l10n: l10n,
+                          onTap: () => context.go(
+                            KlearRoutes.ordersDetail
+                                .replaceFirst(':id', booking.id),
+                          ),
+                          onReschedule: () => _startReschedule(
+                            context,
+                            ref,
+                            booking,
+                          ),
+                          onCancel: () => _confirmCancel(
+                            context,
+                            ref,
+                            l10n,
+                            booking,
+                          ),
+                        )
+                      : _OrderCard(
+                          booking: booking,
+                          langCode: langCode,
+                          l10n: l10n,
+                          onTap: () => context.go(
+                            KlearRoutes.ordersDetail
+                                .replaceFirst(':id', booking.id),
+                          ),
+                        );
               return Entrance(
                 delay: Duration(milliseconds: 40 * index),
-                child: _OrderCard(
-                  booking: booking,
-                  langCode: langCode,
-                  l10n: l10n,
-                  onTap: () => context.go(
-                    KlearRoutes.ordersDetail.replaceFirst(':id', booking.id),
-                  ),
-                ),
+                child: child,
               );
             },
           ),
@@ -234,6 +269,33 @@ class _OrderCard extends StatelessWidget {
                   _StatusChip(status: booking.status, l10n: l10n),
                 ],
               ),
+              if (booking.isExpiringSoon) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: scheme.tertiaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded,
+                          size: 16, color: scheme.onTertiaryContainer),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          l10n.expiringSoonBanner,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: scheme.onTertiaryContainer,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -346,6 +408,184 @@ class _StatusChip extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
       ),
+    );
+  }
+}
+
+/// A booking whose scheduled window passed without being served. Shown with a
+/// prominent alert style and direct actions (reschedule / cancel) so the
+/// customer can resolve an expired booking instead of it silently lingering.
+class _ExpiredOrderCard extends StatelessWidget {
+  const _ExpiredOrderCard({
+    required this.booking,
+    required this.langCode,
+    required this.l10n,
+    required this.onTap,
+    required this.onReschedule,
+    required this.onCancel,
+  });
+
+  final KlearBooking booking;
+  final String langCode;
+  final AppLocalizations l10n;
+  final VoidCallback onTap;
+  final VoidCallback onReschedule;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      color: scheme.errorContainer.withValues(alpha: 0.35),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: scheme.error, width: 1.2),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.error_outline, color: scheme.error, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      booking.service.nameFor(langCode),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.expiredBookingBanner,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                BookingTimeLabels.fullLabel(
+                  start: booking.dateTime,
+                  end: booking.scheduledEnd,
+                  type: booking.timeType,
+                  l10n: l10n,
+                  langCode: langCode,
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: onReschedule,
+                      icon: const Icon(Icons.schedule_outlined, size: 18),
+                      label: Text(l10n.rescheduleBookingAction),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: onCancel,
+                      icon: const Icon(Icons.cancel_outlined, size: 18),
+                      label: Text(l10n.cancelOrderAction),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Reschedules an expired booking: for editable statuses (pending/accepted)
+/// we update the existing booking's time (professional "reschedule"); for
+/// en-route/in-progress we rebook a fresh one. Prefills service/car/address
+/// so the customer only picks a new time.
+void _startReschedule(
+  BuildContext context,
+  WidgetRef ref,
+  KlearBooking booking,
+) {
+  final canEditExisting = booking.status == BookingStatus.pending ||
+      booking.status == BookingStatus.accepted;
+  if (canEditExisting) {
+    final cars = ref.read(carsProvider).valueOrNull ?? const [];
+    final car = cars.where((c) => c.id == booking.carId).firstOrNull;
+    ref.read(bookingDraftProvider.notifier).startEdit(
+          bookingId: booking.id,
+          service: booking.service,
+          car: car,
+          address: booking.address,
+          dateTime: booking.dateTime,
+          timeType: booking.timeType,
+          scheduledEnd: booking.scheduledEnd,
+          lat: booking.lat,
+          lng: booking.lng,
+          notes: booking.notes,
+        );
+  } else {
+    // Fallback: create a fresh booking with the same details.
+    ref.read(bookingDraftProvider.notifier).startNew();
+    ref.read(bookingDraftProvider.notifier).setService(booking.service);
+    ref.read(bookingDraftProvider.notifier).setAddress(booking.address);
+    ref.read(bookingDraftProvider.notifier).setLatLng(booking.lat, booking.lng);
+    ref.read(bookingDraftProvider.notifier).setNotes(booking.notes);
+  }
+  context.go(KlearRoutes.bookSelectService);
+}
+
+/// Confirms and cancels an expired booking; falls back to an error snack bar.
+Future<void> _confirmCancel(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations l10n,
+  KlearBooking booking,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.cancelOrderTitle),
+      content: Text(l10n.cancelOrderMessage),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(l10n.cancelBooking),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(l10n.cancelOrderAction),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
+  try {
+    await ref.read(bookingRepositoryProvider).cancelBooking(booking.id);
+    ref.invalidate(myBookingsProvider);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.orderCancelled)),
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.cancelFailed)),
     );
   }
 }

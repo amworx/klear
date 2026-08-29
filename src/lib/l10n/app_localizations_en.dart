@@ -628,6 +628,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cancelled bookings will appear here.';
 
   @override
+  String get expiredBookingBanner =>
+      'This wash was not completed on time — please reschedule or cancel.';
+
+  @override
+  String get expiringSoonBanner =>
+      'This wash window ends soon — please confirm or reschedule.';
+
+  @override
+  String get rescheduleBookingAction => 'Reschedule';
+
+  @override
   String get locationLoading => 'Getting your location…';
 
   @override

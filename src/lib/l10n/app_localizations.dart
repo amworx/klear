@@ -1280,6 +1280,24 @@ abstract class AppLocalizations {
   /// **'Cancelled bookings will appear here.'**
   String get ordersEmptyCancelledSubtitle;
 
+  /// No description provided for @expiredBookingBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This wash was not completed on time — please reschedule or cancel.'**
+  String get expiredBookingBanner;
+
+  /// No description provided for @expiringSoonBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This wash window ends soon — please confirm or reschedule.'**
+  String get expiringSoonBanner;
+
+  /// No description provided for @rescheduleBookingAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reschedule'**
+  String get rescheduleBookingAction;
+
   /// No description provided for @locationLoading.
   ///
   /// In en, this message translates to:

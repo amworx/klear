@@ -400,6 +400,129 @@ void main() {
     expect(legacy.scheduledEnd, isNull);
     expect(legacy.windowEnd, legacy.dateTime);
   });
+
+  KlearBooking bookingAt(BookingStatus status, DateTime scheduledAt,
+          {DateTime? scheduledEnd}) =>
+      KlearBooking(
+        id: 'b-$status-${scheduledAt.millisecondsSinceEpoch}',
+        userId: 'u1',
+        serviceId: 's1',
+        service: _service,
+        address: 'A',
+        dateTime: scheduledAt,
+        scheduledEnd: scheduledEnd,
+        status: status,
+        createdAt: DateTime(2020, 1, 1),
+      );
+
+  test('isExpired is true for an open booking whose window already ended', () {
+    final pastWindowEnd = DateTime.now().subtract(const Duration(hours: 2));
+    final pastStart = pastWindowEnd.subtract(const Duration(hours: 4));
+
+    // Pending booking fully in the past -> expired.
+    expect(
+      bookingAt(BookingStatus.pending, pastStart,
+          scheduledEnd: pastWindowEnd).isExpired,
+      isTrue,
+    );
+    // Accepted booking fully in the past -> expired.
+    expect(
+      bookingAt(BookingStatus.accepted, pastStart,
+          scheduledEnd: pastWindowEnd).isExpired,
+      isTrue,
+    );
+    // Legacy past booking with no scheduled_end -> windowEnd == start (past).
+    expect(bookingAt(BookingStatus.pending, pastStart).isExpired, isTrue);
+  });
+
+  test('isExpired is false for terminal or genuinely upcoming bookings', () {
+    final futureStart = DateTime.now().add(const Duration(hours: 4));
+    final futureEnd = futureStart.add(const Duration(hours: 4));
+
+    // Completed and cancelled bookings are never "expired", even if the
+    // window already passed.
+    expect(
+      bookingAt(BookingStatus.completed, futureStart.subtract(const Duration(days: 1)))
+          .isExpired,
+      isFalse,
+    );
+    expect(
+      bookingAt(BookingStatus.cancelled, futureStart.subtract(const Duration(days: 1)))
+          .isExpired,
+      isFalse,
+    );
+    // Actively upcoming booking is NOT expired.
+    expect(
+      bookingAt(BookingStatus.pending, futureStart,
+          scheduledEnd: futureEnd).isExpired,
+      isFalse,
+    );
+  });
+
+  test('isUpcoming is the mirror of isExpired for open bookings', () {
+    final pastStart = DateTime.now().subtract(const Duration(hours: 4));
+    final pastEnd = pastStart.add(const Duration(hours: 2));
+    final futureStart = DateTime.now().add(const Duration(hours: 2));
+    final futureEnd = futureStart.add(const Duration(hours: 4));
+
+    expect(
+      bookingAt(BookingStatus.pending, pastStart, scheduledEnd: pastEnd).isUpcoming,
+      isFalse,
+    );
+    expect(
+      bookingAt(BookingStatus.inProgress, pastStart, scheduledEnd: pastEnd).isUpcoming,
+      isFalse,
+    );
+    expect(
+      bookingAt(BookingStatus.pending, futureStart, scheduledEnd: futureEnd).isUpcoming,
+      isTrue,
+    );
+    // Terminal bookings are never "upcoming".
+    expect(
+      bookingAt(BookingStatus.completed, futureStart, scheduledEnd: futureEnd)
+          .isUpcoming,
+      isFalse,
+    );
+  });
+
+  test('isExpiringSoon flags bookings whose window ends within 3 hours', () {
+    final soonEnd = DateTime.now().add(const Duration(hours: 1));
+    final soonStart = soonEnd.subtract(const Duration(hours: 4));
+    final laterEnd = DateTime.now().add(const Duration(hours: 5));
+    final laterStart = laterEnd.subtract(const Duration(hours: 4));
+    final pastEnd = DateTime.now().subtract(const Duration(hours: 1));
+    final pastStart = pastEnd.subtract(const Duration(hours: 4));
+
+    // Pending booking ending in 1h -> expiring soon.
+    expect(
+      bookingAt(BookingStatus.pending, soonStart, scheduledEnd: soonEnd)
+          .isExpiringSoon,
+      isTrue,
+    );
+    // Same booking but 5h away -> not soon.
+    expect(
+      bookingAt(BookingStatus.pending, laterStart, scheduledEnd: laterEnd)
+          .isExpiringSoon,
+      isFalse,
+    );
+    // Already expired -> not "soon", it's expired.
+    expect(
+      bookingAt(BookingStatus.pending, pastStart, scheduledEnd: pastEnd)
+          .isExpiringSoon,
+      isFalse,
+    );
+    // Terminal never expiring soon even if window is near.
+    expect(
+      bookingAt(BookingStatus.completed, soonStart, scheduledEnd: soonEnd)
+          .isExpiringSoon,
+      isFalse,
+    );
+    expect(
+      bookingAt(BookingStatus.cancelled, soonStart, scheduledEnd: soonEnd)
+          .isExpiringSoon,
+      isFalse,
+    );
+  });
 }
 
 class _FakeBookingsDataSource implements BookingsRemoteDataSource {

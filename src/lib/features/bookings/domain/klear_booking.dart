@@ -94,6 +94,39 @@ class KlearBooking {
   /// Whether this booking carries the urgent surcharge.
   bool get isUrgent => timeType == TimeWindowType.urgent;
 
+  /// Whether the booking's scheduled time window has fully passed while the
+  /// booking is still open (not completed / cancelled).
+  ///
+  /// This is the "expired / overdue / not served" case: the customer booked a
+  /// wash for a window that has now ended but the service was never delivered
+  /// nor the booking cancelled. Such bookings must not be presented as
+  /// "upcoming" — they need the customer's attention (reschedule or cancel).
+  bool get isExpired =>
+      status != BookingStatus.completed &&
+      status != BookingStatus.cancelled &&
+      windowEnd.isBefore(DateTime.now());
+
+  /// Whether the booking is still within its scheduled window (not past).
+  /// Always false for terminal (completed / cancelled) bookings.
+  bool get isUpcoming =>
+      status != BookingStatus.completed &&
+      status != BookingStatus.cancelled &&
+      !windowEnd.isBefore(DateTime.now());
+
+  /// Whether the booking is about to expire — its window ends within the next
+  /// 3 hours. Used to surface a proactive warning so the customer can act
+  /// before the booking becomes [isExpired]. Terminal bookings never expire
+  /// soon.
+  bool get isExpiringSoon {
+    if (status == BookingStatus.completed ||
+        status == BookingStatus.cancelled) {
+      return false;
+    }
+    if (isExpired) return false;
+    final remaining = windowEnd.difference(DateTime.now());
+    return remaining.inMinutes > 0 && remaining.inHours < 3;
+  }
+
   /// Whether the customer can live-track the captain right now.
   /// Requires an assigned captain AND an active en-route/working state.
   /// The captain must also have wash-point coordinates to show the target.

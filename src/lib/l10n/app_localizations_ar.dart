@@ -616,6 +616,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ordersEmptyCancelledSubtitle => 'ستظهر الحجوزات الملغاة هنا.';
 
   @override
+  String get expiredBookingBanner =>
+      'لم تُنجز هذه الغسلة في وقتها — يرجى إعادة الجدولة أو الإلغاء.';
+
+  @override
+  String get expiringSoonBanner =>
+      'تنتهي نافذة هذه الغسلة قريباً — يرجى التأكيد أو إعادة الجدولة.';
+
+  @override
+  String get rescheduleBookingAction => 'إعادة الجدولة';
+
+  @override
   String get locationLoading => 'جارٍ تحديد موقعك…';
 
   @override

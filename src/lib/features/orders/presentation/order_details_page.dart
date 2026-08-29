@@ -54,6 +54,13 @@ class OrderDetailPage extends ConsumerWidget {
                   _StatusChip(status: booking.status, l10n: l10n),
                 ],
               ),
+              if (booking.isExpired) ...[
+                const SizedBox(height: 12),
+                _ExpiredBanner(l10n: l10n),
+              ] else if (booking.isExpiringSoon) ...[
+                const SizedBox(height: 12),
+                _ExpiringSoonBanner(l10n: l10n),
+              ],
               const SizedBox(height: 4),
               if (booking.totalPrice != null)
                 Text(
@@ -429,6 +436,80 @@ class _StatusChip extends StatelessWidget {
               color: fg,
               fontWeight: FontWeight.w600,
             ),
+      ),
+    );
+  }
+}
+
+/// Alert banner shown on an expired booking's details so the customer knows
+/// the scheduled window passed without service and can take action.
+class _ExpiredBanner extends StatelessWidget {
+  const _ExpiredBanner({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.error, width: 1.2),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: scheme.error, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              l10n.expiredBookingBanner,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Amber warning shown when the booking window ends within ~3 hours.
+/// Professional apps surface "about to expire" early so the customer can
+/// confirm, track the captain, or reschedule before it lapses.
+class _ExpiringSoonBanner extends StatelessWidget {
+  const _ExpiringSoonBanner({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.tertiary, width: 1.1),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded,
+              color: scheme.onTertiaryContainer, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              l10n.expiringSoonBanner,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onTertiaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }
