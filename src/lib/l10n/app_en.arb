@@ -327,5 +327,6 @@
   "chatHint": "Type a message…",
   "chatLoadError": "Could not load the conversation",
   "sendFailed": "Could not send your message",
-  "fieldRequired": "This field is required"
+  "fieldRequired": "This field is required",
+  "appIconCredit": "App icon: Icongeek26 (The Noun Project)"
 }

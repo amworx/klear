@@ -163,6 +163,15 @@ class ProfilePage extends ConsumerWidget {
             icon: const Icon(Icons.edit),
             label: Text(l10n.editProfile),
           ),
+          const SizedBox(height: 16),
+          // Icon attribution — launcher icon by Icongeek26 (Noun Project).
+          Text(
+            l10n.appIconCredit,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );

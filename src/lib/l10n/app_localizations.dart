@@ -1861,6 +1861,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This field is required'**
   String get fieldRequired;
+
+  /// No description provided for @appIconCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'App icon: Icongeek26 (The Noun Project)'**
+  String get appIconCredit;
 }
 
 class _AppLocalizationsDelegate

@@ -327,5 +327,6 @@
   "chatHint": "اكتب رسالة…",
   "chatLoadError": "تعذر تحميل المحادثة",
   "sendFailed": "تعذر إرسال رسالتك",
-  "fieldRequired": "هذا الحقل مطلوب"
+  "fieldRequired": "هذا الحقل مطلوب",
+  "appIconCredit": "أيقونة التطبيق: Icongeek26 (مشروع الاسم)"
 }

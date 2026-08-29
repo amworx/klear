@@ -930,4 +930,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldRequired => 'This field is required';
+
+  @override
+  String get appIconCredit => 'App icon: Icongeek26 (The Noun Project)';
 }
