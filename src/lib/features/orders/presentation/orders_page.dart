@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,16 +27,22 @@ class OrdersPage extends ConsumerStatefulWidget {
 class _OrdersPageState extends ConsumerState<OrdersPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  Timer? _expiryTicker;
 
   @override
   void initState() {
     super.initState();
     _tabController =
         TabController(length: OrdersFilter.values.length, vsync: this);
+    // Re-evaluate isExpired/isExpiringSoon every minute without user action.
+    _expiryTicker = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _expiryTicker?.cancel();
     _tabController.dispose();
     super.dispose();
   }

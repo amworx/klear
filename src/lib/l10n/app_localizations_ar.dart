@@ -407,6 +407,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'ستُحذف هذه السيارة، ويمكنك إضافتها مجدداً في أي وقت';
 
   @override
+  String get deleteCarBlockedMessage =>
+      'لا يمكن حذف سيارة لديها حجوزات نشطة. يرجى إلغاء أو إكمال حجوزاتها أولاً.';
+
+  @override
   String get carMake => 'الماركة';
 
   @override
@@ -577,7 +581,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cancelOrderTitle => 'إلغاء هذا الحجز؟';
 
   @override
-  String get cancelOrderMessage => 'يمكنك الإلغاء ما دام الحجز قيد الانتظار';
+  String get cancelOrderMessage =>
+      'يمكنك الإلغاء قبل أن يكون الكابتن في الطريق. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get cancelOrderAction => 'إلغاء الحجز';
@@ -632,6 +637,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get carAlreadyBookedMessage =>
       'هذه السيارة لديها حجز بالفعل في هذه الفترة. يرجى اختيار سيارة أو وقت آخر.';
+
+  @override
+  String get windowPastBadge => 'انتهت';
+
+  @override
+  String get windowPastMessage => 'انتهت هذه الفترة الزمنية.';
 
   @override
   String get locationLoading => 'جارٍ تحديد موقعك…';

@@ -234,38 +234,45 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     setState(() => _selectedChoice = choice);
   }
 
+  /// Damascus is UTC+3 year-round (no DST since 2022). The booking windows
+  /// are defined in Asia/Damascus wall time (08-18). To store the correct
+  /// absolute moment, we create the UTC instant that corresponds to that wall
+  /// time: 08:00 Damascus = 05:00 UTC.
+  DateTime _damascusUtc(DateTime day, int hour, int minute) =>
+      DateTime.utc(day.year, day.month, day.day, hour - 3, minute);
+
   /// Builds the concrete time window for a day + flexibility choice.
   _TimeWindow _windowFor(DateTime day, _TimeChoice choice) {
     switch (choice) {
       case _TimeChoice.allDay:
         return _TimeWindow(
-          start: DateTime(day.year, day.month, day.day, 8, 0),
-          end: DateTime(day.year, day.month, day.day, 18, 0),
+          start: _damascusUtc(day, 8, 0),
+          end: _damascusUtc(day, 18, 0),
           type: TimeWindowType.allDay,
         );
       case _TimeChoice.windowMorning:
         return _TimeWindow(
-          start: DateTime(day.year, day.month, day.day, 8, 0),
-          end: DateTime(day.year, day.month, day.day, 12, 0),
+          start: _damascusUtc(day, 8, 0),
+          end: _damascusUtc(day, 12, 0),
           type: TimeWindowType.window,
         );
       case _TimeChoice.windowMidday:
         return _TimeWindow(
-          start: DateTime(day.year, day.month, day.day, 10, 0),
-          end: DateTime(day.year, day.month, day.day, 14, 0),
+          start: _damascusUtc(day, 10, 0),
+          end: _damascusUtc(day, 14, 0),
           type: TimeWindowType.window,
         );
       case _TimeChoice.windowAfternoon:
         return _TimeWindow(
-          start: DateTime(day.year, day.month, day.day, 14, 0),
-          end: DateTime(day.year, day.month, day.day, 18, 0),
+          start: _damascusUtc(day, 14, 0),
+          end: _damascusUtc(day, 18, 0),
           type: TimeWindowType.window,
         );
       case _TimeChoice.urgent:
-        final now = DateTime.now();
+        final now = DateTime.now().toUtc();
         return _TimeWindow(
           start: now,
-          end: DateTime(day.year, day.month, day.day, 23, 59),
+          end: _damascusUtc(day, 23, 59),
           type: TimeWindowType.urgent,
         );
     }
@@ -342,6 +349,9 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     return false;
   }
 
+  bool _isPastWindow(DateTime windowEnd) =>
+      !windowEnd.isAfter(DateTime.now().toUtc());
+
   /// Maps a slot key from the availability RPC back to its choice.
   _TimeChoice? _choiceForKey(String key) => switch (key) {
         'morning' => _TimeChoice.windowMorning,
@@ -406,12 +416,34 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
         _ => null,
       };
       if (choice != null) {
+        bool isPastForChoice(_TimeChoice c) {
+          if (_selectedDay == null) return false;
+          return _isPastWindow(_windowFor(_selectedDay!, c).end);
+        }
+
+        bool isDupForChoice(_TimeChoice c) {
+          if (_selectedDay == null) return false;
+          final w = _windowFor(_selectedDay!, c);
+          return _hasDuplicateForWindow(
+            w.start,
+            w.end,
+            carId: ref.read(bookingDraftProvider).car?.id,
+            editingId: ref.read(bookingDraftProvider).editingBookingId,
+            bookings: ref.read(myBookingsProvider).valueOrNull ?? const <KlearBooking>[],
+          );
+        }
+
         final bookable = switch (choice) {
-          _TimeChoice.allDay => !allFull,
+          _TimeChoice.allDay =>
+            !selectedAvail.slots.any((s) => s.status == SlotStatus.full) &&
+                !isPastForChoice(choice) &&
+                !isDupForChoice(choice),
           _TimeChoice.urgent => false,
           _ =>
             _slotFor(selectedAvail, choice)?.status != SlotStatus.full &&
-                _slotFor(selectedAvail, choice) != null,
+                _slotFor(selectedAvail, choice) != null &&
+                !isPastForChoice(choice) &&
+                !isDupForChoice(choice),
         };
         if (bookable) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -442,21 +474,47 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
         );
       }
 
+      bool pastForSelected() {
+        if (_selectedChoice == null || _selectedDay == null) return false;
+        return _isPastWindow(_windowFor(_selectedDay!, _selectedChoice!).end);
+      }
+
+      bool allDayBlocked() {
+        if (selectedAvail == null) return false;
+        // all_day needs every window — block if any window is full.
+        return selectedAvail.slots.any((s) => s.status == SlotStatus.full);
+      }
+
+      bool urgentBlocked() {
+        if (selectedAvail == null) return false;
+        // urgent occupies remaining windows (those not yet past). Block only
+        // if every remaining window is full.
+        final remaining = selectedAvail.slots.where((s) {
+          final choice = _choiceForKey(s.key);
+          if (choice == null) return false;
+          return !_isPastWindow(_windowFor(_selectedDay!, choice).end);
+        }).toList();
+        if (remaining.isEmpty) return true; // nothing left today
+        return remaining.every((s) => s.status == SlotStatus.full);
+      }
+
       final invalid = switch (_selectedChoice) {
         null => false,
         _TimeChoice.allDay =>
-          (selectedAvail != null && allFull) || duplicateForSelected(),
-        _TimeChoice.urgent => duplicateForSelected(),
+          pastForSelected() || allDayBlocked() || duplicateForSelected(),
+        _TimeChoice.urgent =>
+          pastForSelected() || urgentBlocked() || duplicateForSelected(),
         _ =>
-          _slotFor(selectedAvail, _selectedChoice!)?.status ==
+          pastForSelected() ||
+              _slotFor(selectedAvail, _selectedChoice!)?.status ==
                   SlotStatus.full ||
               duplicateForSelected(),
       };
       if (invalid) setState(() => _selectedChoice = null);
     });
 
-    // CTA gate — mirrors what is rendered below (capacity + per-car duplicate).
-    bool duplicateForSelected() {
+    // CTA gate — mirrors what is rendered below (capacity + per-car duplicate + past).
+    bool duplicateForSelectedCta() {
       if (_selectedChoice == null || _selectedDay == null) return false;
       final w = _windowFor(_selectedDay!, _selectedChoice!);
       return _hasDuplicateForWindow(
@@ -468,15 +526,43 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
       );
     }
 
+    bool pastForSelectedCta() {
+      if (_selectedChoice == null || _selectedDay == null) return false;
+      return _isPastWindow(_windowFor(_selectedDay!, _selectedChoice!).end);
+    }
+
+    bool allDayBlockedCta() {
+      if (selectedAvail == null) return false;
+      return selectedAvail.slots.any((s) => s.status == SlotStatus.full);
+    }
+
+    bool urgentBlockedCta() {
+      if (selectedAvail == null) return false;
+      final remaining = selectedAvail.slots.where((s) {
+        final choice = _choiceForKey(s.key);
+        if (choice == null) return false;
+        return !_isPastWindow(_windowFor(_selectedDay!, choice).end);
+      }).toList();
+      if (remaining.isEmpty) return true;
+      return remaining.every((s) => s.status == SlotStatus.full);
+    }
+
     _scheduleValid = switch (_selectedChoice) {
       null => false,
-      _TimeChoice.urgent => !duplicateForSelected(),
-      _TimeChoice.allDay => !allFull && !duplicateForSelected(),
+      _TimeChoice.urgent =>
+        !pastForSelectedCta() &&
+            !urgentBlockedCta() &&
+            !duplicateForSelectedCta(),
+      _TimeChoice.allDay =>
+        !pastForSelectedCta() &&
+            !allDayBlockedCta() &&
+            !duplicateForSelectedCta(),
       _ =>
-        (_slotFor(selectedAvail, _selectedChoice!)?.status ??
-                SlotStatus.full) !=
-            SlotStatus.full &&
-        !duplicateForSelected(),
+        !pastForSelectedCta() &&
+            (_slotFor(selectedAvail, _selectedChoice!)?.status ??
+                    SlotStatus.full) !=
+                SlotStatus.full &&
+            !duplicateForSelectedCta(),
     };
 
     return [
@@ -556,6 +642,10 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
                         editingId: editingId,
                         bookings: bookings,
                       );
+                  final isPast = choice != null &&
+                      _selectedDay != null &&
+                      _isPastWindow(_windowFor(_selectedDay!, choice).end);
+                  final isBlocked = isDup || isPast;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -567,21 +657,31 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
                           _TimeChoice.windowAfternoon => l10n.timeWindowAfternoon,
                           _ => slot.key,
                         },
-                        statusText: isDup
-                            ? l10n.carAlreadyBookedBadge
-                            : switch (slot.status) {
-                                SlotStatus.free => l10n.availSlotFree,
-                                SlotStatus.limited => l10n.availSlotOneLeft,
-                                SlotStatus.full => l10n.availLegendFull,
-                              },
-                        selected:
-                            _selectedChoice == choice && !isDup,
-                        isDuplicate: isDup,
-                        onTap: (slot.status == SlotStatus.full || isDup)
+                        statusText: isPast
+                            ? l10n.windowPastBadge
+                            : isDup
+                                ? l10n.carAlreadyBookedBadge
+                                : switch (slot.status) {
+                                    SlotStatus.free => l10n.availSlotFree,
+                                    SlotStatus.limited => l10n.availSlotOneLeft,
+                                    SlotStatus.full => l10n.availLegendFull,
+                                  },
+                        selected: _selectedChoice == choice && !isBlocked,
+                        isDuplicate: isBlocked,
+                        onTap: (slot.status == SlotStatus.full || isBlocked)
                             ? null
                             : () => _selectChoice(choice!),
                       ),
-                      if (isDup) ...[
+                      if (isPast) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.windowPastMessage,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                        ),
+                      ] else if (isDup) ...[
                         const SizedBox(height: 4),
                         Text(
                           l10n.carAlreadyBookedMessage,
@@ -618,23 +718,47 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               editingId: editingId,
               bookings: bookings,
             );
+        final isAllDayPast = _selectedDay != null &&
+            _isPastWindow(_windowFor(_selectedDay!, _TimeChoice.allDay).end);
+        final isAllDayCapacityBlocked = selectedAvail != null &&
+            selectedAvail.slots.any((s) => s.status == SlotStatus.full);
+        final isAllDayBlocked =
+            isAllDayDup || isAllDayPast || isAllDayCapacityBlocked;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _TimeOptionCard(
               icon: Icons.wb_sunny_outlined,
               title: l10n.timeAllDayTitle,
-              value: isAllDayDup
-                  ? l10n.carAlreadyBookedBadge
-                  : l10n.timeAllDayLabel,
-              selected: _selectedChoice == _TimeChoice.allDay && !isAllDayDup,
-              enabled: !allFull && !isAllDayDup,
+              value: isAllDayPast
+                  ? l10n.windowPastBadge
+                  : isAllDayDup
+                      ? l10n.carAlreadyBookedBadge
+                      : l10n.timeAllDayLabel,
+              selected: _selectedChoice == _TimeChoice.allDay && !isAllDayBlocked,
+              enabled: !isAllDayBlocked,
               onTap: () => _selectChoice(_TimeChoice.allDay),
             ),
-            if (isAllDayDup) ...[
+            if (isAllDayPast) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.windowPastMessage,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+            ] else if (isAllDayDup) ...[
               const SizedBox(height: 4),
               Text(
                 l10n.carAlreadyBookedMessage,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+            ] else if (isAllDayCapacityBlocked) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.availAllFullNote,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.error,
                     ),
@@ -654,24 +778,56 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               editingId: editingId,
               bookings: bookings,
             );
+        final isUrgentPast = _selectedDay != null &&
+            _isPastWindow(_windowFor(_selectedDay!, _TimeChoice.urgent).end);
+        final isUrgentCapacityBlocked = () {
+          if (selectedAvail == null) return false;
+          final remaining = selectedAvail.slots.where((s) {
+            final choice = _choiceForKey(s.key);
+            if (choice == null) return false;
+            return !_isPastWindow(_windowFor(_selectedDay!, choice).end);
+          }).toList();
+          if (remaining.isEmpty) return true;
+          return remaining.every((s) => s.status == SlotStatus.full);
+        }();
+        final isUrgentBlocked =
+            isUrgentPast || isUrgentDup || isUrgentCapacityBlocked;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _TimeOptionCard(
               icon: Icons.bolt_outlined,
               title: l10n.timeUrgentTitle,
-              value: isUrgentDup
-                  ? l10n.carAlreadyBookedBadge
-                  : l10n.timeUrgentLabel,
-              selected: _selectedChoice == _TimeChoice.urgent && !isUrgentDup,
-              enabled:
-                  _canChooseUrgent(_selectedDay ?? DateTime.now()) && !isUrgentDup,
+              value: isUrgentPast
+                  ? l10n.windowPastBadge
+                  : isUrgentDup
+                      ? l10n.carAlreadyBookedBadge
+                      : l10n.timeUrgentLabel,
+              selected: _selectedChoice == _TimeChoice.urgent && !isUrgentBlocked,
+              enabled: _canChooseUrgent(_selectedDay ?? DateTime.now()) &&
+                  !isUrgentBlocked,
               onTap: () => _selectChoice(_TimeChoice.urgent),
             ),
-            if (isUrgentDup) ...[
+            if (isUrgentPast) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.windowPastMessage,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+            ] else if (isUrgentDup) ...[
               const SizedBox(height: 4),
               Text(
                 l10n.carAlreadyBookedMessage,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+            ] else if (isUrgentCapacityBlocked) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.availAllFullNote,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.error,
                     ),

@@ -7,6 +7,8 @@ import '../../../core/widgets/motion.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/car_attribute_catalog.dart';
 import '../domain/klear_car.dart';
+import '../../bookings/domain/klear_booking.dart';
+import '../../orders/presentation/orders_providers.dart';
 import 'cars_providers.dart';
 
 /// My Cars — the user's registered vehicles.
@@ -298,6 +300,18 @@ class CarsPage extends ConsumerWidget {
     WidgetRef ref,
     KlearCar car,
   ) async {
+    final bookings = ref.read(myBookingsProvider).valueOrNull ?? const <KlearBooking>[];
+    final hasActive = bookings.any((b) =>
+        b.carId == car.id &&
+        b.status != BookingStatus.completed &&
+        b.status != BookingStatus.cancelled);
+    if (hasActive) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.deleteCarBlockedMessage)),
+      );
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -316,7 +330,14 @@ class CarsPage extends ConsumerWidget {
       ),
     );
     if (confirmed == true && context.mounted) {
-      await deleteCar(ref, car.id);
+      try {
+        await deleteCar(ref, car.id);
+      } catch (_) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.deleteCarBlockedMessage)),
+        );
+      }
     }
   }
 }

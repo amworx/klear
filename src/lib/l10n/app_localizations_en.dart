@@ -414,6 +414,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This car will be removed. You can add it again anytime.';
 
   @override
+  String get deleteCarBlockedMessage =>
+      'Cannot delete a car with active bookings. Please cancel or complete its bookings first.';
+
+  @override
   String get carMake => 'Make (brand)';
 
   @override
@@ -586,7 +590,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelOrderMessage =>
-      'You can cancel while the booking is still pending.';
+      'You can cancel before the captain is on the way. This cannot be undone.';
 
   @override
   String get cancelOrderAction => 'Cancel booking';
@@ -644,6 +648,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get carAlreadyBookedMessage =>
       'This car already has a booking in this time window. Please choose a different car or time.';
+
+  @override
+  String get windowPastBadge => 'Passed';
+
+  @override
+  String get windowPastMessage => 'This time window has already passed.';
 
   @override
   String get locationLoading => 'Getting your location…';

@@ -129,29 +129,25 @@ class OrderDetailPage extends ConsumerWidget {
                   value: booking.notes!,
                 ),
               const SizedBox(height: 24),
-              if (_canEdit(booking.status) ||
-                  booking.status == BookingStatus.pending)
+              if (_canEdit(booking.status))
                 Row(
                   children: [
-                    if (_canEdit(booking.status))
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: () => _startEdit(context, ref, booking, car),
-                          icon: const Icon(Icons.edit_outlined),
-                          label: Text(l10n.editOrderAction),
-                        ),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => _startEdit(context, ref, booking, car),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(l10n.editOrderAction),
                       ),
-                    if (booking.status == BookingStatus.pending) ...[
-                      if (_canEdit(booking.status)) const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton.tonalIcon(
-                          onPressed: () =>
-                              _confirmCancel(context, ref, l10n, booking),
-                          icon: const Icon(Icons.cancel_outlined),
-                          label: Text(l10n.cancelOrderAction),
-                        ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.tonalIcon(
+                        onPressed: () =>
+                            _confirmCancel(context, ref, l10n, booking),
+                        icon: const Icon(Icons.cancel_outlined),
+                        label: Text(l10n.cancelOrderAction),
                       ),
-                    ],
+                    ),
                   ],
                 ),
               if (booking.canTrack) ...[

@@ -866,6 +866,12 @@ abstract class AppLocalizations {
   /// **'This car will be removed. You can add it again anytime.'**
   String get deleteCarConfirmMessage;
 
+  /// No description provided for @deleteCarBlockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete a car with active bookings. Please cancel or complete its bookings first.'**
+  String get deleteCarBlockedMessage;
+
   /// No description provided for @carMake.
   ///
   /// In en, this message translates to:
@@ -1205,7 +1211,7 @@ abstract class AppLocalizations {
   /// No description provided for @cancelOrderMessage.
   ///
   /// In en, this message translates to:
-  /// **'You can cancel while the booking is still pending.'**
+  /// **'You can cancel before the captain is on the way. This cannot be undone.'**
   String get cancelOrderMessage;
 
   /// No description provided for @cancelOrderAction.
@@ -1309,6 +1315,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This car already has a booking in this time window. Please choose a different car or time.'**
   String get carAlreadyBookedMessage;
+
+  /// No description provided for @windowPastBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Passed'**
+  String get windowPastBadge;
+
+  /// No description provided for @windowPastMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This time window has already passed.'**
+  String get windowPastMessage;
 
   /// No description provided for @locationLoading.
   ///
