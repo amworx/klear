@@ -211,6 +211,8 @@
   "expiredBookingBanner": "This wash was not completed on time — please reschedule or cancel.",
   "expiringSoonBanner": "This wash window ends soon — please confirm or reschedule.",
   "rescheduleBookingAction": "Reschedule",
+  "carAlreadyBookedBadge": "Already booked",
+  "carAlreadyBookedMessage": "This car already has a booking in this time window. Please choose a different car or time.",
   "locationLoading": "Getting your location…",
   "locationFailed": "Could not get your location. Please try again.",
   "basePriceNoCar": "Base price — select a car for a precise total",

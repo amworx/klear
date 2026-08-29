@@ -627,6 +627,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rescheduleBookingAction => 'إعادة الجدولة';
 
   @override
+  String get carAlreadyBookedBadge => 'محجوز مسبقاً';
+
+  @override
+  String get carAlreadyBookedMessage =>
+      'هذه السيارة لديها حجز بالفعل في هذه الفترة. يرجى اختيار سيارة أو وقت آخر.';
+
+  @override
   String get locationLoading => 'جارٍ تحديد موقعك…';
 
   @override

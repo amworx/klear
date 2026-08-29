@@ -127,6 +127,13 @@ class KlearBooking {
     return remaining.inMinutes > 0 && remaining.inHours < 3;
   }
 
+  /// Whether this booking's window overlaps [start, end). Used to prevent
+  /// double-booking the same car in the same time window — the professional
+  /// rule is one wash per car per window, but different windows same day are
+  /// allowed (e.g. morning + afternoon).
+  bool overlapsWindow(DateTime start, DateTime end) =>
+      dateTime.isBefore(end) && windowEnd.isAfter(start);
+
   /// Whether the customer can live-track the captain right now.
   /// Requires an assigned captain AND an active en-route/working state.
   /// The captain must also have wash-point coordinates to show the target.

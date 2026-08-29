@@ -211,6 +211,8 @@
   "expiredBookingBanner": "لم تُنجز هذه الغسلة في وقتها — يرجى إعادة الجدولة أو الإلغاء.",
   "expiringSoonBanner": "تنتهي نافذة هذه الغسلة قريباً — يرجى التأكيد أو إعادة الجدولة.",
   "rescheduleBookingAction": "إعادة الجدولة",
+  "carAlreadyBookedBadge": "محجوز مسبقاً",
+  "carAlreadyBookedMessage": "هذه السيارة لديها حجز بالفعل في هذه الفترة. يرجى اختيار سيارة أو وقت آخر.",
   "locationLoading": "جارٍ تحديد موقعك…",
   "locationFailed": "تعذّر تحديد موقعك. حاول مرة أخرى",
   "basePriceNoCar": "السعر الأساسي — اختر سيارة للحصول على إجمالي دقيق",

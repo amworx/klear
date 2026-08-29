@@ -8,6 +8,7 @@ import '../../account/presentation/auth_providers.dart';
 import '../../cars/domain/klear_car.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../../settings/presentation/settings_provider.dart';
+import '../domain/klear_booking.dart';
 import 'booking_providers.dart';
 import 'booking_time_labels.dart';
 import 'widgets/booking_step_scaffold.dart';
@@ -44,6 +45,29 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
 
     final userId = ref.read(authProvider).user?.id;
     if (userId == null) return;
+
+    // Professional guard: same car cannot have overlapping windows.
+    final bookings = ref.read(myBookingsProvider).valueOrNull ?? const <KlearBooking>[];
+    if (draft.car != null && draft.dateTime != null) {
+      final start = draft.dateTime!;
+      final end = draft.scheduledEnd ?? start;
+      for (final b in bookings) {
+        if (b.carId != draft.car!.id) continue;
+        if (b.status == BookingStatus.completed ||
+            b.status == BookingStatus.cancelled) {
+          continue;
+        }
+        if (draft.isEditing && b.id == draft.editingBookingId) continue;
+        if (b.overlapsWindow(start, end)) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(AppLocalizations.of(context).carAlreadyBookedMessage)),
+          );
+          return;
+        }
+      }
+    }
 
     final settings = ref.read(appSettingsProvider);
 

@@ -1298,6 +1298,18 @@ abstract class AppLocalizations {
   /// **'Reschedule'**
   String get rescheduleBookingAction;
 
+  /// No description provided for @carAlreadyBookedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Already booked'**
+  String get carAlreadyBookedBadge;
+
+  /// No description provided for @carAlreadyBookedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This car already has a booking in this time window. Please choose a different car or time.'**
+  String get carAlreadyBookedMessage;
+
   /// No description provided for @locationLoading.
   ///
   /// In en, this message translates to:

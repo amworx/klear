@@ -523,6 +523,40 @@ void main() {
       isFalse,
     );
   });
+
+  test('overlapsWindow detects same-car same-window duplicate', () {
+    final start = DateTime(2026, 8, 30, 8, 0);
+    final end = DateTime(2026, 8, 30, 12, 0);
+    final b = KlearBooking(
+      id: 'b1',
+      userId: 'u1',
+      serviceId: 's1',
+      service: _service,
+      address: 'A',
+      dateTime: start,
+      scheduledEnd: end,
+      status: BookingStatus.pending,
+      createdAt: DateTime(2026, 8, 29),
+    );
+    // Same window overlaps.
+    expect(b.overlapsWindow(start, end), isTrue);
+    // Adjacent window 14-18 does not overlap 8-12.
+    expect(
+        b.overlapsWindow(DateTime(2026, 8, 30, 14, 0), DateTime(2026, 8, 30, 18, 0)),
+        isFalse);
+    // Overlapping midday 10-14 overlaps 8-12 (share 10-12).
+    expect(
+        b.overlapsWindow(DateTime(2026, 8, 30, 10, 0), DateTime(2026, 8, 30, 14, 0)),
+        isTrue);
+    // All-day 8-18 overlaps morning 8-12.
+    expect(
+        b.overlapsWindow(DateTime(2026, 8, 30, 8, 0), DateTime(2026, 8, 30, 18, 0)),
+        isTrue);
+    // Touching endpoints do not overlap (12:00 == 12:00).
+    expect(
+        b.overlapsWindow(DateTime(2026, 8, 30, 12, 0), DateTime(2026, 8, 30, 16, 0)),
+        isFalse);
+  });
 }
 
 class _FakeBookingsDataSource implements BookingsRemoteDataSource {

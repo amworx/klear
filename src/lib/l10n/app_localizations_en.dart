@@ -639,6 +639,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rescheduleBookingAction => 'Reschedule';
 
   @override
+  String get carAlreadyBookedBadge => 'Already booked';
+
+  @override
+  String get carAlreadyBookedMessage =>
+      'This car already has a booking in this time window. Please choose a different car or time.';
+
+  @override
   String get locationLoading => 'Getting your location…';
 
   @override

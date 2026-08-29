@@ -318,6 +318,30 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     return day?.slot(key);
   }
 
+  /// Whether the selected [car] already has a booking that overlaps
+  /// [windowStart, windowEnd). Checks the customer's existing non-terminal
+  /// bookings and excludes the booking being edited (so rescheduling to the
+  /// same window doesn't self-block).
+  bool _hasDuplicateForWindow(
+    DateTime windowStart,
+    DateTime windowEnd, {
+    required String? carId,
+    required String? editingId,
+    required List<KlearBooking> bookings,
+  }) {
+    if (carId == null) return false;
+    for (final b in bookings) {
+      if (b.carId != carId) continue;
+      if (b.status == BookingStatus.completed ||
+          b.status == BookingStatus.cancelled) {
+        continue;
+      }
+      if (editingId != null && b.id == editingId) continue;
+      if (b.overlapsWindow(windowStart, windowEnd)) return true;
+    }
+    return false;
+  }
+
   /// Maps a slot key from the availability RPC back to its choice.
   _TimeChoice? _choiceForKey(String key) => switch (key) {
         'morning' => _TimeChoice.windowMorning,
@@ -365,6 +389,9 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     final byDay = {for (final d in availList) d.day: d};
     final selectedAvail = byDay[_dateOnly(_selectedDay ?? _todayDate)];
     final allFull = selectedAvail?.allFull ?? false;
+    final bookings = ref.watch(myBookingsProvider).valueOrNull ?? const <KlearBooking>[];
+    final draftCarId = ref.watch(bookingDraftProvider).car?.id;
+    final editingId = ref.watch(bookingDraftProvider).editingBookingId;
 
     // T3 smart default: preselect the user's habitual window once, only
     // while they haven't picked anything and it still has capacity.
@@ -403,26 +430,53 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     // during build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      bool duplicateForSelected() {
+        if (_selectedChoice == null || _selectedDay == null) return false;
+        final w = _windowFor(_selectedDay!, _selectedChoice!);
+        return _hasDuplicateForWindow(
+          w.start,
+          w.end,
+          carId: draftCarId,
+          editingId: editingId,
+          bookings: bookings,
+        );
+      }
+
       final invalid = switch (_selectedChoice) {
         null => false,
-        _TimeChoice.allDay => selectedAvail != null && allFull,
-        _TimeChoice.urgent => false,
+        _TimeChoice.allDay =>
+          (selectedAvail != null && allFull) || duplicateForSelected(),
+        _TimeChoice.urgent => duplicateForSelected(),
         _ =>
-            _slotFor(selectedAvail, _selectedChoice!)?.status ==
-                SlotStatus.full,
+          _slotFor(selectedAvail, _selectedChoice!)?.status ==
+                  SlotStatus.full ||
+              duplicateForSelected(),
       };
       if (invalid) setState(() => _selectedChoice = null);
     });
 
-    // CTA gate — mirrors what is rendered below.
+    // CTA gate — mirrors what is rendered below (capacity + per-car duplicate).
+    bool duplicateForSelected() {
+      if (_selectedChoice == null || _selectedDay == null) return false;
+      final w = _windowFor(_selectedDay!, _selectedChoice!);
+      return _hasDuplicateForWindow(
+        w.start,
+        w.end,
+        carId: draftCarId,
+        editingId: editingId,
+        bookings: bookings,
+      );
+    }
+
     _scheduleValid = switch (_selectedChoice) {
       null => false,
-      _TimeChoice.urgent => true,
-      _TimeChoice.allDay => !allFull,
+      _TimeChoice.urgent => !duplicateForSelected(),
+      _TimeChoice.allDay => !allFull && !duplicateForSelected(),
       _ =>
-            (_slotFor(selectedAvail, _selectedChoice!)?.status ??
+        (_slotFor(selectedAvail, _selectedChoice!)?.status ??
                 SlotStatus.full) !=
-            SlotStatus.full,
+            SlotStatus.full &&
+        !duplicateForSelected(),
     };
 
     return [
@@ -491,25 +545,56 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
               ),
               const SizedBox(height: 10),
               for (final slot in selectedAvail.slots) ...[
-                _WindowCard(
-                  slot: slot,
-                  label: switch (_choiceForKey(slot.key)) {
-                    _TimeChoice.windowMorning => l10n.timeWindowMorning,
-                    _TimeChoice.windowMidday => l10n.timeWindowMidday,
-                    _TimeChoice.windowAfternoon => l10n.timeWindowAfternoon,
-                    _ => slot.key,
-                  },
-                  statusText: switch (slot.status) {
-                    SlotStatus.free => l10n.availSlotFree,
-                    SlotStatus.limited => l10n.availSlotOneLeft,
-                    SlotStatus.full => l10n.availLegendFull,
-                  },
-                  selected: _selectedChoice == _choiceForKey(slot.key),
-                  onTap: slot.status == SlotStatus.full
-                      ? null
-                      : () => _selectChoice(_choiceForKey(slot.key)!),
-                ),
-                const SizedBox(height: 8),
+                Builder(builder: (context) {
+                  final choice = _choiceForKey(slot.key);
+                  final isDup = choice != null &&
+                      _selectedDay != null &&
+                      _hasDuplicateForWindow(
+                        _windowFor(_selectedDay!, choice).start,
+                        _windowFor(_selectedDay!, choice).end,
+                        carId: draftCarId,
+                        editingId: editingId,
+                        bookings: bookings,
+                      );
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _WindowCard(
+                        slot: slot,
+                        label: switch (choice) {
+                          _TimeChoice.windowMorning => l10n.timeWindowMorning,
+                          _TimeChoice.windowMidday => l10n.timeWindowMidday,
+                          _TimeChoice.windowAfternoon => l10n.timeWindowAfternoon,
+                          _ => slot.key,
+                        },
+                        statusText: isDup
+                            ? l10n.carAlreadyBookedBadge
+                            : switch (slot.status) {
+                                SlotStatus.free => l10n.availSlotFree,
+                                SlotStatus.limited => l10n.availSlotOneLeft,
+                                SlotStatus.full => l10n.availLegendFull,
+                              },
+                        selected:
+                            _selectedChoice == choice && !isDup,
+                        isDuplicate: isDup,
+                        onTap: (slot.status == SlotStatus.full || isDup)
+                            ? null
+                            : () => _selectChoice(choice!),
+                      ),
+                      if (isDup) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.carAlreadyBookedMessage,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                    ],
+                  );
+                }),
               ],
               if (allFull)
                 Text(
@@ -524,24 +609,77 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
       ),
       const SizedBox(height: 16),
       // All-day remains available unless the whole day is saturated.
-      _TimeOptionCard(
-        icon: Icons.wb_sunny_outlined,
-        title: l10n.timeAllDayTitle,
-        value: l10n.timeAllDayLabel,
-        selected: _selectedChoice == _TimeChoice.allDay,
-        enabled: !allFull,
-        onTap: () => _selectChoice(_TimeChoice.allDay),
-      ),
+      Builder(builder: (context) {
+        final isAllDayDup = _selectedDay != null &&
+            _hasDuplicateForWindow(
+              _windowFor(_selectedDay!, _TimeChoice.allDay).start,
+              _windowFor(_selectedDay!, _TimeChoice.allDay).end,
+              carId: draftCarId,
+              editingId: editingId,
+              bookings: bookings,
+            );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _TimeOptionCard(
+              icon: Icons.wb_sunny_outlined,
+              title: l10n.timeAllDayTitle,
+              value: isAllDayDup
+                  ? l10n.carAlreadyBookedBadge
+                  : l10n.timeAllDayLabel,
+              selected: _selectedChoice == _TimeChoice.allDay && !isAllDayDup,
+              enabled: !allFull && !isAllDayDup,
+              onTap: () => _selectChoice(_TimeChoice.allDay),
+            ),
+            if (isAllDayDup) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.carAlreadyBookedMessage,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+            ],
+          ],
+        );
+      }),
       const SizedBox(height: 8),
       // Urgent (today only) ignores windows entirely.
-      _TimeOptionCard(
-        icon: Icons.bolt_outlined,
-        title: l10n.timeUrgentTitle,
-        value: l10n.timeUrgentLabel,
-        selected: _selectedChoice == _TimeChoice.urgent,
-        enabled: _canChooseUrgent(_selectedDay ?? DateTime.now()),
-        onTap: () => _selectChoice(_TimeChoice.urgent),
-      ),
+      Builder(builder: (context) {
+        final isUrgentDup = _selectedDay != null &&
+            _hasDuplicateForWindow(
+              _windowFor(_selectedDay!, _TimeChoice.urgent).start,
+              _windowFor(_selectedDay!, _TimeChoice.urgent).end,
+              carId: draftCarId,
+              editingId: editingId,
+              bookings: bookings,
+            );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _TimeOptionCard(
+              icon: Icons.bolt_outlined,
+              title: l10n.timeUrgentTitle,
+              value: isUrgentDup
+                  ? l10n.carAlreadyBookedBadge
+                  : l10n.timeUrgentLabel,
+              selected: _selectedChoice == _TimeChoice.urgent && !isUrgentDup,
+              enabled:
+                  _canChooseUrgent(_selectedDay ?? DateTime.now()) && !isUrgentDup,
+              onTap: () => _selectChoice(_TimeChoice.urgent),
+            ),
+            if (isUrgentDup) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.carAlreadyBookedMessage,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+            ],
+          ],
+        );
+      }),
       if (_selectedChoice != null) ...[
         const SizedBox(height: 12),
         Text(
@@ -1045,6 +1183,7 @@ class _WindowCard extends StatelessWidget {
     required this.statusText,
     required this.selected,
     required this.onTap,
+    this.isDuplicate = false,
   });
 
   final WindowSlot slot;
@@ -1052,32 +1191,40 @@ class _WindowCard extends StatelessWidget {
   final String statusText;
   final bool selected;
   final VoidCallback? onTap;
+  final bool isDuplicate;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final full = slot.status == SlotStatus.full;
-    final pillColor = switch (slot.status) {
-      SlotStatus.free => const Color(0xFFDCFCE7),
-      SlotStatus.limited => const Color(0xFFFEF3C7),
-      SlotStatus.full => scheme.errorContainer,
-    };
-    final pillTextColor = switch (slot.status) {
-      SlotStatus.free => const Color(0xFF15803D),
-      SlotStatus.limited => const Color(0xFFB45309),
-      SlotStatus.full => scheme.onErrorContainer,
-    };
+    final disabled = full || isDuplicate;
+    final pillColor = isDuplicate
+        ? scheme.errorContainer
+        : switch (slot.status) {
+            SlotStatus.free => const Color(0xFFDCFCE7),
+            SlotStatus.limited => const Color(0xFFFEF3C7),
+            SlotStatus.full => scheme.errorContainer,
+          };
+    final pillTextColor = isDuplicate
+        ? scheme.onErrorContainer
+        : switch (slot.status) {
+            SlotStatus.free => const Color(0xFF15803D),
+            SlotStatus.limited => const Color(0xFFB45309),
+            SlotStatus.full => scheme.onErrorContainer,
+          };
     final fill = slot.capacity <= 0
         ? 1.0
         : (slot.booked / slot.capacity).clamp(0.0, 1.0);
-    final barColor = switch (slot.status) {
-      SlotStatus.free => const Color(0xFF16A34A),
-      SlotStatus.limited => const Color(0xFFD97706),
-      SlotStatus.full => scheme.error,
-    };
+    final barColor = isDuplicate
+        ? scheme.error
+        : switch (slot.status) {
+            SlotStatus.free => const Color(0xFF16A34A),
+            SlotStatus.limited => const Color(0xFFD97706),
+            SlotStatus.full => scheme.error,
+          };
 
     return Opacity(
-      opacity: full ? 0.55 : 1.0,
+      opacity: disabled ? 0.55 : 1.0,
       child: Material(
         color: selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
