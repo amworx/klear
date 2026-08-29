@@ -50,7 +50,7 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
   final _searchController = TextEditingController();
   final _searchFocus = FocusNode();
 
-  LatLng _center = const LatLng(33.5138, 36.2765); // Damascus fallback.
+  LatLng _center = const LatLng(36.5114, 36.8681); // Afrin fallback (phased rollout).
   String? _address;
   bool _addressLoading = false;
   bool _locating = false;

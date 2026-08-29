@@ -656,6 +656,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get windowPastMessage => 'This time window has already passed.';
 
   @override
+  String get outsideServiceAreaTitle => 'Outside service area';
+
+  @override
+  String outsideServiceAreaMessage(int radius, String distance) {
+    return 'We currently serve Afrin and surroundings ($radius km radius). Your location is $distance km away — please choose a location within the area.';
+  }
+
+  @override
+  String get outsideServiceAreaPickOnMap =>
+      'Please pick your exact location on the map so we can verify coverage.';
+
+  @override
   String get locationLoading => 'Getting your location…';
 
   @override

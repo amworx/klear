@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../../cars/domain/klear_car.dart';
 
 /// Runtime pricing/operations configuration sourced from the `app_settings`
@@ -14,9 +16,13 @@ class AppSettings {
     required this.serviceHoursStart,
     required this.serviceHoursEnd,
     required this.currency,
+    this.serviceCenterLat,
+    this.serviceCenterLng,
+    this.serviceRadiusKm,
   });
 
   /// Fallback values — keep in sync with the DB seed row.
+  /// Defaults to Afrin (Aleppo) 36.5114,36.8681 radius 15km for phased rollout.
   static const defaults = AppSettings(
     sizeSmallFactor: 1.0,
     sizeMediumFactor: 1.25,
@@ -25,6 +31,9 @@ class AppSettings {
     serviceHoursStart: '08:00',
     serviceHoursEnd: '18:00',
     currency: 'SYP',
+    serviceCenterLat: 36.5114,
+    serviceCenterLng: 36.8681,
+    serviceRadiusKm: 15,
   );
 
   final double sizeSmallFactor;
@@ -37,6 +46,13 @@ class AppSettings {
   final String serviceHoursStart;
   final String serviceHoursEnd;
   final String currency;
+
+  /// Service area center (Afrin for now). Null = no restriction.
+  final double? serviceCenterLat;
+  final double? serviceCenterLng;
+
+  /// Service radius in km. Null or <=0 = unrestricted.
+  final int? serviceRadiusKm;
 
   /// Surcharge as a fraction (0.25 for 25%) — matches the legacy constant.
   double get urgentSurchargePercent => urgentSurchargePct / 100;
@@ -62,6 +78,40 @@ class AppSettings {
   double carFactor(KlearCar car) =>
       priceFactorFor(car.size) * car.extraPriceFactor;
 
+  /// Whether the service area restriction is active (center + radius set).
+  bool get hasServiceArea =>
+      serviceCenterLat != null &&
+      serviceCenterLng != null &&
+      (serviceRadiusKm ?? 0) > 0;
+
+  /// Haversine distance from service center to [lat]/[lng] in km.
+  double distanceToCenterKm(double lat, double lng) {
+    if (!hasServiceArea) return 0;
+    return _haversineKm(serviceCenterLat!, serviceCenterLng!, lat, lng);
+  }
+
+  /// Whether [lat]/[lng] is within the configured service radius. Null
+  /// coordinates are treated as outside when a service area is active (forces
+  /// the user to pick a pin on the map).
+  bool isWithinServiceArea(double? lat, double? lng) {
+    if (!hasServiceArea) return true;
+    if (lat == null || lng == null) return false;
+    return distanceToCenterKm(lat, lng) <= (serviceRadiusKm ?? 0);
+  }
+
+  static double _haversineKm(
+      double lat1, double lng1, double lat2, double lng2) {
+    const r = 6371.0;
+    double toRad(double d) => d * math.pi / 180;
+    final dLat = toRad(lat2 - lat1);
+    final dLng = toRad(lng2 - lng1);
+    final a = math.pow(math.sin(dLat / 2), 2) +
+        math.cos(toRad(lat1)) *
+            math.cos(toRad(lat2)) *
+            math.pow(math.sin(dLng / 2), 2);
+    return r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  }
+
   factory AppSettings.fromMap(Map<String, dynamic> map) => AppSettings(
         sizeSmallFactor: (map['size_small_factor'] as num?)?.toDouble() ??
             defaults.sizeSmallFactor,
@@ -76,5 +126,11 @@ class AppSettings {
         serviceHoursEnd: (map['service_hours_end'] as String?) ??
             defaults.serviceHoursEnd,
         currency: (map['currency'] as String?) ?? defaults.currency,
+        serviceCenterLat: (map['service_center_lat'] as num?)?.toDouble() ??
+            defaults.serviceCenterLat,
+        serviceCenterLng: (map['service_center_lng'] as num?)?.toDouble() ??
+            defaults.serviceCenterLng,
+        serviceRadiusKm: (map['service_radius_km'] as num?)?.toInt() ??
+            defaults.serviceRadiusKm,
       );
 }

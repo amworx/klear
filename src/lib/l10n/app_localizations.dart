@@ -1328,6 +1328,24 @@ abstract class AppLocalizations {
   /// **'This time window has already passed.'**
   String get windowPastMessage;
 
+  /// No description provided for @outsideServiceAreaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside service area'**
+  String get outsideServiceAreaTitle;
+
+  /// No description provided for @outsideServiceAreaMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We currently serve Afrin and surroundings ({radius} km radius). Your location is {distance} km away — please choose a location within the area.'**
+  String outsideServiceAreaMessage(int radius, String distance);
+
+  /// No description provided for @outsideServiceAreaPickOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Please pick your exact location on the map so we can verify coverage.'**
+  String get outsideServiceAreaPickOnMap;
+
   /// No description provided for @locationLoading.
   ///
   /// In en, this message translates to:

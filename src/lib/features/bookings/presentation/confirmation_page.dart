@@ -70,6 +70,25 @@ class _ConfirmationPageState extends ConsumerState<ConfirmationPage> {
     }
 
     final settings = ref.read(appSettingsProvider);
+    // Service area guard: Afrin-only for now (expandable via app_settings).
+    if (settings.hasServiceArea) {
+      final outside = draft.lat == null ||
+          draft.lng == null ||
+          !settings.isWithinServiceArea(draft.lat, draft.lng);
+      if (outside) {
+        if (!mounted) return;
+        final msg = draft.lat == null || draft.lng == null
+            ? AppLocalizations.of(context).outsideServiceAreaPickOnMap
+            : AppLocalizations.of(context).outsideServiceAreaMessage(
+                settings.serviceRadiusKm ?? 15,
+                settings
+                    .distanceToCenterKm(draft.lat!, draft.lng!)
+                    .toStringAsFixed(1),
+              );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        return;
+      }
+    }
 
     setState(() => _submitting = true);
     try {

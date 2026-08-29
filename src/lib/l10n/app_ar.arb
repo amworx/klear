@@ -216,6 +216,15 @@
   "carAlreadyBookedMessage": "هذه السيارة لديها حجز بالفعل في هذه الفترة. يرجى اختيار سيارة أو وقت آخر.",
   "windowPastBadge": "انتهت",
   "windowPastMessage": "انتهت هذه الفترة الزمنية.",
+  "outsideServiceAreaTitle": "خارج نطاق الخدمة",
+  "outsideServiceAreaMessage": "نخدم حالياً عفرين ومحيطها (نطاق {radius} كم). موقعك يبعد {distance} كم — يرجى اختيار موقع ضمن النطاق.",
+  "@outsideServiceAreaMessage": {
+    "placeholders": {
+      "radius": { "type": "int" },
+      "distance": { "type": "String" }
+    }
+  },
+  "outsideServiceAreaPickOnMap": "يرجى تحديد موقعك بدقة على الخريطة للتحقق من التغطية.",
   "locationLoading": "جارٍ تحديد موقعك…",
   "locationFailed": "تعذّر تحديد موقعك. حاول مرة أخرى",
   "basePriceNoCar": "السعر الأساسي — اختر سيارة للحصول على إجمالي دقيق",

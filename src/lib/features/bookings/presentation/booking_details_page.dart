@@ -121,9 +121,14 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
 
   bool get _canContinue {
     final draft = ref.read(bookingDraftProvider);
-    return draft.car != null &&
-        _addressController.text.trim().isNotEmpty &&
-        _selectedChoice != null;
+    if (draft.car == null ||
+        _addressController.text.trim().isEmpty ||
+        _selectedChoice == null) {
+      return false;
+    }
+    final settings = ref.read(appSettingsProvider);
+    if (_isOutsideServiceArea(settings, draft.lat, draft.lng)) return false;
+    return true;
   }
 
   void _goNext() {
@@ -131,6 +136,20 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
     if (_selectedDay == null || _selectedChoice == null) return;
     final draft = ref.read(bookingDraftProvider);
     if (draft.car == null) return;
+    final settings = ref.read(appSettingsProvider);
+    if (_isOutsideServiceArea(settings, draft.lat, draft.lng)) {
+      final l10n = AppLocalizations.of(context);
+      final msg = draft.lat == null || draft.lng == null
+          ? l10n.outsideServiceAreaPickOnMap
+          : l10n.outsideServiceAreaMessage(
+              settings.serviceRadiusKm ?? 15,
+              settings
+                  .distanceToCenterKm(draft.lat!, draft.lng!)
+                  .toStringAsFixed(1),
+            );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      return;
+    }
 
     final window = _windowFor(_selectedDay!, _selectedChoice!);
     ref.read(bookingDraftProvider.notifier)
@@ -351,6 +370,16 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
 
   bool _isPastWindow(DateTime windowEnd) =>
       !windowEnd.isAfter(DateTime.now().toUtc());
+
+  bool _isOutsideServiceArea(
+    AppSettings settings,
+    double? lat,
+    double? lng,
+  ) {
+    if (!settings.hasServiceArea) return false;
+    if (lat == null || lng == null) return true;
+    return !settings.isWithinServiceArea(lat, lng);
+  }
 
   /// Maps a slot key from the availability RPC back to its choice.
   _TimeChoice? _choiceForKey(String key) => switch (key) {
@@ -1024,6 +1053,18 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
                 ),
               ),
             ),
+            if (_isOutsideServiceArea(
+              ref.watch(appSettingsProvider),
+              draft.lat,
+              draft.lng,
+            )) ...[
+              const SizedBox(height: 12),
+              _OutsideServiceAreaBanner(
+                settings: ref.watch(appSettingsProvider),
+                lat: draft.lat,
+                lng: draft.lng,
+              ),
+            ],
             const SizedBox(height: 24),
             ..._scheduleSection(context, l10n, langCode),
             if (draft.car != null) ...[
@@ -1488,6 +1529,66 @@ class _WindowCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _OutsideServiceAreaBanner extends StatelessWidget {
+  const _OutsideServiceAreaBanner({
+    required this.settings,
+    required this.lat,
+    required this.lng,
+  });
+
+  final AppSettings settings;
+  final double? lat;
+  final double? lng;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final message = (lat == null || lng == null)
+        ? l10n.outsideServiceAreaPickOnMap
+        : l10n.outsideServiceAreaMessage(
+            settings.serviceRadiusKm ?? 15,
+            settings.distanceToCenterKm(lat!, lng!).toStringAsFixed(1),
+          );
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.error, width: 1.2),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.location_off, color: scheme.error, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.outsideServiceAreaTitle,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: scheme.error,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurface,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

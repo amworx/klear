@@ -645,6 +645,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get windowPastMessage => 'انتهت هذه الفترة الزمنية.';
 
   @override
+  String get outsideServiceAreaTitle => 'خارج نطاق الخدمة';
+
+  @override
+  String outsideServiceAreaMessage(int radius, String distance) {
+    return 'نخدم حالياً عفرين ومحيطها (نطاق $radius كم). موقعك يبعد $distance كم — يرجى اختيار موقع ضمن النطاق.';
+  }
+
+  @override
+  String get outsideServiceAreaPickOnMap =>
+      'يرجى تحديد موقعك بدقة على الخريطة للتحقق من التغطية.';
+
+  @override
   String get locationLoading => 'جارٍ تحديد موقعك…';
 
   @override

@@ -216,6 +216,15 @@
   "carAlreadyBookedMessage": "This car already has a booking in this time window. Please choose a different car or time.",
   "windowPastBadge": "Passed",
   "windowPastMessage": "This time window has already passed.",
+  "outsideServiceAreaTitle": "Outside service area",
+  "outsideServiceAreaMessage": "We currently serve Afrin and surroundings ({radius} km radius). Your location is {distance} km away — please choose a location within the area.",
+  "@outsideServiceAreaMessage": {
+    "placeholders": {
+      "radius": { "type": "int" },
+      "distance": { "type": "String" }
+    }
+  },
+  "outsideServiceAreaPickOnMap": "Please pick your exact location on the map so we can verify coverage.",
   "locationLoading": "Getting your location…",
   "locationFailed": "Could not get your location. Please try again.",
   "basePriceNoCar": "Base price — select a car for a precise total",
