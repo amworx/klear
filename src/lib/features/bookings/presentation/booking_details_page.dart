@@ -1009,10 +1009,13 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _addressController,
+              readOnly: true,
+              onTap: _chooseOnMap,
               decoration: InputDecoration(
                 labelText: l10n.addressLabel,
                 hintText: l10n.addressHint,
                 prefixIcon: const Icon(Icons.location_on_outlined),
+                suffixIcon: const Icon(Icons.map_outlined, size: 18),
               ),
               maxLines: 2,
               validator: (value) {
@@ -1021,10 +1024,7 @@ class _BookingDetailsPageState extends ConsumerState<BookingDetailsPage> {
                 }
                 return null;
               },
-              onChanged: (value) {
-                ref.read(bookingDraftProvider.notifier).setAddress(value);
-                setState(() {});
-              },
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
             ),
             if (hasSavedAddress) ...[
               const SizedBox(height: 8),
