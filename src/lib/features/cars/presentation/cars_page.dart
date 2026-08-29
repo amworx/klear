@@ -25,11 +25,14 @@ class CarsPage extends ConsumerWidget {
     // Visible non-system catalog attributes, used to render a car's dynamic
     // attribute values as chips (raw values shown for select lookups without
     // a translation is avoided — labels resolve from the catalog).
-    final catalog =
-        (ref.watch(carAttributesCatalogProvider).value ?? const <CarAttribute>[])
-            .where((a) =>
-                !const {'make', 'model', 'plate_number', 'size'}.contains(a.key))
-            .toList();
+    final allCatalog =
+        ref.watch(carAttributesCatalogProvider).value ?? const <CarAttribute>[];
+    final catalog = allCatalog
+        .where((a) =>
+            !const {'make', 'model', 'plate_number', 'size'}.contains(a.key))
+        .toList();
+    final attrByKey = {for (final a in allCatalog) a.key: a};
+    bool isVisible(String k) => attrByKey[k]?.isVisible ?? true;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.myCars)),
@@ -112,29 +115,35 @@ class CarsPage extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  car.displayName,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium,
-                                ),
-                                const SizedBox(height: 4),
+                                if (isVisible('make') ||
+                                    isVisible('model'))
+                                  Text(
+                                    car.displayName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
+                                  ),
+                                if (isVisible('make') ||
+                                    isVisible('model'))
+                                  const SizedBox(height: 4),
                                 // Wrap (not Row): the default-car chip adds
                                 // an extra intrinsic-width child on top of
                                 // the size chip + plate badge, which used to
                                 // overflow narrow rows by a few pixels. A
                                 // Wrap flows excess chips onto a new line.
+                                // All chips respect is_visible from the admin catalog.
                                 Wrap(
                                   spacing: 8,
                                   runSpacing: 4,
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    _SizeChip(
-                                      label: _sizeLabel(
-                                          car.size, langCode, l10n),
-                                      tooltip:
-                                          '${l10n.sizeAdjustment} ×${_formatFactor(car.size.priceFactor)}',
-                                    ),
+                                    if (isVisible('size'))
+                                      _SizeChip(
+                                        label: _sizeLabel(
+                                            car.size, langCode, l10n),
+                                        tooltip: _sizeTooltip(
+                                            allCatalog, langCode, l10n, car),
+                                      ),
                                     // Dynamic (admin-defined) attribute values.
                                     for (final attr in catalog)
                                       if (car.attributes[attr.key]
@@ -153,30 +162,31 @@ class CarsPage extends ConsumerWidget {
                                         ),
                                     if (car.isDefault)
                                       _DefaultChip(label: l10n.defaultCar),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: scheme.surfaceContainerHighest,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      // Plate numbers are LTR digits/letters.
-                                      child: Directionality(
-                                        textDirection: TextDirection.ltr,
-                                        child: Text(
-                                          car.plateNumber,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w700,
-                                                letterSpacing: 1.2,
-                                              ),
+                                    if (isVisible('plate_number'))
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: scheme.surfaceContainerHighest,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        // Plate numbers are LTR digits/letters.
+                                        child: Directionality(
+                                          textDirection: TextDirection.ltr,
+                                          child: Text(
+                                            car.plateNumber,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                  letterSpacing: 1.2,
+                                                ),
+                                          ),
                                         ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ],
@@ -236,18 +246,44 @@ class CarsPage extends ConsumerWidget {
   /// Extra context for a car's dynamic attribute chip. Repeats the label/value
   /// (useful on long/truncated chips) and, for price-affecting attributes,
   /// notes the price impact (with the option factor when one is known).
+  /// When the admin has set a per-attribute tooltip (tooltip_ar/en), that
+  /// custom text is shown first (it explains the attribute to the customer);
+  /// the generated label/value and price factor are appended for context.
   String _attrTooltip(
     CarAttribute attr,
     String value,
     String langCode,
     AppLocalizations l10n,
   ) {
-    final base =
-        '${attr.label(langCode)}: ${attr.labelForValue(value, langCode)}';
-    if (!attr.affectsPrice) return base;
+    final custom = attr.tooltip(langCode);
+    final base = custom != null && custom.isNotEmpty
+        ? custom
+        : '${attr.label(langCode)}: ${attr.labelForValue(value, langCode)}';
+    // If the admin wrote a custom tooltip for a price-affecting attribute,
+    // keep it but surface the pricing impact alongside it.
+    final prefix = custom != null && custom.isNotEmpty ? base : base;
+    if (!attr.affectsPrice) return prefix;
     final factor = attr.factorForValue(value);
-    if (factor == null) return '$base · ${l10n.attrAffectsPrice}';
-    return '$base · ${l10n.attrAffectsPrice} ×${_formatFactor(factor)}';
+    if (factor == null) return '$prefix · ${l10n.attrAffectsPrice}';
+    return '$prefix · ${l10n.attrAffectsPrice} ×${_formatFactor(factor)}';
+  }
+
+  String _sizeTooltip(
+    List<CarAttribute> allCatalog,
+    String langCode,
+    AppLocalizations l10n,
+    KlearCar car,
+  ) {
+    for (final a in allCatalog) {
+      if (a.key == 'size') {
+        final custom = a.tooltip(langCode);
+        if (custom != null && custom.isNotEmpty) {
+          return '$custom · ${l10n.sizeAdjustment} ×${_formatFactor(car.size.priceFactor)}';
+        }
+        break;
+      }
+    }
+    return '${l10n.sizeAdjustment} ×${_formatFactor(car.size.priceFactor)}';
   }
 
   String _formatFactor(double factor) {

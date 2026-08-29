@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/car_attribute_catalog.dart';
 import '../domain/klear_car.dart';
+import 'car_attribute_icons.dart';
 import 'cars_providers.dart';
 
 /// Add / edit a car. When [car] is provided the form pre-fills and updates,
@@ -176,9 +177,12 @@ class _CarFormPageState extends ConsumerState<CarFormPage> {
     final langCode = Localizations.localeOf(context).languageCode;
 
     final catalogAsync = ref.watch(carAttributesCatalogProvider);
-    final catalog = (catalogAsync.value ?? const <CarAttribute>[])
+    final allCatalog = catalogAsync.value ?? const <CarAttribute>[];
+    final catalog = allCatalog
         .where((a) => !_systemKeys.contains(a.key))
         .toList();
+    final attrByKey = {for (final a in allCatalog) a.key: a};
+    bool isVisible(String k) => attrByKey[k]?.isVisible ?? true;
     _ensureControllersFor(catalog);
 
     return Scaffold(
@@ -190,7 +194,12 @@ class _CarFormPageState extends ConsumerState<CarFormPage> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            // Make
+            // Core identity fields. These map to non-null `cars` columns
+            // (make/model/plate_number are required to identify the vehicle),
+            // so they are ALWAYS rendered regardless of catalog visibility.
+            // Admin `is_visible` controls the dynamic attributes (below) and
+            // size; it must never strip a car's identity fields, otherwise the
+            // form / DB insert would break.
             TextFormField(
               controller: _makeController,
               textInputAction: TextInputAction.next,
@@ -207,7 +216,6 @@ class _CarFormPageState extends ConsumerState<CarFormPage> {
                   : null,
             ),
             const SizedBox(height: 16),
-            // Model
             TextFormField(
               controller: _modelController,
               textInputAction: TextInputAction.next,
@@ -224,7 +232,6 @@ class _CarFormPageState extends ConsumerState<CarFormPage> {
                   : null,
             ),
             const SizedBox(height: 16),
-            // Plate number (always LTR input)
             TextFormField(
               controller: _plateController,
               textDirection: TextDirection.ltr,
@@ -244,44 +251,46 @@ class _CarFormPageState extends ConsumerState<CarFormPage> {
                   : null,
             ),
             const SizedBox(height: 24),
-            // Size — drives the price estimate
-            Text(
-              l10n.carSize,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            SegmentedButton<KlearCarSize>(
-              segments: [
-                ButtonSegment(
-                  value: KlearCarSize.small,
-                  label: Text(l10n.sizeSmall),
-                  icon: const Icon(Icons.directions_car_filled_outlined),
-                ),
-                ButtonSegment(
-                  value: KlearCarSize.medium,
-                  label: Text(l10n.sizeMedium),
-                  icon: const Icon(Icons.directions_car),
-                ),
-                ButtonSegment(
-                  value: KlearCarSize.large,
-                  label: Text(l10n.sizeLarge),
-                  icon: const Icon(Icons.airport_shuttle_outlined),
-                ),
-              ],
-              selected: {_size},
-              onSelectionChanged: (selection) {
-                setState(() => _size = selection.first);
-              },
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${l10n.sizeAdjustment}: '
-              '${_sizeLabel(_size, l10n)} · ×'
-              '${_formatFactor(_size.priceFactor)}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
+            if (isVisible('size'))
+              Text(
+                l10n.carSize,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            if (isVisible('size')) const SizedBox(height: 12),
+            if (isVisible('size'))
+              SegmentedButton<KlearCarSize>(
+                segments: [
+                  ButtonSegment(
+                    value: KlearCarSize.small,
+                    label: Text(l10n.sizeSmall),
+                    icon: const Icon(Icons.directions_car_filled_outlined),
                   ),
-            ),
+                  ButtonSegment(
+                    value: KlearCarSize.medium,
+                    label: Text(l10n.sizeMedium),
+                    icon: const Icon(Icons.directions_car),
+                  ),
+                  ButtonSegment(
+                    value: KlearCarSize.large,
+                    label: Text(l10n.sizeLarge),
+                    icon: const Icon(Icons.airport_shuttle_outlined),
+                  ),
+                ],
+                selected: {_size},
+                onSelectionChanged: (selection) {
+                  setState(() => _size = selection.first);
+                },
+              ),
+            if (isVisible('size')) const SizedBox(height: 8),
+            if (isVisible('size'))
+              Text(
+                '${l10n.sizeAdjustment}: '
+                '${_sizeLabel(_size, l10n)} · ×'
+                '${_formatFactor(_size.priceFactor)}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
             // Dynamic catalog attributes (admin-defined, excluding system ones
             // already rendered above).
             if (catalog.isNotEmpty) ...[
@@ -319,7 +328,7 @@ class _CarFormPageState extends ConsumerState<CarFormPage> {
       textInputAction: TextInputAction.next,
       decoration: InputDecoration(
         labelText: attr.label(langCode),
-        prefixIcon: const Icon(Icons.edit_outlined),
+        prefixIcon: Icon(iconForCarAttribute(attr, langCode)),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
       ),
       validator: attr.isRequired
@@ -331,27 +340,88 @@ class _CarFormPageState extends ConsumerState<CarFormPage> {
   }
 
   Widget _buildSelectField(CarAttribute attr, String langCode) {
-    final options = attr.options
-        .map((o) => DropdownMenuItem(
-              value: o.value,
-              child: Text(o.label(langCode)),
-            ))
-        .toList();
+    final scheme = Theme.of(context).colorScheme;
+    final options = attr.options;
     final current = _selectValues[attr.key];
-    return DropdownButtonFormField<String>(
-      initialValue: options.any((o) => o.value == current) ? current : null,
-      items: options,
-      decoration: InputDecoration(
-        labelText: attr.label(langCode),
-        prefixIcon: const Icon(Icons.list_alt_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      onChanged: (value) => setState(() {
-        if (value != null) _selectValues[attr.key] = value;
-      }),
-      validator: attr.isRequired
-          ? (value) => (value == null) ? _fieldError(attr, langCode) : null
-          : null,
+    final selectedValue = (current == null || current.isEmpty)
+        ? null
+        : current;
+
+    // Selected option (for the price/tooltip helper line, mirroring the "size
+    // adjustment" hint under the car-size SegmentedButton).
+    CarAttributeOption? selectedOption;
+    for (final o in options) {
+      if (o.value == selectedValue) {
+        selectedOption = o;
+        break;
+      }
+    }
+
+    // Header: same hierarchy/weight as the "حجم السيارة" title.
+    final title = Text(
+      attr.label(langCode),
+      style: Theme.of(context).textTheme.titleMedium,
+    );
+
+    // Choice control styled exactly like the car-size segmented control.
+    Widget control;
+    if (options.isEmpty) {
+      control = const SizedBox.shrink();
+    } else if (options.length == 1) {
+      // A single option needs no choice — render it as a selected-looking chip.
+      control = Wrap(
+        children: [
+          Chip(
+            label: Text(options.first.label(langCode)),
+            backgroundColor: scheme.primaryContainer,
+            labelStyle: TextStyle(color: scheme.onPrimaryContainer),
+          ),
+        ],
+      );
+    } else {
+      control = SegmentedButton<String>(
+        segments: [
+          for (final o in options)
+            ButtonSegment(
+              value: o.value,
+              label: Text(o.label(langCode)),
+            ),
+        ],
+        selected: selectedValue == null ? const {} : {selectedValue},
+        emptySelectionAllowed: true,
+        onSelectionChanged: (selection) => setState(() {
+          _selectValues[attr.key] = selection.isEmpty ? '' : selection.first;
+        }),
+      );
+    }
+
+    // Helper line under the control (only when there is something useful):
+    // a price factor for the chosen option, or the admin-set tooltip.
+    String? helper;
+    if (selectedOption != null && attr.affectsPrice && selectedOption.factor != null) {
+      helper = '${attr.label(langCode)}: ${selectedOption.label(langCode)} · ×'
+          '${_formatFactor(selectedOption.factor!)}';
+    } else {
+      final tip = attr.tooltip(langCode);
+      if (tip != null) helper = tip;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        title,
+        const SizedBox(height: 12),
+        control,
+        if (helper != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            helper,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+          ),
+        ],
+      ],
     );
   }
 

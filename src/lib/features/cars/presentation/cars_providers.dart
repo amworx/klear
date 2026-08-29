@@ -24,7 +24,14 @@ final currentUserIdProvider = Provider<String?>((ref) {
 /// Asynchronously exposes the visible car-attribute catalog (admin-managed).
 /// An empty/unfetchable catalog degrades to today's fixed make/model/plate/size
 /// form (size stays first-class; other attributes simply don't render).
-final carAttributesCatalogProvider = FutureProvider<List<CarAttribute>>((ref) {
+///
+/// `autoDispose` so the catalog is re-fetched from the DB every time the user
+/// leaves and re-enters the My Cars / Add Car screens. This is what lets the
+/// customer app "live-adapt" to admin changes in `car_attributes` (add / hide /
+/// reorder / tooltip edits) without an app restart. A keep-alive provider would
+/// cache the catalog for the whole process and hide admin edits.
+final carAttributesCatalogProvider =
+    FutureProvider.autoDispose<List<CarAttribute>>((ref) {
   return ref.watch(carAttributesRepositoryProvider).getVisibleCatalog();
 });
 

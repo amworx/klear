@@ -58,6 +58,8 @@ class CarAttribute {
     this.isRequired = false,
     this.affectsPrice = false,
     this.isSystem = false,
+    this.tooltipAr,
+    this.tooltipEn,
   });
 
   final String id;
@@ -70,6 +72,8 @@ class CarAttribute {
   final bool isRequired;
   final bool affectsPrice;
   final bool isSystem;
+  final String? tooltipAr;
+  final String? tooltipEn;
 
   factory CarAttribute.fromMap(Map<String, dynamic> map) {
     final rawOptions = map['options'];
@@ -92,12 +96,25 @@ class CarAttribute {
       isRequired: map['is_required'] == true,
       affectsPrice: map['affects_price'] == true,
       isSystem: map['is_system'] == true,
+      tooltipAr: (map['tooltip_ar'] as String?)?.trim().isEmpty == true
+          ? null
+          : map['tooltip_ar']?.toString(),
+      tooltipEn: (map['tooltip_en'] as String?)?.trim().isEmpty == true
+          ? null
+          : map['tooltip_en']?.toString(),
     );
   }
 
   /// Localized attribute label.
   String label(String langCode) =>
       langCode == 'ar' && labelAr.isNotEmpty ? labelAr : (labelEn.isNotEmpty ? labelEn : key);
+
+  /// Localized tooltip/description when the admin has set one; null otherwise.
+  String? tooltip(String langCode) {
+    final v = langCode == 'ar' ? tooltipAr : tooltipEn;
+    if (v == null || v.trim().isEmpty) return null;
+    return v.trim();
+  }
 
   /// Price factor for a stored value, when this attribute affects price and
   /// the value resolves to a known option with a factor; null otherwise.

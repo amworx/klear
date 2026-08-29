@@ -32,10 +32,17 @@ class ProfilePage extends ConsumerWidget {
         title: Text(l10n.profile),
         actions: [
           // Shortcut to app-wide settings (language, updates, sign-out).
+          //
+          // /settings lives inside the StatefulShellRoute (bottom-nav tab).
+          // `context.go` performs a clean global navigation that pops this
+          // full-screen profile detour and switches the bottom nav to the
+          // Settings tab. `context.push('/settings')` targeted the shell
+          // branch from on top of a pushed detour, which broke GoRouter's
+          // navigator stack and surfaced the errorBuilder ("Error") screen.
           IconButton(
             tooltip: l10n.settings,
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push(KlearRoutes.settings),
+            onPressed: () => context.go(KlearRoutes.settings),
           ),
         ],
       ),
