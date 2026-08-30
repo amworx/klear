@@ -1,3 +1,8 @@
+/// Thrown when a phone number is already registered to another account.
+class KlearPhoneTakenException implements Exception {
+  const KlearPhoneTakenException();
+}
+
 /// User profile model for Klear.
 class KlearUser {
   const KlearUser({

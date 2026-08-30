@@ -27,13 +27,27 @@ class UsersRepository {
       throw StateError('Supabase is not configured');
     }
 
-    final response = await SupabaseClientManager.instance.client
-        .from('profiles')
-        .upsert(profile.toMap())
-        .select()
-        .single();
+    try {
+      final response = await SupabaseClientManager.instance.client
+          .from('profiles')
+          .upsert(profile.toMap())
+          .select()
+          .single();
 
-    return KlearUser.fromMap(Map<String, dynamic>.from(response));
+      return KlearUser.fromMap(Map<String, dynamic>.from(response));
+    } catch (e) {
+      // A taken phone number surfaces as a Postgres unique-violation on the
+      // `phone` column of `profiles`. Catch it here so the UI can show a clear
+      // message instead of a raw database error.
+      final message = e.toString().toLowerCase();
+      if (message.contains('phone') &&
+          (message.contains('duplicate') ||
+              message.contains('unique') ||
+              message.contains('23505'))) {
+        throw const KlearPhoneTakenException();
+      }
+      rethrow;
+    }
   }
 }
 

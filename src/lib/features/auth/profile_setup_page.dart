@@ -160,6 +160,11 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
       await ref.read(authProvider.notifier).updateProfile(updated);
       if (!mounted) return;
       context.go('/');
+    } on KlearPhoneTakenException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).phoneAlreadyInUse)),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

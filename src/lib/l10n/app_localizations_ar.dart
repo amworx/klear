@@ -284,6 +284,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get save => 'حفظ';
 
   @override
+  String get phoneAlreadyInUse =>
+      'رقم الهاتف هذا مستخدم بالفعل من قبل حساب آخر. الرجاء تسجيل الدخول به أو استخدام رقم مختلف.';
+
+  @override
   String get signOut => 'تسجيل الخروج';
 
   @override

@@ -89,6 +89,7 @@
   "locationServiceDisabled": "Location services are disabled. Please enable them in settings.",
   "locationPermissionDenied": "Location permission denied. Tap to retry.",
   "save": "Save",
+  "phoneAlreadyInUse": "This phone number is already in use by another account. Please sign in with it or use a different number.",
   "signOut": "Sign out",
   "signInRequired": "Please sign in to continue",
   "signInToBook": "Sign in to book a wash",

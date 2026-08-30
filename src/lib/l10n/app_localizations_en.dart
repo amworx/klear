@@ -289,6 +289,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get save => 'Save';
 
   @override
+  String get phoneAlreadyInUse =>
+      'This phone number is already in use by another account. Please sign in with it or use a different number.';
+
+  @override
   String get signOut => 'Sign out';
 
   @override

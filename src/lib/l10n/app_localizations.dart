@@ -632,6 +632,12 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save;
 
+  /// No description provided for @phoneAlreadyInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone number is already in use by another account. Please sign in with it or use a different number.'**
+  String get phoneAlreadyInUse;
+
   /// No description provided for @signOut.
   ///
   /// In en, this message translates to:
